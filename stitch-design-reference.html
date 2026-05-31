@@ -1,0 +1,1256 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fuel Arena Stitch Design Reference</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      color-scheme: dark;
+      --background: #141313;
+      --surface-lowest: #0f0e0e;
+      --surface-low: #1c1b1b;
+      --surface: #201f1f;
+      --surface-high: #2b2a2a;
+      --surface-highest: #363434;
+      --surface-variant: #3c4b35;
+      --on-surface: #e6e1e1;
+      --on-surface-muted: #baccb0;
+      --outline: #85967c;
+      --primary: #efffe3;
+      --primary-fixed: #79ff5b;
+      --primary-dim: #2ae500;
+      --primary-container: #39ff14;
+      --secondary: #b9f1ff;
+      --secondary-fixed: #a5eeff;
+      --secondary-dim: #00daf8;
+      --tertiary: #ffdfa0;
+      --error: #ffb4ab;
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.018) 1px, transparent 1px),
+        var(--background);
+      background-size: 36px 36px;
+      color: var(--on-surface);
+      font-family: Sora, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings: "FILL" 1, "wght" 500, "GRAD" 0, "opsz" 24;
+      line-height: 1;
+    }
+
+    .page-shell {
+      width: min(1600px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 32px 0 56px;
+    }
+
+    .board-header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      padding-bottom: 20px;
+    }
+
+    .brand-lockup {
+      display: grid;
+      gap: 8px;
+    }
+
+    .brand-lockup h1 {
+      margin: 0;
+      color: var(--primary-fixed);
+      font-size: clamp(32px, 6vw, 64px);
+      line-height: 1;
+      font-weight: 800;
+      font-style: italic;
+      text-transform: uppercase;
+      text-shadow: 0 0 24px rgba(121, 255, 91, 0.22);
+    }
+
+    .board-meta {
+      margin: 0;
+      color: var(--on-surface-muted);
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .screen-count {
+      align-self: center;
+      border: 1px solid rgba(121, 255, 91, 0.28);
+      border-radius: 999px;
+      color: var(--primary-fixed);
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      white-space: nowrap;
+      background: rgba(57, 255, 20, 0.08);
+    }
+
+    .board-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 28px;
+      align-items: start;
+    }
+
+    .screen-card {
+      display: grid;
+      gap: 12px;
+    }
+
+    .screen-label {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--on-surface-muted);
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .screen-label span:last-child {
+      color: var(--outline);
+      font-weight: 600;
+    }
+
+    .phone {
+      position: relative;
+      width: min(100%, 390px);
+      height: 844px;
+      margin: 0 auto;
+      border-radius: 34px;
+      padding: 14px;
+      background: linear-gradient(145deg, #080808, #272626);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: 0 24px 70px rgba(0, 0, 0, 0.48);
+      overflow: hidden;
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      top: 7px;
+      left: 50%;
+      width: 96px;
+      height: 5px;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.14);
+      z-index: 5;
+    }
+
+    .screen {
+      position: relative;
+      height: 100%;
+      overflow: hidden;
+      border-radius: 24px;
+      background:
+        linear-gradient(rgba(255, 255, 255, 0.016) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.016) 1px, transparent 1px),
+        var(--background);
+      background-size: 28px 28px;
+      color: var(--on-surface);
+      isolation: isolate;
+    }
+
+    .screen-inner {
+      position: relative;
+      z-index: 2;
+      min-height: 100%;
+      padding: 24px 18px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .screen-scroll {
+      overflow-y: auto;
+      scrollbar-width: none;
+    }
+
+    .screen-scroll::-webkit-scrollbar {
+      display: none;
+    }
+
+    .top-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .icon-button {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      background: var(--surface-low);
+      color: var(--on-surface-muted);
+    }
+
+    .kicker {
+      color: var(--on-surface-muted);
+      font-size: 11px;
+      line-height: 16px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .logo-text {
+      color: var(--primary-fixed);
+      font-weight: 800;
+      font-style: italic;
+      text-transform: uppercase;
+      text-shadow: 0 0 18px rgba(121, 255, 91, 0.24);
+    }
+
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    .headline {
+      margin: 18px 0 8px;
+      color: #fff;
+      font-size: 34px;
+      line-height: 1.12;
+      font-weight: 800;
+    }
+
+    .title {
+      margin: 0 0 8px;
+      color: #fff;
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .copy {
+      margin: 0;
+      color: var(--on-surface-muted);
+      font-size: 14px;
+      line-height: 1.55;
+    }
+
+    .muted {
+      color: var(--on-surface-muted);
+    }
+
+    .primary-text {
+      color: var(--primary-fixed);
+    }
+
+    .secondary-text {
+      color: var(--secondary-dim);
+    }
+
+    .cta,
+    .secondary-cta {
+      width: 100%;
+      min-height: 54px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border: 0;
+      border-radius: var(--radius);
+      font-size: 14px;
+      font-weight: 800;
+      color: #092600;
+      background: var(--primary-fixed);
+      box-shadow: 0 0 22px rgba(121, 255, 91, 0.22);
+      cursor: default;
+    }
+
+    .secondary-cta {
+      color: var(--on-surface);
+      background: var(--surface-high);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      box-shadow: none;
+    }
+
+    .field {
+      width: 100%;
+      min-height: 52px;
+      border: 0;
+      border-bottom: 2px solid var(--secondary-dim);
+      border-radius: var(--radius) var(--radius) 0 0;
+      background: var(--surface-high);
+      color: var(--on-surface);
+      padding: 0 14px 0 44px;
+      outline: 0;
+    }
+
+    .field-wrap {
+      position: relative;
+    }
+
+    .field-wrap .material-symbols-outlined {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--on-surface-muted);
+      font-size: 21px;
+    }
+
+    .panel {
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: var(--radius);
+      background: rgba(28, 27, 27, 0.78);
+      box-shadow: 0 14px 44px rgba(0, 0, 0, 0.34);
+    }
+
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px;
+    }
+
+    .metric {
+      padding: 12px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .metric small {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      color: var(--on-surface-muted);
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      color: #fff;
+      font-size: 20px;
+      line-height: 1.2;
+    }
+
+    .progress {
+      height: 4px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: var(--surface-highest);
+    }
+
+    .progress span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--secondary-dim), var(--primary-fixed));
+    }
+
+    .fixed-bottom {
+      margin-top: auto;
+      padding-top: 18px;
+    }
+
+    .brand-card-grid,
+    .fuel-grid,
+    .class-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .brand-card-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .fuel-grid,
+    .class-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+
+    .tile {
+      min-height: 106px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--surface-low);
+      color: var(--on-surface);
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .tile.selected {
+      color: var(--primary-fixed);
+      border-color: rgba(121, 255, 91, 0.72);
+      background: rgba(121, 255, 91, 0.08);
+      box-shadow: inset 0 0 18px rgba(121, 255, 91, 0.12);
+    }
+
+    .tile .material-symbols-outlined {
+      font-size: 38px;
+    }
+
+    .wide {
+      grid-column: 1 / -1;
+    }
+
+    .car-art {
+      position: relative;
+      min-height: 180px;
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background:
+        radial-gradient(ellipse at center, rgba(121, 255, 91, 0.12), transparent 55%),
+        linear-gradient(160deg, #101010, #292828);
+    }
+
+    .car-art::before {
+      content: "";
+      position: absolute;
+      left: 12%;
+      right: 12%;
+      top: 44%;
+      height: 22%;
+      border-radius: 46% 50% 12% 12%;
+      background: linear-gradient(180deg, #d8d8d8, #505050);
+      opacity: 0.72;
+      clip-path: polygon(5% 68%, 17% 35%, 36% 18%, 69% 18%, 88% 42%, 97% 68%, 89% 78%, 14% 78%);
+      filter: drop-shadow(0 18px 16px rgba(0, 0, 0, 0.72));
+    }
+
+    .car-art::after {
+      content: "";
+      position: absolute;
+      left: 20%;
+      right: 20%;
+      bottom: 30%;
+      height: 5px;
+      border-radius: 999px;
+      background: linear-gradient(90deg, transparent, var(--primary-fixed), var(--secondary-dim), transparent);
+      box-shadow: 0 0 18px rgba(0, 218, 248, 0.45);
+    }
+
+    .car-art.blue {
+      background:
+        radial-gradient(ellipse at center, rgba(0, 218, 248, 0.15), transparent 54%),
+        linear-gradient(160deg, #101010, #292828);
+    }
+
+    .check-mark {
+      width: 118px;
+      height: 118px;
+      display: grid;
+      place-items: center;
+      margin: 0 auto 24px;
+      border-radius: 999px;
+      border: 1px solid rgba(121, 255, 91, 0.28);
+      background: rgba(57, 255, 20, 0.08);
+      box-shadow: 0 0 42px rgba(57, 255, 20, 0.16);
+    }
+
+    .check-mark .material-symbols-outlined {
+      color: var(--primary-container);
+      font-size: 78px;
+      text-shadow: 0 0 18px rgba(57, 255, 20, 0.6);
+    }
+
+    .splash-rings {
+      position: absolute;
+      inset: 88px 38px auto;
+      height: 330px;
+      border: 1px solid rgba(121, 255, 91, 0.18);
+      border-radius: 999px;
+    }
+
+    .splash-rings::before {
+      content: "";
+      position: absolute;
+      inset: 42px;
+      border: 1px dashed rgba(121, 255, 91, 0.18);
+      border-radius: inherit;
+    }
+
+    .splash-line {
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(121, 255, 91, 0.34), transparent);
+    }
+
+    .battle-card {
+      padding: 18px;
+      transform: rotate(-2deg);
+    }
+
+    .versus-row {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 14px;
+      align-items: center;
+      margin-top: 20px;
+    }
+
+    .avatar {
+      width: 66px;
+      height: 66px;
+      margin: 0 auto 8px;
+      border-radius: 999px;
+      border: 2px solid var(--primary-fixed);
+      background:
+        linear-gradient(135deg, rgba(121, 255, 91, 0.28), transparent),
+        var(--surface-high);
+      display: grid;
+      place-items: center;
+    }
+
+    .avatar.blue {
+      border-color: var(--secondary-dim);
+      background:
+        linear-gradient(135deg, rgba(0, 218, 248, 0.28), transparent),
+        var(--surface-high);
+    }
+
+    .season-track {
+      position: relative;
+      display: grid;
+      gap: 18px;
+      padding: 22px 14px;
+    }
+
+    .season-track::before {
+      content: "";
+      position: absolute;
+      top: 32px;
+      bottom: 32px;
+      left: 31px;
+      width: 2px;
+      background: linear-gradient(var(--surface-highest), var(--primary-fixed), var(--surface-highest));
+    }
+
+    .tier-row {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tier-dot {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: var(--surface-highest);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      flex: 0 0 auto;
+    }
+
+    .tier-dot.active {
+      background: var(--primary-fixed);
+      color: #092600;
+      box-shadow: 0 0 18px rgba(121, 255, 91, 0.42);
+    }
+
+    .tier-copy {
+      flex: 1;
+      padding: 12px;
+      border-radius: var(--radius);
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .tier-copy.active {
+      border-color: rgba(121, 255, 91, 0.38);
+      background: linear-gradient(90deg, var(--surface-high), var(--surface));
+    }
+
+    .mini-car-card {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      padding: 14px;
+    }
+
+    .mini-car-thumb {
+      width: 92px;
+      height: 92px;
+      flex: 0 0 auto;
+      border-radius: var(--radius);
+      background:
+        radial-gradient(ellipse at center, rgba(121, 255, 91, 0.18), transparent 58%),
+        var(--surface-lowest);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .mini-car-thumb::after {
+      content: "";
+      position: absolute;
+      left: 12%;
+      right: 12%;
+      top: 48%;
+      height: 20px;
+      border-radius: 999px 999px 4px 4px;
+      background: #868686;
+      clip-path: polygon(5% 70%, 22% 30%, 70% 28%, 95% 70%, 86% 82%, 14% 82%);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      width: fit-content;
+      border-radius: 4px;
+      padding: 4px 7px;
+      border: 1px solid rgba(165, 238, 255, 0.34);
+      background: rgba(165, 238, 255, 0.12);
+      color: var(--secondary-fixed);
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .model-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .model-card {
+      padding: 12px;
+      border-radius: var(--radius);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--surface-low);
+    }
+
+    .model-image {
+      height: 86px;
+      margin-bottom: 10px;
+      border-radius: var(--radius);
+      background:
+        radial-gradient(ellipse at top, rgba(255, 255, 255, 0.1), transparent 64%),
+        var(--surface-lowest);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .model-image::after {
+      content: "";
+      position: absolute;
+      left: 11%;
+      right: 11%;
+      top: 44%;
+      height: 28px;
+      border-radius: 999px 999px 5px 5px;
+      background: #777;
+      clip-path: polygon(4% 73%, 20% 32%, 38% 16%, 70% 18%, 88% 39%, 98% 73%, 88% 82%, 13% 82%);
+      filter: drop-shadow(0 14px 12px rgba(0, 0, 0, 0.65));
+    }
+
+    .model-heading {
+      display: flex;
+      align-items: start;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .model-heading strong {
+      color: #fff;
+      font-size: 15px;
+      line-height: 1.2;
+    }
+
+    .year-row {
+      display: flex;
+      gap: 10px;
+      overflow: hidden;
+      padding-bottom: 4px;
+    }
+
+    .year-tile {
+      width: 98px;
+      height: 110px;
+      flex: 0 0 auto;
+      border-radius: var(--radius);
+      display: grid;
+      place-items: center;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: var(--surface-low);
+      color: var(--on-surface-muted);
+    }
+
+    .year-tile.selected {
+      border: 2px solid var(--primary-fixed);
+      color: var(--primary-fixed);
+      background: rgba(121, 255, 91, 0.08);
+    }
+
+    .year-tile strong {
+      display: block;
+      font-size: 33px;
+      line-height: 1;
+    }
+
+    .consent-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .consent-row,
+    .permission-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px;
+      border-radius: var(--radius);
+      background: var(--surface-low);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .permission-row {
+      align-items: flex-start;
+      justify-content: flex-start;
+    }
+
+    .permission-row.essential {
+      border-color: rgba(121, 255, 91, 0.34);
+    }
+
+    .permission-icon {
+      width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      color: var(--primary-fixed);
+    }
+
+    .toggle {
+      width: 46px;
+      height: 26px;
+      border-radius: 999px;
+      background: var(--surface-highest);
+      position: relative;
+      flex: 0 0 auto;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      background: var(--outline);
+    }
+
+    .toggle.on {
+      background: var(--primary-fixed);
+      box-shadow: 0 0 14px rgba(121, 255, 91, 0.2);
+    }
+
+    .toggle.on::after {
+      left: 23px;
+      background: var(--background);
+    }
+
+    .form-stack {
+      display: grid;
+      gap: 18px;
+    }
+
+    .helper-error {
+      display: flex;
+      gap: 6px;
+      color: var(--error);
+      font-size: 11px;
+      line-height: 1.35;
+      margin-top: 6px;
+    }
+
+    .nickname-input {
+      width: 100%;
+      min-height: 70px;
+      border: 0;
+      border-bottom: 2px solid var(--secondary-dim);
+      border-radius: var(--radius) var(--radius) 0 0;
+      background: var(--surface-high);
+      color: #fff;
+      text-align: center;
+      font-size: 22px;
+      font-weight: 700;
+      outline: 0;
+      padding: 0 14px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      border: 1px solid rgba(121, 255, 91, 0.22);
+      color: var(--primary-fixed);
+      background: rgba(121, 255, 91, 0.08);
+      padding: 6px 10px;
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 999px;
+      background: var(--primary-fixed);
+      box-shadow: 0 0 10px rgba(121, 255, 91, 0.7);
+    }
+
+    @media (max-width: 780px) {
+      .board-header {
+        align-items: start;
+        flex-direction: column;
+      }
+
+      .phone {
+        height: 812px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="board-header">
+      <div class="brand-lockup">
+        <h1>Fuel Arena</h1>
+        <p class="board-meta">Stitch에서 만든 초기 화면들을 한 파일로 정리한 레포용 디자인 레퍼런스입니다.</p>
+      </div>
+      <div class="screen-count">15 Screens</div>
+    </header>
+
+    <main class="board-grid">
+      <section class="screen-card">
+        <div class="screen-label"><span>01 Splash</span><span>연비로 증명해</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="splash-rings"></div>
+            <div class="splash-line" style="top: 20%;"></div>
+            <div class="splash-line" style="bottom: 20%;"></div>
+            <div class="screen-inner" style="align-items:center; justify-content:center; text-align:center;">
+              <div style="flex:1; display:flex; align-items:center;">
+                <h2 class="logo-text" style="font-size:48px; margin:0;">Fuel Arena</h2>
+              </div>
+              <div style="display:flex; gap:8px; margin-bottom:28px;">
+                <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+              </div>
+              <p class="kicker" style="margin-bottom:16px;">연비로 증명해</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>02 Login</span><span>소셜 인증</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner" style="justify-content:center;">
+              <header style="text-align:center; margin-bottom:34px;">
+                <h2 class="logo-text" style="font-size:44px; margin:0 0 10px;">Fuel Arena</h2>
+                <p class="kicker">System Access Terminal</p>
+              </header>
+              <form class="panel form-stack" style="padding:24px;">
+                <label class="form-stack" style="gap:8px;">
+                  <span class="kicker">Driver ID / Email</span>
+                  <span class="field-wrap"><span class="material-symbols-outlined">account_circle</span><input class="field" placeholder="Enter your email" /></span>
+                </label>
+                <label class="form-stack" style="gap:8px;">
+                  <span class="top-row"><span class="kicker">Access Code</span><span class="secondary-text" style="font-size:12px;">Recover?</span></span>
+                  <span class="field-wrap"><span class="material-symbols-outlined">lock</span><input class="field" placeholder="••••••••" type="password" /></span>
+                </label>
+                <button class="cta" type="button">Initialize Start</button>
+                <div class="top-row muted" style="font-size:11px;"><span style="height:1px; flex:1; background:rgba(255,255,255,.1);"></span>External Link<span style="height:1px; flex:1; background:rgba(255,255,255,.1);"></span></div>
+                <div style="display:flex; justify-content:center; gap:12px;">
+                  <button class="icon-button" type="button"><span class="material-symbols-outlined">account_box</span></button>
+                  <button class="icon-button" type="button"><span class="material-symbols-outlined">ios</span></button>
+                  <button class="icon-button" type="button"><span class="material-symbols-outlined">chat</span></button>
+                </div>
+                <p class="copy" style="text-align:center;">No active license? <span class="primary-text" style="font-weight:700;">Join now</span></p>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>03 Sign Up</span><span>정보 입력</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner" style="justify-content:center;">
+              <header style="text-align:center; margin-bottom:24px;">
+                <h2 class="logo-text" style="font-size:40px; margin:0 0 8px;">Fuel Arena</h2>
+                <p class="kicker">Driver Registration Protocol</p>
+              </header>
+              <form class="panel form-stack" style="padding:22px;">
+                <label class="form-stack" style="gap:8px;">
+                  <span class="kicker">Callsign / Nickname</span>
+                  <span class="field-wrap"><span class="material-symbols-outlined">badge</span><input class="field" placeholder="e.g. ApexPredator99" /></span>
+                </label>
+                <label class="form-stack" style="gap:8px;">
+                  <span class="kicker">Comm Link (Email)</span>
+                  <span class="field-wrap"><span class="material-symbols-outlined primary-text">mail</span><input class="field" value="driver@fuelarena.net" /></span>
+                </label>
+                <label class="form-stack" style="gap:8px;">
+                  <span class="kicker" style="color:var(--error);">Access Key (Password)</span>
+                  <span class="field-wrap"><span class="material-symbols-outlined" style="color:var(--error);">lock</span><input class="field" style="border-color:var(--error);" type="password" value="weakpass" /></span>
+                  <span class="helper-error"><span class="material-symbols-outlined" style="font-size:16px;">warning</span>Access key requires minimum 8 characters, numericals, and symbols.</span>
+                </label>
+                <div style="display:flex; gap:10px; color:var(--on-surface-muted); font-size:11px; line-height:1.4;">
+                  <span style="width:16px; height:16px; border:1px solid var(--outline); border-radius:4px; flex:0 0 auto;"></span>
+                  <span>I accept Arena Regulations and Telemetry Privacy Policy.</span>
+                </div>
+                <button class="cta" type="button">가입 완료 <span class="material-symbols-outlined">arrow_forward</span></button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>04 Consent</span><span>약관 및 데이터 활용</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner">
+              <h2 class="logo-text" style="font-size:26px; margin:20px 0 42px;">Fuel Arena</h2>
+              <div style="margin-bottom:26px;">
+                <div class="icon-button" style="border-radius:8px; color:var(--primary-fixed);"><span class="material-symbols-outlined">speed</span></div>
+                <h2 class="title" style="margin-top:16px;">Initialize System</h2>
+                <p class="copy"><span class="primary-text">공정한 랭킹 계산</span>을 위해 주행 데이터가 필요해요.</p>
+              </div>
+              <div class="consent-list">
+                <div class="consent-row"><div><span class="badge" style="color:var(--primary-fixed); border-color:rgba(121,255,91,.28); background:rgba(121,255,91,.08);">필수</span><h3 style="font-size:16px; margin:8px 0 4px;">Service Terms</h3><p class="kicker" style="text-transform:none;">View Details</p></div><span class="toggle on"></span></div>
+                <div class="consent-row"><div><span class="badge" style="color:var(--primary-fixed); border-color:rgba(121,255,91,.28); background:rgba(121,255,91,.08);">필수</span><h3 style="font-size:16px; margin:8px 0 4px;">Privacy Policy</h3><p class="kicker" style="text-transform:none;">View Details</p></div><span class="toggle on"></span></div>
+                <div class="consent-row"><div><span class="badge" style="color:var(--primary-fixed); border-color:rgba(121,255,91,.28); background:rgba(121,255,91,.08);">필수</span><h3 style="font-size:16px; margin:8px 0 4px;">Location Data Processing</h3><p class="copy" style="font-size:11px;">Required to verify ranking segments.</p></div><span class="toggle on"></span></div>
+                <div class="consent-row"><div><span class="badge" style="color:var(--on-surface-muted); border-color:rgba(255,255,255,.12); background:var(--surface-highest);">선택</span><h3 style="font-size:16px; margin:8px 0 4px;">Marketing Offers</h3><p class="copy" style="font-size:11px;">Receive tactical insights and sponsorship deals.</p></div><span class="toggle"></span></div>
+              </div>
+              <div class="fixed-bottom"><button class="cta">동의하고 시작하기 <span class="material-symbols-outlined">arrow_forward</span></button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>05 Permission</span><span>권한 요청 안내</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner">
+              <header style="text-align:center; margin:44px 0 34px;">
+                <div class="check-mark" style="width:76px; height:76px; margin-bottom:18px;"><span class="material-symbols-outlined" style="font-size:40px;">location_on</span></div>
+                <h2 class="title">앱 사용을 위한 권한 안내</h2>
+                <p class="copy">정확한 연비 측정을 위해 위치 권한이 꼭 필요해요.</p>
+              </header>
+              <div class="form-stack">
+                <div class="permission-row essential"><span class="permission-icon"><span class="material-symbols-outlined">share_location</span></span><div><h3 style="margin:0 0 6px;">위치 <span class="primary-text" style="font-size:13px;">(필수)</span></h3><p class="copy">실시간 주행 기록, 정확한 연비 및 퍼포먼스 데이터 측정</p></div></div>
+                <div class="permission-row"><span class="permission-icon" style="color:var(--secondary-fixed);"><span class="material-symbols-outlined">notifications_active</span></span><div><h3 style="margin:0 0 6px;">알림 <span class="muted" style="font-size:13px;">(선택)</span></h3><p class="copy">주행 결과 리포트, 시즌 랭킹 업데이트 및 중요 공지 안내</p></div></div>
+                <div class="permission-row"><span class="permission-icon" style="color:var(--secondary-fixed);"><span class="material-symbols-outlined">ads_click</span></span><div><h3 style="margin:0 0 6px;">앱 추적 <span class="muted" style="font-size:13px;">(선택)</span></h3><p class="copy">주행 패턴 기반 맞춤형 혜택 및 광고 제공</p></div></div>
+              </div>
+              <p class="copy" style="text-align:center; font-size:11px; margin-top:18px;">선택 권한은 동의하지 않아도 앱 기본 기능을 사용할 수 있습니다.</p>
+              <div class="fixed-bottom"><button class="cta">권한 허용하기</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>06 Onboarding</span><span>경쟁의 시작</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner">
+              <div class="top-row" style="justify-content:flex-end;"><button class="secondary-cta" style="width:auto; min-height:auto; padding:8px 12px;">Skip</button></div>
+              <div style="margin:auto 0; display:grid; gap:28px;">
+                <div class="panel" style="padding:14px;">
+                  <div class="car-art"></div>
+                  <div class="metric-grid" style="margin-top:10px;">
+                    <div class="metric"><small><span class="material-symbols-outlined" style="font-size:15px; color:var(--secondary-fixed);">speed</span>Avg Speed</small><strong>64 <span class="muted" style="font-size:10px;">km/h</span></strong></div>
+                    <div class="metric"><small><span class="material-symbols-outlined" style="font-size:15px; color:var(--tertiary);">local_gas_station</span>Consumption</small><strong>14.2 <span class="muted" style="font-size:10px;">km/l</span></strong></div>
+                  </div>
+                </div>
+                <div style="text-align:center;">
+                  <h2 class="title">연비를 관리하지 말고<br><span class="primary-text">경쟁하세요</span></h2>
+                  <p class="copy">Transform your daily driving into a competitive sport. Track your efficiency against others in the arena.</p>
+                </div>
+              </div>
+              <div class="fixed-bottom">
+                <div style="display:flex; justify-content:center; gap:8px; margin-bottom:18px;"><span style="width:32px; height:5px; border-radius:999px; background:var(--primary-fixed);"></span><span style="width:8px; height:5px; border-radius:999px; background:var(--surface-highest);"></span><span style="width:8px; height:5px; border-radius:999px; background:var(--surface-highest);"></span></div>
+                <button class="cta">Next <span class="material-symbols-outlined">arrow_forward</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>07 Onboarding</span><span>실시간 배틀</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner">
+              <div class="top-row" style="justify-content:flex-end;"><button class="secondary-cta" style="width:auto; min-height:auto; padding:8px 12px;">Skip</button></div>
+              <div style="margin:auto 0; display:grid; gap:34px;">
+                <div class="panel battle-card">
+                  <div class="status-pill" style="position:absolute; top:-13px; left:50%; transform:translateX(-50%); background:var(--background);"><span class="dot"></span>Live Match</div>
+                  <div class="versus-row">
+                    <div style="text-align:center;"><div class="avatar"><span class="material-symbols-outlined">person</span></div><span class="kicker primary-text">You</span></div>
+                    <div style="text-align:center;"><span class="material-symbols-outlined primary-text" style="font-size:32px;">sports_esports</span><strong style="display:block; color:var(--outline); font-size:34px; font-style:italic;">VS</strong></div>
+                    <div style="text-align:center;"><div class="avatar blue"><span class="material-symbols-outlined">leaderboard</span></div><span class="kicker">Rival_09</span></div>
+                  </div>
+                  <div style="margin-top:22px;">
+                    <div class="top-row" style="font-size:12px; color:var(--on-surface-muted); margin-bottom:8px;"><span>Efficiency Score</span><span>98%</span></div>
+                    <div class="progress"><span style="width:85%;"></span></div>
+                  </div>
+                </div>
+                <div style="text-align:center;">
+                  <h2 class="title primary-text">친구뿐 아니라 모든 운전자와 겨루세요</h2>
+                  <p class="copy">글로벌 리더보드에 진입하여 당신의 운전 스킬을 증명하세요.</p>
+                </div>
+              </div>
+              <div class="fixed-bottom">
+                <div style="display:flex; justify-content:center; gap:8px; margin-bottom:18px;"><span style="width:8px; height:8px; border-radius:999px; background:var(--surface-highest);"></span><span style="width:32px; height:8px; border-radius:999px; background:var(--primary-fixed);"></span><span style="width:8px; height:8px; border-radius:999px; background:var(--surface-highest);"></span></div>
+                <button class="cta">Next <span class="material-symbols-outlined">arrow_forward</span></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>08 Onboarding</span><span>티어와 보상</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner">
+              <header style="display:flex; gap:8px; padding-top:18px; margin-bottom:54px;">
+                <span class="progress" style="flex:1; background:var(--surface-highest); opacity:.6;"></span>
+                <span class="progress" style="flex:1; background:var(--surface-highest); opacity:.6;"></span>
+                <span class="progress" style="flex:1;"><span style="width:100%;"></span></span>
+              </header>
+              <div class="panel season-track">
+                <div class="tier-row" style="opacity:.62;"><span class="tier-dot"><span class="material-symbols-outlined" style="font-size:16px;">check</span></span><div class="tier-copy"><span class="kicker">Tier 1</span><strong style="display:block; margin-top:4px;">Starter Badge</strong></div></div>
+                <div class="tier-row"><span class="tier-dot active"><span class="material-symbols-outlined" style="font-size:18px;">local_fire_department</span></span><div class="tier-copy active"><span class="kicker primary-text">Tier 2 Current</span><strong style="display:block; margin-top:4px;">Neon Core Chest</strong></div></div>
+                <div class="tier-row"><span class="tier-dot"><span class="material-symbols-outlined" style="font-size:16px;">lock</span></span><div class="tier-copy"><span class="kicker">Tier 3</span><strong style="display:block; margin-top:4px;">Elite Aerodynamics</strong></div></div>
+              </div>
+              <div style="text-align:center; margin:auto 0 28px;">
+                <h2 class="title">주행할수록 티어와<br>보상이 쌓입니다</h2>
+                <p class="copy">매 시즌 갱신되는 배틀패스로 최고의 드라이버가 되어 한정판 파츠를 획득하세요.</p>
+              </div>
+              <button class="cta">시작하기 <span class="material-symbols-outlined">arrow_forward</span></button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>09 Vehicle Start</span><span>차량 등록 시작</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner" style="align-items:center; justify-content:center; text-align:center;">
+              <div style="display:grid; gap:10px; margin-bottom:34px;">
+                <h2 class="title primary-text">경쟁할 차량을 등록하세요</h2>
+                <p class="copy">공정한 배틀 매칭을 위해 실제 차량 정보를 등록해주세요.</p>
+              </div>
+              <div style="width:274px; height:274px; border-radius:999px; border:1px solid rgba(255,255,255,.12); display:grid; place-items:center; margin-bottom:44px;">
+                <div class="panel" style="width:178px; height:178px; border-radius:999px; display:grid; place-items:center; box-shadow:0 0 24px rgba(121,255,91,.18);">
+                  <span class="material-symbols-outlined primary-text" style="font-size:72px;">directions_car</span>
+                </div>
+              </div>
+              <button class="cta">차량 등록 시작 <span class="material-symbols-outlined">arrow_forward</span></button>
+              <div class="status-pill" style="margin-top:16px;"><span class="dot"></span>Secure Data Environment</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>10 Manufacturer</span><span>제조사 선택</span></div>
+        <div class="phone">
+          <div class="screen screen-scroll">
+            <div class="screen-inner">
+              <div class="top-row" style="margin-bottom:24px;"><button class="icon-button"><span class="material-symbols-outlined">arrow_back</span></button><span class="logo-text">Fuel Arena</span><span class="status-pill" style="padding:5px 8px;">982 PTS</span></div>
+              <h2 class="headline" style="font-size:35px;">Select Manufacturer</h2>
+              <p class="copy" style="margin-bottom:22px;">Choose your vehicle brand to calibrate telemetry.</p>
+              <div class="field-wrap" style="margin-bottom:24px;"><span class="material-symbols-outlined">search</span><input class="field" placeholder="Search brands..." /></div>
+              <div class="top-row" style="margin-bottom:12px;"><span class="kicker">Popular</span></div>
+              <div class="brand-card-grid" style="margin-bottom:24px;">
+                <div class="tile selected"><strong style="font-size:24px;">H</strong><span>Hyundai</span></div>
+                <div class="tile"><strong style="font-size:24px;">P</strong><span>Porsche</span></div>
+                <div class="tile"><strong style="font-size:24px;">BMW</strong><span>BMW</span></div>
+                <div class="tile"><strong style="font-size:24px;">KIA</strong><span>Kia</span></div>
+              </div>
+              <div class="top-row" style="margin-bottom:12px;"><span class="kicker">All Manufacturers</span><span class="badge" style="color:var(--outline);">A-Z</span></div>
+              <div class="brand-card-grid">
+                <div class="tile" style="min-height:66px;">Audi</div><div class="tile" style="min-height:66px;">Ford</div><div class="tile" style="min-height:66px;">Honda</div><div class="tile" style="min-height:66px;">Lexus</div><div class="tile" style="min-height:66px;">Mazda</div><div class="tile" style="min-height:66px;">Nissan</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>11 Fuel Type</span><span>연료 타입</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner">
+              <div class="top-row" style="margin-bottom:18px;"><button class="icon-button"><span class="material-symbols-outlined">arrow_back</span></button><span class="kicker">Setup Profile</span><span style="width:40px;"></span></div>
+              <h2 class="headline">Select Fuel Type</h2>
+              <p class="copy" style="margin-bottom:26px;">Configure your vehicle's primary power source for accurate telemetry tracking.</p>
+              <div class="fuel-grid">
+                <div class="tile selected"><span class="material-symbols-outlined">local_gas_station</span>Gasoline</div>
+                <div class="tile"><span class="material-symbols-outlined">oil_barrel</span>Diesel</div>
+                <div class="tile wide" style="min-height:116px;"><span class="material-symbols-outlined">battery_charging_full</span>Hybrid System</div>
+                <div class="tile"><span class="material-symbols-outlined">ev_station</span>Electric</div>
+                <div class="tile"><span class="material-symbols-outlined">propane_tank</span>LPG</div>
+              </div>
+              <div class="fixed-bottom"><button class="cta">다음 단계 <span class="material-symbols-outlined">arrow_forward</span></button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>12 Specs</span><span>연식 및 차급</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner">
+              <div class="top-row" style="margin-bottom:24px;"><button class="icon-button"><span class="material-symbols-outlined">arrow_back</span></button><span class="kicker">Vehicle Setup</span><span style="width:40px;"></span></div>
+              <h2 class="headline primary-text">Spec<br>Configuration</h2>
+              <p class="copy" style="margin-bottom:26px;">Calibrate your vehicle data for the arena.</p>
+              <section style="margin-bottom:28px;">
+                <div class="top-row" style="margin-bottom:12px;"><h3 style="margin:0;">Model Year</h3><span class="kicker primary-text">Scroll</span></div>
+                <div class="year-row">
+                  <div class="year-tile selected"><div><strong>24</strong><span class="kicker primary-text">2024</span></div></div>
+                  <div class="year-tile"><div><strong>23</strong><span class="kicker">2023</span></div></div>
+                  <div class="year-tile"><div><strong>22</strong><span class="kicker">2022</span></div></div>
+                </div>
+              </section>
+              <section>
+                <h3 style="margin:0 0 12px;">Vehicle Class</h3>
+                <div class="class-grid">
+                  <div class="tile" style="min-height:60px;">경형</div><div class="tile" style="min-height:60px;">소형</div><div class="tile selected" style="min-height:60px;">준중형</div><div class="tile" style="min-height:60px;">중형</div><div class="tile" style="min-height:60px;">대형</div><div class="tile" style="min-height:60px;">SUV</div>
+                </div>
+              </section>
+              <div class="panel" style="display:flex; gap:10px; padding:12px; margin-top:auto; color:var(--secondary);"><span class="material-symbols-outlined">info</span><p class="copy" style="color:var(--secondary);">공정한 랭킹 산정에 사용됩니다.</p></div>
+              <div style="padding-top:18px;"><button class="cta">Confirm Specs <span class="material-symbols-outlined">chevron_right</span></button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>13 Model</span><span>차량 모델 선택</span></div>
+        <div class="phone">
+          <div class="screen screen-scroll">
+            <div class="screen-inner">
+              <div style="height:4px; margin:-24px -18px 20px; background:linear-gradient(90deg,var(--secondary-dim),var(--primary-fixed)); width:40%;"></div>
+              <div class="top-row" style="margin-bottom:18px;"><button class="icon-button"><span class="material-symbols-outlined">arrow_back</span></button><span class="kicker">Step 02 // Chassis</span><span style="width:40px;"></span></div>
+              <h2 class="headline" style="font-size:36px;">Porsche</h2>
+              <p class="copy" style="margin-bottom:18px;">Select a vehicle model to configure performance parameters.</p>
+              <div class="field-wrap" style="margin-bottom:16px;"><span class="material-symbols-outlined">search</span><input class="field" placeholder="Search chassis ID or model name..." /></div>
+              <div class="top-row" style="margin-bottom:12px;"><span class="kicker">12 Models Available</span><span class="kicker secondary-text">Filter</span></div>
+              <div class="model-grid">
+                <div class="model-card"><div class="model-image"></div><div class="model-heading"><strong>911 GT3 RS</strong><span class="secondary-text" style="font-size:12px;">992</span></div><div class="progress"><span style="width:95%;"></span></div><div class="top-row" style="margin-top:8px;"><span class="badge" style="color:var(--on-surface-muted); border-color:rgba(255,255,255,.1);">Aero Focus</span><span class="kicker">Class S</span></div></div>
+                <div class="model-card"><div class="model-image"></div><div class="model-heading"><strong>911 Turbo S</strong><span class="secondary-text" style="font-size:12px;">992</span></div><div class="progress"><span style="width:88%;"></span></div><div class="top-row" style="margin-top:8px;"><span class="badge" style="color:var(--on-surface-muted); border-color:rgba(255,255,255,.1);">AWD Power</span><span class="kicker">Class S</span></div></div>
+                <div class="model-card"><div class="model-image blue"></div><div class="model-heading"><strong>Taycan Turbo S</strong><span class="secondary-text" style="font-size:12px;">EV</span></div><div class="progress"><span style="width:85%;"></span></div><div class="top-row" style="margin-top:8px;"><span class="badge">Electric Torque</span><span class="kicker">Class S</span></div></div>
+              </div>
+              <div class="fixed-bottom"><button class="cta" style="opacity:.6;">Confirm Chassis <span class="material-symbols-outlined">arrow_forward</span></button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>14 Nickname</span><span>차량 닉네임 입력</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner">
+              <div class="top-row" style="margin-bottom:88px;"><button class="icon-button"><span class="material-symbols-outlined">arrow_back</span></button><span class="logo-text">Fuel Arena</span><span class="status-pill" style="padding:5px 8px;">982 PTS</span></div>
+              <div style="text-align:center; margin-bottom:30px;">
+                <span class="material-symbols-outlined secondary-text" style="font-size:44px;">directions_car</span>
+                <h2 class="title">내 차량의 닉네임을<br>정해주세요.</h2>
+                <p class="copy">어드벤처를 함께할 파트너의 이름을 지어주세요.</p>
+              </div>
+              <div class="panel" style="padding:16px;">
+                <input class="nickname-input" placeholder="예: 연비 괴물, 출퇴근 머신" />
+                <div class="top-row" style="margin-top:10px; font-size:11px; color:var(--outline);"><span><span class="material-symbols-outlined" style="font-size:14px; vertical-align:middle;">info</span> 최대 10자 이내</span><span>0 / 10</span></div>
+              </div>
+              <div class="fixed-bottom"><button class="cta"><span class="material-symbols-outlined">check_circle</span>대표 차량으로 설정</button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="screen-card">
+        <div class="screen-label"><span>15 Complete</span><span>등록 완료</span></div>
+        <div class="phone">
+          <div class="screen">
+            <div class="screen-inner" style="justify-content:center;">
+              <div style="text-align:center;">
+                <div class="check-mark"><span class="material-symbols-outlined">check_circle</span></div>
+                <h2 class="headline primary-text" style="margin-bottom:12px;">Registration<br>Success</h2>
+                <p class="copy">이제 같은 클래스 운전자들과 공정하게 겨룰 수 있어요</p>
+              </div>
+              <div class="panel mini-car-card" style="margin-top:46px;">
+                <div class="mini-car-thumb"></div>
+                <div style="min-width:0; flex:1;">
+                  <div class="top-row" style="margin-bottom:6px;"><span class="kicker">Your Ride</span><span class="badge"><span class="material-symbols-outlined" style="font-size:14px;">military_tech</span>Class S</span></div>
+                  <h3 style="margin:0 0 6px; font-size:21px;">Phantom R-Spec</h3>
+                  <p class="copy"><span class="material-symbols-outlined primary-text" style="font-size:16px; vertical-align:middle;">speed</span> Ready to Deploy</p>
+                </div>
+              </div>
+              <div class="fixed-bottom"><button class="cta">첫 주행 시작하기 <span class="material-symbols-outlined">arrow_forward</span></button></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

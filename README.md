@@ -1,12 +1,10 @@
-# Fuel_arena
+# Fuel Arena
 
-Fuel Arena는 연비와 주행 효율 점수로 운전자들이 경쟁하는 게임형 드라이빙 플랫폼입니다.
-
-이 앱은 단순한 연비 기록 앱이 아닙니다.
-사용자는 주행 후 점수를 받고, 랭킹이 변하며, 시즌·배틀·라이벌·배지·업적·스폰서 챌린지를 통해 계속 경쟁합니다.
+Fuel Arena는 연비와 주행 효율을 경쟁 점수로 바꾸는 게임형 드라이빙 플랫폼입니다.
 
 핵심 문장:
-“기름값을 아끼는 앱이 아니라, 이기고 싶어서 자연스럽게 아끼게 만드는 앱.”
+
+> 기름값을 아끼는 앱이 아니라, 이기고 싶어서 자연스럽게 아끼게 만드는 앱.
 
 ## Tech Stack
 
@@ -19,29 +17,26 @@ Fuel Arena는 연비와 주행 효율 점수로 운전자들이 경쟁하는 게
 - Supabase Edge Functions
 - Supabase Row Level Security
 
-## Core Features
+## Current Scope
 
-- 한국어 기반 모바일 앱
-- 차량 등록
-- 주행 기록
-- 주행 효율 점수
-- 랭킹
-- 1:1 배틀
-- 그룹 배틀
-- 시즌 리그
-- 일일/주간 미션
-- 라이벌 시스템
-- 크루 시스템
-- 배지/업적
-- 광고 보상
-- 스폰서 챌린지
-- 쿠폰 리워드
-- 프리미엄 구독
-- 주행 중 안전 모드
-- 공정성 센터
-- 부정행위 검증
-- 운영자 대시보드
+현재 레포에는 Mock Repository 기반 Flutter 앱 골격이 들어 있습니다.
 
-## Product Principle
+- Splash → Onboarding → Login → Vehicle Register → Home 흐름
+- 홈, 배틀, 랭킹, 시즌, 프로필 하단 탭
+- 주행 시작, 안전 주행, 주행 결과 화면
+- 리워드 광고, 프리미엄, 스폰서, 지갑, 통계, 공정성 센터, 설정 placeholder
+- Supabase 연동 준비 구조와 문서
 
-Fuel Arena must feel like a competitive driving game, not a fuel logbook.
+## Local Setup
+
+Flutter SDK가 설치된 환경에서 다음 명령을 실행하세요.
+
+```bash
+flutter create . --project-name fuel_arena --platforms android,ios
+flutter pub get
+dart format .
+flutter analyze
+flutter run
+```
+
+Supabase 실제 연동 전까지 앱은 Mock Repository로 동작합니다.
