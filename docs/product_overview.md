@@ -52,7 +52,7 @@ Phase 3:
 - Fairness Center
 - Settings
 
-Phase 3은 첫 작업에서 route와 placeholder 중심으로 준비한다.
+Phase 3은 route와 mock 데이터 기반 실제 화면 흐름을 함께 구현한다.
 
 ## 디자인 방향
 

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../design_system/app_colors.dart';
 import '../../../design_system/app_spacing.dart';
@@ -36,7 +37,7 @@ class ProfileScreen extends ConsumerWidget {
                 contentPadding: EdgeInsets.zero,
                 leading: Icon(Icons.directions_car_rounded, color: AppColors.neonGreen),
                 title: Text('출퇴근 머신'),
-                subtitle: Text('대표 차량 · 프로필 꾸미기 준비 중'),
+                subtitle: Text('대표 차량 · 공개 프로필에 표시'),
               ),
             ),
             const SizedBox(height: AppSpacing.lg),
@@ -45,6 +46,12 @@ class ProfileScreen extends ConsumerWidget {
               loading: () => const LoadingSkeletonView(lines: 1),
               error: (error, stackTrace) => const ErrorStateView(message: '배지를 불러오지 못했어요.'),
               data: (items) => BadgeGrid(badges: items),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            SecondaryButton(
+              label: '배지 컬렉션 전체 보기',
+              icon: Icons.workspace_premium_rounded,
+              onPressed: () => context.push('/profile/badges'),
             ),
             const SizedBox(height: AppSpacing.lg),
             const SectionHeader(title: '업적'),

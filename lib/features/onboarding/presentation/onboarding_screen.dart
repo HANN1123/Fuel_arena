@@ -43,7 +43,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   void _next() {
     if (_index == _pages.length - 1) {
-      context.go('/login');
+      context.go('/auth/login');
       return;
     }
     _controller.nextPage(
@@ -61,7 +61,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () => context.go('/login'),
+              onPressed: () => context.go('/auth/login'),
               child: const Text('Skip'),
             ),
           ),

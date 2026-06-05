@@ -40,9 +40,18 @@ class FairnessCenterScreen extends ConsumerWidget {
                   ),
                 ),
               ),
-              const LockedPremiumCard(
-                title: '비정상 기록 이의 제기',
-                description: '검증 센터와 이의 제기 워크플로우는 다음 단계에서 연결됩니다.',
+              const AppCard(
+                borderColor: AppColors.amber,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    StatusChip(label: '검토 요청 가능', color: AppColors.amber, icon: Icons.fact_check_rounded),
+                    SizedBox(height: AppSpacing.md),
+                    Text('점수 반영 보류 기록이 있다면 검토를 요청할 수 있어요', style: AppTypography.titleMedium),
+                    SizedBox(height: AppSpacing.xs),
+                    Text('공격적인 표현 없이 기록 상태와 검증 기준을 설명하고, 사용자가 이의를 제출할 수 있는 흐름을 제공합니다.', style: AppTypography.bodyMedium),
+                  ],
+                ),
               ),
             ],
           );

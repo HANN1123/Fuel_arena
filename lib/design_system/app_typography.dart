@@ -19,7 +19,7 @@ abstract final class AppTypography {
     fontSize: 36,
     height: 44 / 36,
     fontWeight: FontWeight.w700,
-    letterSpacing: 0.02,
+    letterSpacing: 0,
     color: AppColors.onSurface,
   );
 
@@ -60,7 +60,7 @@ abstract final class AppTypography {
     fontSize: 12,
     height: 16 / 12,
     fontWeight: FontWeight.w800,
-    letterSpacing: 0.08,
+    letterSpacing: 0,
     color: AppColors.onSurfaceMuted,
   );
 

@@ -10,7 +10,12 @@ import '../../../shared/providers/repository_providers.dart';
 import '../../../shared/widgets/widgets.dart';
 
 class DriveResultScreen extends ConsumerStatefulWidget {
-  const DriveResultScreen({super.key});
+  const DriveResultScreen({
+    super.key,
+    this.sessionId = 'mock-session',
+  });
+
+  final String sessionId;
 
   @override
   ConsumerState<DriveResultScreen> createState() => _DriveResultScreenState();

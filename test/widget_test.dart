@@ -1,11 +1,23 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:fuel_arena/app/app_config.dart';
+import 'package:fuel_arena/app/bootstrap.dart';
 import 'package:fuel_arena/app/fuel_arena_app.dart';
 
 void main() {
   testWidgets('Fuel Arena app starts at splash screen', (tester) async {
-    await tester.pumpWidget(const ProviderScope(child: FuelArenaApp()));
+    await tester.pumpWidget(
+      const ProviderScope(
+        child: FuelArenaApp(
+          bootstrap: BootstrapResult(
+            config: AppConfig.devMock(),
+            supabaseInitialized: false,
+            configurationError: null,
+          ),
+        ),
+      ),
+    );
 
     expect(find.text('FUEL ARENA'), findsOneWidget);
     expect(find.text('연비로 증명해'), findsOneWidget);

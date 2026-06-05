@@ -1,6 +1,6 @@
-# Supabase Plan
+﻿# Supabase Plan
 
-Fuel Arena는 Supabase Auth, Postgres, Realtime, Storage, Edge Functions, Row Level Security를 전제로 설계한다. 첫 구현에서는 Mock Repository를 사용하고 Supabase 구현체는 TODO로 남긴다.
+Fuel Arena는 Supabase Auth, Postgres, Realtime, Storage, Edge Functions, Row Level Security를 전제로 설계한다. 첫 구현에서는 Mock Repository를 사용하고 Supabase 구현체는 mock fallback으로 동작하도록 유지한다.
 
 ## 환경변수
 

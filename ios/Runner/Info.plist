@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleDisplayName</key>
+  <string>Fuel Arena</string>
+  <key>NSLocationWhenInUseUsageDescription</key>
+  <string>주행 거리와 지역 리그 계산을 위해 위치 정보가 필요합니다.</string>
+  <key>NSUserNotificationUsageDescription</key>
+  <string>랭킹 추월, 배틀 결과, 시즌 보상을 알려드리기 위해 알림을 사용합니다.</string>
+  <key>GADApplicationIdentifier</key>
+  <string>$(ADMOB_IOS_APP_ID)</string>
+</dict>
+</plist>

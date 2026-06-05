@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../design_system/app_colors.dart';
 import '../../../design_system/app_spacing.dart';
@@ -23,7 +24,7 @@ class BattleScreen extends ConsumerWidget {
             const SizedBox(height: AppSpacing.xs),
             Text('현금성 베팅 없이 점수와 명예로 겨룹니다', style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted)),
             const SizedBox(height: AppSpacing.lg),
-            PrimaryButton(label: '새 배틀 만들기', icon: Icons.add_rounded, onPressed: () {}),
+            PrimaryButton(label: '새 배틀 만들기', icon: Icons.add_rounded, onPressed: () => context.push('/battle/create')),
             const SizedBox(height: AppSpacing.xl),
             battles.when(
               loading: () => const LoadingSkeletonView(lines: 4),
@@ -32,13 +33,13 @@ class BattleScreen extends ConsumerWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SectionHeader(title: '진행 중 배틀'),
-                  BattleCard(battle: items.first),
+                  BattleCard(battle: items.first, onTap: () => context.push('/battle/detail/${items.first.id}')),
                   const SizedBox(height: AppSpacing.lg),
                   const SectionHeader(title: '추천 공개 배틀'),
                   ...items.skip(1).map(
                         (battle) => Padding(
                           padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                          child: BattleCard(battle: battle),
+                          child: BattleCard(battle: battle, onTap: () => context.push('/battle/detail/${battle.id}')),
                         ),
                       ),
                   const SectionHeader(title: '배틀 템플릿'),

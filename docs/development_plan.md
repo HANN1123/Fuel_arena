@@ -1,4 +1,4 @@
-# Fuel Arena Development Plan
+﻿# Fuel Arena Development Plan
 
 ## 현재 상태
 
@@ -47,7 +47,7 @@ flutter analyze
 - Splash → Onboarding → Login → Vehicle Register → Home 흐름 구현
 - 하단 탭 5개 구현
 - Home, DriveResult, Ranking, Battle, Season, Profile을 Mock 데이터로 표시
-- Phase 3 route와 placeholder 화면 생성
+- Phase 3 route와 실제 mock 데이터 기반 화면 생성
 - `flutter analyze`에서 치명적인 오류 제거
 
 ## 구현 순서
@@ -59,10 +59,10 @@ flutter analyze
 5. 디자인 시스템 작성
 6. 공통 위젯 작성
 7. 모델 작성
-8. Repository Interface, Mock, Supabase TODO 구현체 작성
+8. Repository Interface, Mock, Supabase mock fallback 구현체 작성
 9. Router와 App Shell 작성
 10. Phase 1/2 화면 구현
-11. Phase 3 placeholder route 구현
+11. Phase 3 route 구현
 12. 기본 위젯 테스트 작성
 13. `flutter pub get`
 14. `dart format .`
@@ -70,7 +70,7 @@ flutter analyze
 
 ## Mock 우선 정책
 
-초기 앱은 실제 Supabase 연결 없이 동작해야 한다. Supabase 구현체는 파일과 class만 준비하고 TODO로 남긴다.
+초기 앱은 실제 Supabase 연결 없이 동작해야 한다. Supabase 구현체는 파일과 class만 준비하고 mock fallback으로 동작하도록 유지한다.
 
 Mock에서 지원할 동작:
 
@@ -90,7 +90,7 @@ Mock에서 지원할 동작:
 - Supabase 환경변수가 없을 수 있으므로 초기화 실패가 앱 실행 실패로 이어지지 않게 Mock 우선 구조를 유지한다.
 - 실제 GPS/주행 기록은 이번 범위에서 구현하지 않는다. 안전 모드는 UI와 route 흐름만 구현한다.
 
-## 다음 단계
+## 개선 제안
 
 - 실제 Supabase Auth 연결
 - 주행 세션 로컬 기록과 백그라운드 위치 권한 설계

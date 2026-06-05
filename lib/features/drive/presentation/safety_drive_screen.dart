@@ -72,7 +72,7 @@ class _SafetyDriveScreenState extends State<SafetyDriveScreen> {
           SecondaryButton(
             label: '주행 종료',
             icon: Icons.stop_rounded,
-            onPressed: () => context.go('/drive/result'),
+            onPressed: () => context.go('/drive/result/mock-session'),
           ),
           const SizedBox(height: AppSpacing.lg),
         ],

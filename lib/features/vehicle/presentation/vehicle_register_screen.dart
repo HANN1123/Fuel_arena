@@ -44,7 +44,7 @@ class _VehicleRegisterScreenState extends ConsumerState<VehicleRegisterScreen> {
     if (!mounted) {
       return;
     }
-    context.go('/home');
+    context.go('/vehicle/complete');
   }
 
   @override

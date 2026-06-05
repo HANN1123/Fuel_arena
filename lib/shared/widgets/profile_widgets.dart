@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/material.dart' hide Badge;
 import 'package:intl/intl.dart';
 
 import '../../design_system/app_colors.dart';

@@ -36,7 +36,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     if (!mounted) {
       return;
     }
-    context.go('/vehicle-register');
+    context.go('/consent');
   }
 
   @override
@@ -109,7 +109,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () => context.go('/auth/signup'),
                     child: const Text('아직 계정이 없나요? 회원가입'),
                   ),
                 ],

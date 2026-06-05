@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../design_system/app_colors.dart';
 import '../../../design_system/app_spacing.dart';
@@ -25,12 +26,15 @@ class SponsorChallengeScreen extends ConsumerWidget {
               Text('선택형 챌린지로\n보상을 노리세요', style: AppTypography.displayScore.copyWith(color: AppColors.electricBlue)),
               const SizedBox(height: AppSpacing.lg),
               if (challenges.isEmpty)
-                const EmptyStateView(title: '챌린지 준비 중', message: '새로운 스폰서 챌린지가 곧 열립니다.')
+                const EmptyStateView(title: '참여 가능한 챌린지가 없어요', message: '현재 조건에 맞는 스폰서 챌린지가 없습니다.')
               else
                 for (final challenge in challenges)
                   Padding(
                     padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                    child: SponsorChallengeCard(challenge: challenge),
+                    child: InkWell(
+                      onTap: () => context.push('/sponsor/${challenge.id}'),
+                      child: SponsorChallengeCard(challenge: challenge),
+                    ),
                   ),
             ],
           );

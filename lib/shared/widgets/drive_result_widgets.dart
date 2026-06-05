@@ -431,7 +431,7 @@ class DriveRewardAdCard extends StatelessWidget {
             ),
           if (unavailable || rewardClaimed)
             SecondaryButton(
-              label: rewardClaimed ? '보상 적용 완료' : '광고 보상 준비 중',
+              label: rewardClaimed ? '보상 적용 완료' : '광고 보상 가능',
               icon: rewardClaimed ? Icons.check_rounded : Icons.hourglass_empty_rounded,
               onPressed: null,
             ),
@@ -471,7 +471,7 @@ class ResultStateBanner extends StatelessWidget {
       'verified' => '검증 완료',
       'rewardClaimed' => '보상 지급 완료',
       'adUnavailable' => '광고 보상 대기',
-      _ => '결과 준비 중',
+      _ => '결과 계산 중',
     };
 
     return AppCard(

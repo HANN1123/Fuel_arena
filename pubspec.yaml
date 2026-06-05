@@ -9,13 +9,23 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  cached_network_image: any
+  collection: any
   cupertino_icons: any
   fl_chart: any
   flutter_dotenv: any
+  flutter_local_notifications: any
+  flutter_secure_storage: any
   flutter_riverpod: any
+  geolocator: any
   go_router: any
+  google_mobile_ads: any
+  in_app_purchase: any
   intl: any
+  permission_handler: any
+  shared_preferences: any
   supabase_flutter: any
+  url_launcher: any
   uuid: any
 
 dev_dependencies:

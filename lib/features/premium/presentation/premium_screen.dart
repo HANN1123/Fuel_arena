@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../design_system/app_colors.dart';
 import '../../../design_system/app_spacing.dart';
@@ -8,11 +9,18 @@ import '../../../shared/models/fuel_arena_models.dart';
 import '../../../shared/providers/repository_providers.dart';
 import '../../../shared/widgets/widgets.dart';
 
-class PremiumScreen extends ConsumerWidget {
+class PremiumScreen extends ConsumerStatefulWidget {
   const PremiumScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PremiumScreen> createState() => _PremiumScreenState();
+}
+
+class _PremiumScreenState extends ConsumerState<PremiumScreen> {
+  var _purchased = false;
+
+  @override
+  Widget build(BuildContext context) {
     final plans = ref.watch(premiumRepositoryProvider).getPlans();
     return AppScaffold(
       appBar: const FuelArenaAppBar(title: 'Premium', showBack: true),
@@ -51,7 +59,22 @@ class PremiumScreen extends ConsumerWidget {
                         ),
                       ),
                     const SizedBox(height: AppSpacing.lg),
-                    PrimaryButton(label: '프리미엄 시작하기', icon: Icons.arrow_forward_rounded, onPressed: () {}),
+                    PrimaryButton(
+                      label: _purchased ? '프리미엄 활성화됨' : '프리미엄 시작하기',
+                      icon: _purchased ? Icons.check_circle_rounded : Icons.arrow_forward_rounded,
+                      onPressed: _purchased
+                          ? () => context.go('/home?tab=profile')
+                          : () async {
+                              final ok = await ref.read(subscriptionRepositoryProvider).startSubscription(plan?.id ?? 'premium-monthly');
+                              if (!mounted) {
+                                return;
+                              }
+                              setState(() => _purchased = ok);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('개발 모드 mock purchase가 완료됐어요.')),
+                              );
+                            },
+                    ),
                   ],
                 ),
               ),
