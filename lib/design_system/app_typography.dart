@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 
 abstract final class AppTypography {
-  static const fontFamily = 'Sora';
+  static const fontFamily = 'NotoSansKR';
 
   static const displayLarge = TextStyle(
     fontFamily: fontFamily,

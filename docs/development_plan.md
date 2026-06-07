@@ -44,7 +44,9 @@ flutter analyze
 - 제품 문서와 Supabase 계획 문서 작성
 - 디자인 시스템 구현
 - Repository Interface와 Mock 구현체 구성
-- Splash → Onboarding → Login → Vehicle Register → Home 흐름 구현
+- Splash → Onboarding → Google Login → Consent → Additional Setup → Home 흐름 구현
+- 차량 설정은 `/setup/vehicle`에서 제조사 → 모델/파생모델 → 기준 연식 → 엔진·미션 파워트레인 → 확인 스텝퍼로 구현
+- 대표 차량 기준으로 연료 리그와 차급을 분리해 랭킹/배틀/시즌에 반영
 - 하단 탭 5개 구현
 - Home, DriveResult, Ranking, Battle, Season, Profile을 Mock 데이터로 표시
 - Phase 3 route와 실제 mock 데이터 기반 화면 생성
@@ -85,16 +87,14 @@ Mock에서 지원할 동작:
 ## 리스크 및 대응
 
 - Flutter SDK가 없거나 프로젝트 생성이 실패하면 작업을 중단하고 설치 필요 사항을 기록한다.
-- 현재 환경에서는 Flutter SDK가 없어 platform wrapper 생성과 analyzer 검증이 미완료다. Flutter 설치 후 `flutter create . --project-name fuel_arena --platforms android,ios`를 다시 실행해야 한다.
+- 현재 환경은 Flutter SDK와 Android/iOS/Web platform wrapper를 포함한다. 변경 후 `flutter analyze`, `flutter test`, `flutter build web`, 필요한 경우 `flutter build apk --debug`로 회귀를 확인한다.
 - 패키지 버전 충돌이 발생하면 최신 안정 버전 대신 Flutter stable과 맞는 버전으로 조정한다.
 - Supabase 환경변수가 없을 수 있으므로 초기화 실패가 앱 실행 실패로 이어지지 않게 Mock 우선 구조를 유지한다.
-- 실제 GPS/주행 기록은 이번 범위에서 구현하지 않는다. 안전 모드는 UI와 route 흐름만 구현한다.
+- 실제 GPS/주행 기록은 주행 세션, 점수 계산, 안전 모드, 오프라인 queue, Supabase Edge Function 경로까지 연결되어 있으므로 변경 시 주행 중 광고/팝업/알림 차단과 raw drive_points privacy guard를 함께 검증한다.
 
 ## 개선 제안
 
-- 실제 Supabase Auth 연결
-- 주행 세션 로컬 기록과 백그라운드 위치 권한 설계
-- Edge Function 기반 점수 계산
-- RLS 정책 SQL 작성
-- 실제 광고 SDK와 인앱결제 검토
+- Supabase production migration/seed/function deploy 리허설
+- Google OAuth, AdMob, IAP 외부 콘솔과 sandbox QA
+- 실제 기기 주행 QA와 배터리/권한/네트워크 전환 검증
 - 디자인 고도화와 애니메이션 추가

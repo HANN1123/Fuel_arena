@@ -12,8 +12,8 @@ double calculateDistanceKm({
   final lat1 = _degreesToRadians(startLatitude);
   final lat2 = _degreesToRadians(endLatitude);
 
-  final a = pow(sin(dLat / 2), 2) +
-      cos(lat1) * cos(lat2) * pow(sin(dLon / 2), 2);
+  final a =
+      pow(sin(dLat / 2), 2) + cos(lat1) * cos(lat2) * pow(sin(dLon / 2), 2);
   final c = 2 * atan2(sqrt(a), sqrt(1 - a));
   return earthRadiusKm * c;
 }
@@ -82,4 +82,3 @@ bool hasPremiumAccess({
 }
 
 double _degreesToRadians(double degrees) => degrees * pi / 180;
-

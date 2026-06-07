@@ -11,6 +11,13 @@ class UserProfile {
     required this.bestStreak,
     this.representativeVehicleId = '',
     required this.representativeVehicleName,
+    this.authProvider = 'google',
+    this.onboardingCompleted = false,
+    this.consentCompleted = false,
+    this.additionalSetupCompleted = false,
+    this.vehicleSetupCompleted = false,
+    this.selectedFuelLeague = '',
+    this.selectedVehicleClass = '',
     required this.isPremium,
     this.isAdmin = false,
     this.createdAt,
@@ -28,6 +35,13 @@ class UserProfile {
   final int bestStreak;
   final String representativeVehicleId;
   final String representativeVehicleName;
+  final String authProvider;
+  final bool onboardingCompleted;
+  final bool consentCompleted;
+  final bool additionalSetupCompleted;
+  final bool vehicleSetupCompleted;
+  final String selectedFuelLeague;
+  final String selectedVehicleClass;
   final bool isPremium;
   final bool isAdmin;
   final DateTime? createdAt;
@@ -46,6 +60,13 @@ class UserProfile {
       bestStreak: (json['best_streak'] as num?)?.toInt() ?? 0,
       representativeVehicleId: '${json['representative_vehicle_id'] ?? ''}',
       representativeVehicleName: '${json['representative_vehicle_name'] ?? ''}',
+      authProvider: '${json['auth_provider'] ?? 'google'}',
+      onboardingCompleted: json['onboarding_completed'] == true,
+      consentCompleted: json['consent_completed'] == true,
+      additionalSetupCompleted: json['additional_setup_completed'] == true,
+      vehicleSetupCompleted: json['vehicle_setup_completed'] == true,
+      selectedFuelLeague: '${json['selected_fuel_league'] ?? ''}',
+      selectedVehicleClass: '${json['selected_vehicle_class'] ?? ''}',
       isPremium: json['is_premium'] == true,
       isAdmin: json['is_admin'] == true,
       createdAt: DateTime.tryParse('${json['created_at'] ?? ''}'),
@@ -63,13 +84,75 @@ class UserProfile {
         'season_score': seasonScore,
         'current_streak': currentStreak,
         'best_streak': bestStreak,
-        'representative_vehicle_id': representativeVehicleId,
+        'representative_vehicle_id':
+            representativeVehicleId.isEmpty ? null : representativeVehicleId,
         'representative_vehicle_name': representativeVehicleName,
+        'auth_provider': authProvider,
+        'onboarding_completed': onboardingCompleted,
+        'consent_completed': consentCompleted,
+        'additional_setup_completed': additionalSetupCompleted,
+        'vehicle_setup_completed': vehicleSetupCompleted,
+        'selected_fuel_league': selectedFuelLeague,
+        'selected_vehicle_class': selectedVehicleClass,
         'is_premium': isPremium,
         'is_admin': isAdmin,
         'created_at': createdAt?.toIso8601String(),
         'updated_at': updatedAt?.toIso8601String(),
       };
+
+  UserProfile copyWith({
+    String? id,
+    String? email,
+    String? nickname,
+    String? avatarUrl,
+    String? tier,
+    int? totalScore,
+    int? seasonScore,
+    int? currentStreak,
+    int? bestStreak,
+    String? representativeVehicleId,
+    String? representativeVehicleName,
+    String? authProvider,
+    bool? onboardingCompleted,
+    bool? consentCompleted,
+    bool? additionalSetupCompleted,
+    bool? vehicleSetupCompleted,
+    String? selectedFuelLeague,
+    String? selectedVehicleClass,
+    bool? isPremium,
+    bool? isAdmin,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return UserProfile(
+      id: id ?? this.id,
+      email: email ?? this.email,
+      nickname: nickname ?? this.nickname,
+      avatarUrl: avatarUrl ?? this.avatarUrl,
+      tier: tier ?? this.tier,
+      totalScore: totalScore ?? this.totalScore,
+      seasonScore: seasonScore ?? this.seasonScore,
+      currentStreak: currentStreak ?? this.currentStreak,
+      bestStreak: bestStreak ?? this.bestStreak,
+      representativeVehicleId:
+          representativeVehicleId ?? this.representativeVehicleId,
+      representativeVehicleName:
+          representativeVehicleName ?? this.representativeVehicleName,
+      authProvider: authProvider ?? this.authProvider,
+      onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      consentCompleted: consentCompleted ?? this.consentCompleted,
+      additionalSetupCompleted:
+          additionalSetupCompleted ?? this.additionalSetupCompleted,
+      vehicleSetupCompleted:
+          vehicleSetupCompleted ?? this.vehicleSetupCompleted,
+      selectedFuelLeague: selectedFuelLeague ?? this.selectedFuelLeague,
+      selectedVehicleClass: selectedVehicleClass ?? this.selectedVehicleClass,
+      isPremium: isPremium ?? this.isPremium,
+      isAdmin: isAdmin ?? this.isAdmin,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 class AppConsent {
@@ -91,6 +174,19 @@ class AppConsent {
   final bool marketingAccepted;
   final DateTime updatedAt;
 
+  factory AppConsent.fromJson(Map<String, dynamic> json) {
+    return AppConsent(
+      userId: '${json['user_id'] ?? ''}',
+      termsAccepted: json['terms_accepted'] == true,
+      privacyAccepted: json['privacy_accepted'] == true,
+      locationAccepted: json['location_accepted'] == true,
+      personalizedAdsAccepted: json['personalized_ads_accepted'] == true,
+      marketingAccepted: json['marketing_accepted'] == true,
+      updatedAt:
+          DateTime.tryParse('${json['updated_at'] ?? ''}') ?? DateTime.now(),
+    );
+  }
+
   Map<String, dynamic> toJson() => {
         'user_id': userId,
         'terms_accepted': termsAccepted,
@@ -100,6 +196,26 @@ class AppConsent {
         'marketing_accepted': marketingAccepted,
         'updated_at': updatedAt.toIso8601String(),
       };
+
+  AppConsent copyWith({
+    bool? termsAccepted,
+    bool? privacyAccepted,
+    bool? locationAccepted,
+    bool? personalizedAdsAccepted,
+    bool? marketingAccepted,
+    DateTime? updatedAt,
+  }) {
+    return AppConsent(
+      userId: userId,
+      termsAccepted: termsAccepted ?? this.termsAccepted,
+      privacyAccepted: privacyAccepted ?? this.privacyAccepted,
+      locationAccepted: locationAccepted ?? this.locationAccepted,
+      personalizedAdsAccepted:
+          personalizedAdsAccepted ?? this.personalizedAdsAccepted,
+      marketingAccepted: marketingAccepted ?? this.marketingAccepted,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 class Vehicle {
@@ -110,6 +226,7 @@ class Vehicle {
     required this.modelName,
     required this.modelYear,
     required this.fuelType,
+    this.fuelLeague = '',
     this.displacement,
     required this.vehicleClass,
     required this.nickname,
@@ -125,6 +242,7 @@ class Vehicle {
   final String modelName;
   final int modelYear;
   final String fuelType;
+  final String fuelLeague;
   final int? displacement;
   final String vehicleClass;
   final String nickname;
@@ -141,6 +259,8 @@ class Vehicle {
       modelName: '${json['model_name'] ?? ''}',
       modelYear: (json['model_year'] as num?)?.toInt() ?? DateTime.now().year,
       fuelType: '${json['fuel_type'] ?? ''}',
+      fuelLeague:
+          '${json['fuel_league'] ?? FuelLeague.keyForFuelType('${json['fuel_type'] ?? ''}')}',
       displacement: (json['displacement'] as num?)?.toInt(),
       vehicleClass: '${json['vehicle_class'] ?? ''}',
       nickname: '${json['nickname'] ?? ''}',
@@ -158,6 +278,7 @@ class Vehicle {
         'model_name': modelName,
         'model_year': modelYear,
         'fuel_type': fuelType,
+        'fuel_league': fuelLeague,
         'displacement': displacement,
         'vehicle_class': vehicleClass,
         'nickname': nickname,
@@ -166,6 +287,625 @@ class Vehicle {
         'created_at': createdAt?.toIso8601String(),
         'updated_at': updatedAt?.toIso8601String(),
       };
+
+  String get displayName => '$manufacturer $modelName $modelYear';
+
+  String get leagueKey =>
+      fuelLeague.isEmpty ? FuelLeague.keyForFuelType(fuelType) : fuelLeague;
+
+  String get leagueName => FuelLeague.nameForKey(leagueKey);
+
+  String get leagueDisplayName =>
+      FuelLeague.leagueLabel(leagueKey, vehicleClass);
+
+  Vehicle copyWith({
+    String? id,
+    String? userId,
+    String? manufacturer,
+    String? modelName,
+    int? modelYear,
+    String? fuelType,
+    String? fuelLeague,
+    int? displacement,
+    String? vehicleClass,
+    String? nickname,
+    String? imageUrl,
+    bool? isPrimary,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return Vehicle(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      manufacturer: manufacturer ?? this.manufacturer,
+      modelName: modelName ?? this.modelName,
+      modelYear: modelYear ?? this.modelYear,
+      fuelType: fuelType ?? this.fuelType,
+      fuelLeague: fuelLeague ?? this.fuelLeague,
+      displacement: displacement ?? this.displacement,
+      vehicleClass: vehicleClass ?? this.vehicleClass,
+      nickname: nickname ?? this.nickname,
+      imageUrl: imageUrl ?? this.imageUrl,
+      isPrimary: isPrimary ?? this.isPrimary,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
+
+class FuelLeague {
+  const FuelLeague({
+    required this.key,
+    required this.nameKo,
+    required this.description,
+    required this.fuelType,
+    this.isActive = true,
+    this.sortOrder = 0,
+  });
+
+  final String key;
+  final String nameKo;
+  final String description;
+  final String fuelType;
+  final bool isActive;
+  final int sortOrder;
+
+  factory FuelLeague.fromJson(Map<String, dynamic> json) {
+    return FuelLeague(
+      key: '${json['key'] ?? ''}',
+      nameKo: '${json['name_ko'] ?? ''}',
+      description: '${json['description'] ?? ''}',
+      fuelType: '${json['fuel_type'] ?? ''}',
+      isActive: json['is_active'] != false,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'key': key,
+        'name_ko': nameKo,
+        'description': description,
+        'fuel_type': fuelType,
+        'is_active': isActive,
+        'sort_order': sortOrder,
+      };
+
+  static const all = [
+    FuelLeague(
+        key: 'gasoline',
+        nameKo: '가솔린 리그',
+        description: '가솔린 차량끼리 경쟁합니다.',
+        fuelType: 'gasoline',
+        sortOrder: 10),
+    FuelLeague(
+        key: 'diesel',
+        nameKo: '디젤 리그',
+        description: '디젤 차량끼리 경쟁합니다.',
+        fuelType: 'diesel',
+        sortOrder: 20),
+    FuelLeague(
+        key: 'hybrid',
+        nameKo: '하이브리드 리그',
+        description: '하이브리드 차량끼리 경쟁합니다.',
+        fuelType: 'hybrid',
+        sortOrder: 30),
+    FuelLeague(
+        key: 'electric',
+        nameKo: '전기차 리그',
+        description: '전기차끼리 경쟁합니다.',
+        fuelType: 'electric',
+        sortOrder: 40),
+    FuelLeague(
+        key: 'lpg',
+        nameKo: 'LPG 리그',
+        description: 'LPG 차량끼리 경쟁합니다.',
+        fuelType: 'lpg',
+        sortOrder: 50),
+    FuelLeague(
+        key: 'plug_in_hybrid',
+        nameKo: '플러그인 하이브리드 리그',
+        description: '플러그인 하이브리드는 별도 리그로 운영합니다.',
+        fuelType: 'plug_in_hybrid',
+        sortOrder: 60),
+    FuelLeague(
+        key: 'other',
+        nameKo: '기타 리그',
+        description: '검증 대기 또는 기타 연료 타입입니다.',
+        fuelType: 'other',
+        sortOrder: 90),
+  ];
+
+  static String keyForFuelType(String fuelType) {
+    final normalized =
+        fuelType.trim().toLowerCase().replaceAll('-', '_').replaceAll(' ', '_');
+    return switch (normalized) {
+      'gasoline' || 'gas' || '가솔린' => 'gasoline',
+      'diesel' || '디젤' => 'diesel',
+      'hybrid' || '하이브리드' => 'hybrid',
+      'electric' || 'ev' || '전기' || '전기차' => 'electric',
+      'lpg' || 'lpi' || 'lp_i' => 'lpg',
+      'phev' ||
+      'plug_in_hybrid' ||
+      'plugin_hybrid' ||
+      '플러그인_하이브리드' =>
+        'plug_in_hybrid',
+      _ => 'other',
+    };
+  }
+
+  static String nameForKey(String key) {
+    return all
+        .firstWhere(
+          (league) => league.key == key,
+          orElse: () => all.last,
+        )
+        .nameKo;
+  }
+
+  static String leagueLabel(String key, String vehicleClass) {
+    final prefix = nameForKey(key).replaceAll(' 리그', '');
+    return vehicleClass.isEmpty ? '$prefix 리그' : '$prefix $vehicleClass 리그';
+  }
+}
+
+class VehicleManufacturer {
+  const VehicleManufacturer({
+    required this.id,
+    required this.nameKo,
+    this.nameEn = '',
+    this.country = '',
+    this.logoUrl = '',
+    this.isPopular = false,
+    this.sortOrder = 0,
+    this.modelCount = 0,
+    this.minYear = 0,
+    this.maxYear = 0,
+  });
+
+  final String id;
+  final String nameKo;
+  final String nameEn;
+  final String country;
+  final String logoUrl;
+  final bool isPopular;
+  final int sortOrder;
+  final int modelCount;
+  final int minYear;
+  final int maxYear;
+
+  factory VehicleManufacturer.fromJson(Map<String, dynamic> json) {
+    return VehicleManufacturer(
+      id: '${json['id'] ?? ''}',
+      nameKo: '${json['name_ko'] ?? ''}',
+      nameEn: '${json['name_en'] ?? ''}',
+      country: '${json['country'] ?? ''}',
+      logoUrl: '${json['logo_url'] ?? ''}',
+      isPopular: json['is_popular'] == true,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      modelCount: (json['model_count'] as num?)?.toInt() ?? 0,
+      minYear: (json['min_year'] as num?)?.toInt() ?? 0,
+      maxYear: (json['max_year'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  VehicleManufacturer copyWith({
+    int? modelCount,
+    int? minYear,
+    int? maxYear,
+  }) {
+    return VehicleManufacturer(
+      id: id,
+      nameKo: nameKo,
+      nameEn: nameEn,
+      country: country,
+      logoUrl: logoUrl,
+      isPopular: isPopular,
+      sortOrder: sortOrder,
+      modelCount: modelCount ?? this.modelCount,
+      minYear: minYear ?? this.minYear,
+      maxYear: maxYear ?? this.maxYear,
+    );
+  }
+}
+
+class VehicleModel {
+  const VehicleModel({
+    required this.id,
+    required this.manufacturerId,
+    required this.nameKo,
+    this.nameEn = '',
+    this.bodyType = '',
+    this.availableFuelTypes = const [],
+    this.isPopular = false,
+    this.sortOrder = 0,
+  });
+
+  final String id;
+  final String manufacturerId;
+  final String nameKo;
+  final String nameEn;
+  final String bodyType;
+  final List<String> availableFuelTypes;
+  final bool isPopular;
+  final int sortOrder;
+
+  factory VehicleModel.fromJson(Map<String, dynamic> json) {
+    return VehicleModel(
+      id: '${json['id'] ?? ''}',
+      manufacturerId: '${json['manufacturer_id'] ?? ''}',
+      nameKo: '${json['name_ko'] ?? ''}',
+      nameEn: '${json['name_en'] ?? ''}',
+      bodyType: '${json['body_type'] ?? ''}',
+      availableFuelTypes: (json['available_fuel_types'] as List?)
+              ?.map((item) => '$item')
+              .toList() ??
+          const [],
+      isPopular: json['is_popular'] == true,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+    );
+  }
+}
+
+class VehicleModelYear {
+  const VehicleModelYear({
+    required this.id,
+    required this.modelId,
+    required this.year,
+  });
+
+  final String id;
+  final String modelId;
+  final int year;
+
+  factory VehicleModelYear.fromJson(Map<String, dynamic> json) {
+    return VehicleModelYear(
+      id: '${json['id'] ?? ''}',
+      modelId: '${json['model_id'] ?? ''}',
+      year: (json['year'] as num?)?.toInt() ?? DateTime.now().year,
+    );
+  }
+}
+
+class VehicleVariant {
+  const VehicleVariant({
+    required this.id,
+    required this.modelYearId,
+    required this.manufacturerName,
+    required this.modelName,
+    required this.year,
+    required this.trimName,
+    this.engineName = '',
+    required this.fuelType,
+    this.displacementCc,
+    this.batteryKwh,
+    this.drivetrain = '',
+    this.transmission = '',
+    this.officialEfficiency,
+    this.efficiencyUnit = '',
+    required this.vehicleClass,
+    required this.fuelLeague,
+    this.isVerified = true,
+    this.sortOrder = 0,
+  });
+
+  final String id;
+  final String modelYearId;
+  final String manufacturerName;
+  final String modelName;
+  final int year;
+  final String trimName;
+  final String engineName;
+  final String fuelType;
+  final int? displacementCc;
+  final double? batteryKwh;
+  final String drivetrain;
+  final String transmission;
+  final double? officialEfficiency;
+  final String efficiencyUnit;
+  final String vehicleClass;
+  final String fuelLeague;
+  final bool isVerified;
+  final int sortOrder;
+
+  factory VehicleVariant.fromJson(Map<String, dynamic> json) {
+    return VehicleVariant(
+      id: '${json['id'] ?? ''}',
+      modelYearId: '${json['model_year_id'] ?? ''}',
+      manufacturerName:
+          '${json['manufacturer_name'] ?? json['manufacturer'] ?? ''}',
+      modelName: '${json['model_name'] ?? ''}',
+      year: (json['year'] as num?)?.toInt() ?? DateTime.now().year,
+      trimName: '${json['trim_name'] ?? ''}',
+      engineName: '${json['engine_name'] ?? ''}',
+      fuelType: '${json['fuel_type'] ?? ''}',
+      displacementCc: (json['displacement_cc'] as num?)?.toInt(),
+      batteryKwh: (json['battery_kwh'] as num?)?.toDouble(),
+      drivetrain: '${json['drivetrain'] ?? ''}',
+      transmission: '${json['transmission'] ?? ''}',
+      officialEfficiency: (json['official_efficiency'] as num?)?.toDouble(),
+      efficiencyUnit: '${json['efficiency_unit'] ?? ''}',
+      vehicleClass: '${json['vehicle_class'] ?? ''}',
+      fuelLeague:
+          '${json['fuel_league'] ?? FuelLeague.keyForFuelType('${json['fuel_type'] ?? ''}')}',
+      isVerified: json['is_verified'] != false,
+      sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+    );
+  }
+
+  String get displayName => '$manufacturerName $modelName $year $trimName';
+
+  String get breadcrumb =>
+      '$manufacturerName > $modelName > $year년식 > $trimName';
+
+  String get fuelTypeLabel =>
+      FuelLeague.nameForKey(fuelLeague).replaceAll(' 리그', '');
+
+  String get leagueDisplayName =>
+      FuelLeague.leagueLabel(fuelLeague, vehicleClass);
+
+  String get statusLabel {
+    if (!isVerified) {
+      return '검토 중';
+    }
+    return officialEfficiency == null ? '카탈로그' : '공식';
+  }
+
+  String get resolvedEfficiencyUnit {
+    if (efficiencyUnit.isNotEmpty) {
+      return efficiencyUnit;
+    }
+    return fuelLeague == 'electric' ? 'km/kWh' : 'km/L';
+  }
+
+  String get specSummary {
+    final power = batteryKwh != null
+        ? '${batteryKwh!.toStringAsFixed(1)} kWh'
+        : displacementCc != null
+            ? '${displacementCc}cc'
+            : '제원 확인 중';
+    final gear = transmission.isEmpty ? '변속기 확인 중' : transmission;
+    final engine = engineName.trim();
+    final drivetrain = engine.isEmpty ? gear : '$engine · $gear';
+    final efficiency = officialEfficiency == null
+        ? '공식 효율 정보 미등록'
+        : '${officialEfficiency!.toStringAsFixed(1)} $resolvedEfficiencyUnit';
+    return '$power · $drivetrain · $efficiency';
+  }
+}
+
+class UserVehicle {
+  const UserVehicle({
+    required this.id,
+    required this.userId,
+    this.vehicleVariantId = '',
+    this.variant,
+    this.nickname = '',
+    this.isPrimary = false,
+    this.verificationStatus = 'verified',
+    required this.fuelType,
+    required this.fuelLeague,
+    required this.vehicleClass,
+  });
+
+  final String id;
+  final String userId;
+  final String vehicleVariantId;
+  final VehicleVariant? variant;
+  final String nickname;
+  final bool isPrimary;
+  final String verificationStatus;
+  final String fuelType;
+  final String fuelLeague;
+  final String vehicleClass;
+
+  UserVehicle copyWith({
+    String? id,
+    String? userId,
+    String? vehicleVariantId,
+    VehicleVariant? variant,
+    String? nickname,
+    bool? isPrimary,
+    String? verificationStatus,
+    String? fuelType,
+    String? fuelLeague,
+    String? vehicleClass,
+  }) {
+    return UserVehicle(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      vehicleVariantId: vehicleVariantId ?? this.vehicleVariantId,
+      variant: variant ?? this.variant,
+      nickname: nickname ?? this.nickname,
+      isPrimary: isPrimary ?? this.isPrimary,
+      verificationStatus: verificationStatus ?? this.verificationStatus,
+      fuelType: fuelType ?? this.fuelType,
+      fuelLeague: fuelLeague ?? this.fuelLeague,
+      vehicleClass: vehicleClass ?? this.vehicleClass,
+    );
+  }
+
+  Vehicle toVehicle() {
+    final selected = variant;
+    return Vehicle(
+      id: id,
+      userId: userId,
+      manufacturer: selected?.manufacturerName ?? '',
+      modelName: selected?.modelName ?? '',
+      modelYear: selected?.year ?? DateTime.now().year,
+      fuelType: fuelType,
+      fuelLeague: fuelLeague,
+      displacement: selected?.displacementCc,
+      vehicleClass: vehicleClass,
+      nickname: nickname.isEmpty ? selected?.trimName ?? '내 차량' : nickname,
+      isPrimary: isPrimary,
+    );
+  }
+}
+
+class CustomVehicleReviewRequest {
+  const CustomVehicleReviewRequest({
+    required this.id,
+    required this.userId,
+    required this.userVehicleId,
+    required this.manufacturerName,
+    required this.modelName,
+    required this.year,
+    required this.trimName,
+    required this.fuelType,
+    required this.fuelLeague,
+    required this.vehicleClass,
+    required this.memo,
+    required this.status,
+    this.reviewNote = '',
+    this.reviewedBy = '',
+    this.reviewedAt,
+    this.createdAt,
+    this.updatedAt,
+  });
+
+  final String id;
+  final String userId;
+  final String userVehicleId;
+  final String manufacturerName;
+  final String modelName;
+  final int year;
+  final String trimName;
+  final String fuelType;
+  final String fuelLeague;
+  final String vehicleClass;
+  final String memo;
+  final String status;
+  final String reviewNote;
+  final String reviewedBy;
+  final DateTime? reviewedAt;
+  final DateTime? createdAt;
+  final DateTime? updatedAt;
+
+  String get displayName =>
+      '$manufacturerName $modelName $year년식 $trimName'.trim();
+
+  CustomVehicleReviewRequest copyWith({
+    String? status,
+    String? reviewNote,
+    String? reviewedBy,
+    DateTime? reviewedAt,
+    DateTime? updatedAt,
+  }) {
+    return CustomVehicleReviewRequest(
+      id: id,
+      userId: userId,
+      userVehicleId: userVehicleId,
+      manufacturerName: manufacturerName,
+      modelName: modelName,
+      year: year,
+      trimName: trimName,
+      fuelType: fuelType,
+      fuelLeague: fuelLeague,
+      vehicleClass: vehicleClass,
+      memo: memo,
+      status: status ?? this.status,
+      reviewNote: reviewNote ?? this.reviewNote,
+      reviewedBy: reviewedBy ?? this.reviewedBy,
+      reviewedAt: reviewedAt ?? this.reviewedAt,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
+
+class LeagueMembership {
+  const LeagueMembership({
+    required this.id,
+    required this.userId,
+    required this.userVehicleId,
+    required this.fuelLeague,
+    required this.vehicleClass,
+    this.seasonId = '',
+    this.isActive = true,
+  });
+
+  final String id;
+  final String userId;
+  final String userVehicleId;
+  final String fuelLeague;
+  final String vehicleClass;
+  final String seasonId;
+  final bool isActive;
+}
+
+enum VehicleSelectionStep {
+  manufacturer,
+  model,
+  year,
+  variant,
+  confirm,
+}
+
+class VehicleSelectionState {
+  const VehicleSelectionState({
+    this.selectedManufacturer,
+    this.selectedModel,
+    this.selectedYear,
+    this.selectedModelRangeLabel = '',
+    this.selectedVariant,
+    this.nickname = '',
+    this.isPrimary = true,
+    this.currentStep = VehicleSelectionStep.manufacturer,
+  });
+
+  final VehicleManufacturer? selectedManufacturer;
+  final VehicleModel? selectedModel;
+  final VehicleModelYear? selectedYear;
+  final String selectedModelRangeLabel;
+  final VehicleVariant? selectedVariant;
+  final String nickname;
+  final bool isPrimary;
+  final VehicleSelectionStep currentStep;
+
+  String get selectedModelRangeDisplay {
+    if (selectedModelRangeLabel.isNotEmpty) {
+      return selectedModelRangeLabel;
+    }
+    return selectedYear == null ? '' : '${selectedYear!.year}년식';
+  }
+
+  String get breadcrumb {
+    final parts = [
+      selectedManufacturer?.nameKo,
+      selectedModel?.nameKo,
+      if (selectedYear != null) selectedModelRangeDisplay,
+      selectedVariant?.trimName,
+    ].whereType<String>().where((value) => value.isNotEmpty);
+    return parts.join(' > ');
+  }
+
+  VehicleSelectionState copyWith({
+    VehicleManufacturer? selectedManufacturer,
+    VehicleModel? selectedModel,
+    VehicleModelYear? selectedYear,
+    String? selectedModelRangeLabel,
+    VehicleVariant? selectedVariant,
+    String? nickname,
+    bool? isPrimary,
+    VehicleSelectionStep? currentStep,
+    bool clearModel = false,
+    bool clearYear = false,
+    bool clearVariant = false,
+  }) {
+    return VehicleSelectionState(
+      selectedManufacturer: selectedManufacturer ?? this.selectedManufacturer,
+      selectedModel: clearModel ? null : selectedModel ?? this.selectedModel,
+      selectedYear: clearYear ? null : selectedYear ?? this.selectedYear,
+      selectedModelRangeLabel: clearYear
+          ? ''
+          : selectedModelRangeLabel ?? this.selectedModelRangeLabel,
+      selectedVariant:
+          clearVariant ? null : selectedVariant ?? this.selectedVariant,
+      nickname: nickname ?? this.nickname,
+      isPrimary: isPrimary ?? this.isPrimary,
+      currentStep: currentStep ?? this.currentStep,
+    );
+  }
 }
 
 class DriveSession {
@@ -179,7 +919,7 @@ class DriveSession {
     required this.distanceKm,
     this.fuelUsedLiters = 0,
     required this.averageFuelEfficiency,
-    this.sourceType = 'mock',
+    this.sourceType = 'local',
     this.driveContext = 'commute',
     required this.status,
     this.createdAt,
@@ -200,6 +940,27 @@ class DriveSession {
   final DateTime? createdAt;
 
   int get durationSeconds => duration.inSeconds;
+
+  factory DriveSession.fromJson(Map<String, dynamic> json) {
+    final durationSeconds = (json['duration_seconds'] as num?)?.toInt() ?? 0;
+    return DriveSession(
+      id: '${json['id'] ?? ''}',
+      userId: '${json['user_id'] ?? ''}',
+      vehicleId: '${json['vehicle_id'] ?? ''}',
+      startedAt:
+          DateTime.tryParse('${json['started_at'] ?? ''}') ?? DateTime.now(),
+      endedAt: DateTime.tryParse('${json['ended_at'] ?? ''}'),
+      duration: Duration(seconds: durationSeconds),
+      distanceKm: (json['distance_km'] as num?)?.toDouble() ?? 0,
+      fuelUsedLiters: (json['fuel_used_liters'] as num?)?.toDouble() ?? 0,
+      averageFuelEfficiency:
+          (json['average_efficiency'] as num?)?.toDouble() ?? 0,
+      sourceType: '${json['source_type'] ?? 'local'}',
+      driveContext: '${json['drive_context'] ?? 'commute'}',
+      status: '${json['status'] ?? 'recording'}',
+      createdAt: DateTime.tryParse('${json['created_at'] ?? ''}'),
+    );
+  }
 
   Map<String, dynamic> toJson() => {
         'id': id,
@@ -227,6 +988,7 @@ class DrivePoint {
     required this.speedKmh,
     required this.accuracy,
     required this.recordedAt,
+    this.isMocked = false,
   });
 
   final String id;
@@ -236,6 +998,21 @@ class DrivePoint {
   final double speedKmh;
   final double accuracy;
   final DateTime recordedAt;
+  final bool isMocked;
+
+  factory DrivePoint.fromPrivateJson(Map<String, dynamic> json) {
+    return DrivePoint(
+      id: '${json['id'] ?? ''}',
+      driveSessionId: '${json['drive_session_id'] ?? ''}',
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0,
+      speedKmh: (json['speed_kmh'] as num?)?.toDouble() ?? 0,
+      accuracy: (json['accuracy'] as num?)?.toDouble() ?? 0,
+      recordedAt:
+          DateTime.tryParse('${json['recorded_at'] ?? ''}') ?? DateTime.now(),
+      isMocked: json['is_mocked'] == true,
+    );
+  }
 
   Map<String, dynamic> toPrivateJson() => {
         'id': id,
@@ -245,7 +1022,30 @@ class DrivePoint {
         'speed_kmh': speedKmh,
         'accuracy': accuracy,
         'recorded_at': recordedAt.toIso8601String(),
+        'is_mocked': isMocked,
       };
+
+  DrivePoint copyWith({
+    String? id,
+    String? driveSessionId,
+    double? latitude,
+    double? longitude,
+    double? speedKmh,
+    double? accuracy,
+    DateTime? recordedAt,
+    bool? isMocked,
+  }) {
+    return DrivePoint(
+      id: id ?? this.id,
+      driveSessionId: driveSessionId ?? this.driveSessionId,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      speedKmh: speedKmh ?? this.speedKmh,
+      accuracy: accuracy ?? this.accuracy,
+      recordedAt: recordedAt ?? this.recordedAt,
+      isMocked: isMocked ?? this.isMocked,
+    );
+  }
 }
 
 class DriveScore {
@@ -292,7 +1092,8 @@ class DriveScore {
       efficiencyScore: (json['efficiency_score'] as num?)?.toInt() ?? 0,
       stabilityScore: (json['stability_score'] as num?)?.toInt() ?? 0,
       classPercentile: (json['class_percentile'] as num?)?.toInt() ?? 0,
-      fuelEfficiencyScore: (json['fuel_efficiency_score'] as num?)?.toInt() ?? 0,
+      fuelEfficiencyScore:
+          (json['fuel_efficiency_score'] as num?)?.toInt() ?? 0,
       accelerationPenalty: (json['acceleration_penalty'] as num?)?.toInt() ?? 0,
       brakingPenalty: (json['braking_penalty'] as num?)?.toInt() ?? 0,
       idlePenalty: (json['idle_penalty'] as num?)?.toInt() ?? 0,
@@ -331,9 +1132,12 @@ class RankingEntry {
     required this.score,
     required this.vehicleClass,
     required this.fuelType,
+    this.fuelLeague = '',
+    this.userId = '',
     required this.isCurrentUser,
   });
 
+  final String userId;
   final int rank;
   final int previousRank;
   final String nickname;
@@ -341,7 +1145,11 @@ class RankingEntry {
   final int score;
   final String vehicleClass;
   final String fuelType;
+  final String fuelLeague;
   final bool isCurrentUser;
+
+  String get leagueKey =>
+      fuelLeague.isEmpty ? FuelLeague.keyForFuelType(fuelType) : fuelLeague;
 }
 
 class Battle {
@@ -360,6 +1168,9 @@ class Battle {
     required this.opponentScore,
     required this.opponentNickname,
     required this.rewardSummary,
+    this.requiredFuelLeague,
+    this.requiredVehicleClass,
+    this.isFriendlyCrossLeague = false,
     this.createdAt,
   });
 
@@ -377,6 +1188,9 @@ class Battle {
   final int opponentScore;
   final String opponentNickname;
   final String rewardSummary;
+  final String? requiredFuelLeague;
+  final String? requiredVehicleClass;
+  final bool isFriendlyCrossLeague;
   final DateTime? createdAt;
 }
 
@@ -431,6 +1245,7 @@ class SeasonMission {
     required this.target,
     required this.rewardXp,
     required this.isWeekly,
+    this.rewardClaimed = false,
   });
 
   final String id;
@@ -440,6 +1255,7 @@ class SeasonMission {
   final int target;
   final int rewardXp;
   final bool isWeekly;
+  final bool rewardClaimed;
 }
 
 class MissionProgress {
@@ -587,6 +1403,9 @@ class NotificationItem {
     required this.body,
     required this.createdAt,
     required this.isRead,
+    this.notificationType = 'general',
+    this.targetRoute = '',
+    this.heldDuringDrive = false,
   });
 
   final String id;
@@ -594,6 +1413,153 @@ class NotificationItem {
   final String body;
   final DateTime createdAt;
   final bool isRead;
+  final String notificationType;
+  final String targetRoute;
+  final bool heldDuringDrive;
+
+  NotificationItem copyWith({
+    bool? isRead,
+    String? targetRoute,
+    bool? heldDuringDrive,
+  }) {
+    return NotificationItem(
+      id: id,
+      title: title,
+      body: body,
+      createdAt: createdAt,
+      isRead: isRead ?? this.isRead,
+      notificationType: notificationType,
+      targetRoute: targetRoute ?? this.targetRoute,
+      heldDuringDrive: heldDuringDrive ?? this.heldDuringDrive,
+    );
+  }
+}
+
+class SupportTicket {
+  const SupportTicket({
+    required this.id,
+    required this.userId,
+    required this.category,
+    required this.title,
+    required this.description,
+    required this.status,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  final String id;
+  final String userId;
+  final String category;
+  final String title;
+  final String description;
+  final String status;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  SupportTicket copyWith({
+    String? status,
+    DateTime? updatedAt,
+  }) {
+    return SupportTicket(
+      id: id,
+      userId: userId,
+      category: category,
+      title: title,
+      description: description,
+      status: status ?? this.status,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
+
+class SupportTicketMessage {
+  const SupportTicketMessage({
+    required this.id,
+    required this.ticketId,
+    required this.senderId,
+    required this.message,
+    required this.createdAt,
+    this.isAdminReply = false,
+  });
+
+  final String id;
+  final String ticketId;
+  final String senderId;
+  final String message;
+  final DateTime createdAt;
+  final bool isAdminReply;
+}
+
+class PrivacyRequestSubmission {
+  const PrivacyRequestSubmission({
+    required this.requestType,
+    required this.description,
+  });
+
+  final String requestType;
+  final String description;
+}
+
+class ActivePrivacyRequestException implements Exception {
+  const ActivePrivacyRequestException(this.request);
+
+  final PrivacyRequest request;
+
+  @override
+  String toString() =>
+      'ActivePrivacyRequestException(${request.requestType}, ${request.status})';
+}
+
+class PrivacyRequest {
+  const PrivacyRequest({
+    required this.id,
+    required this.userId,
+    required this.requestType,
+    required this.description,
+    required this.status,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  final String id;
+  final String userId;
+  final String requestType;
+  final String description;
+  final String status;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  PrivacyRequest copyWith({
+    String? status,
+    DateTime? updatedAt,
+  }) {
+    return PrivacyRequest(
+      id: id,
+      userId: userId,
+      requestType: requestType,
+      description: description,
+      status: status ?? this.status,
+      createdAt: createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
+
+class AppSetting {
+  const AppSetting({
+    required this.key,
+    required this.value,
+    required this.description,
+    required this.isPublic,
+    required this.updatedAt,
+  });
+
+  final String key;
+  final Map<String, dynamic> value;
+  final String description;
+  final bool isPublic;
+  final DateTime updatedAt;
 }
 
 class Sponsor {
@@ -730,6 +1696,24 @@ class SubscriptionPlan {
   final List<String> benefits;
   final String productId;
   final bool isRecommended;
+
+  factory SubscriptionPlan.fromJson(Map<String, dynamic> json) {
+    final benefits = json['benefits'];
+    return SubscriptionPlan(
+      id: '${json['id'] ?? ''}',
+      title: '${json['title'] ?? ''}',
+      description: '${json['description'] ?? ''}',
+      planType: '${json['plan_type'] ?? 'monthly'}',
+      name: '${json['title'] ?? json['name'] ?? ''}',
+      priceLabel: '${json['price_text'] ?? json['price_label'] ?? ''}',
+      benefits: benefits is List
+          ? benefits.map((item) => '$item').toList()
+          : const <String>[],
+      productId: '${json['product_id'] ?? ''}',
+      isRecommended: json['is_recommended'] == true ||
+          '${json['plan_type'] ?? ''}' == 'monthly',
+    );
+  }
 }
 
 class UserSubscription {
@@ -748,6 +1732,59 @@ class UserSubscription {
   final String status;
   final DateTime startedAt;
   final DateTime? renewsAt;
+}
+
+class PurchaseVerificationRequest {
+  const PurchaseVerificationRequest({
+    required this.provider,
+    required this.productId,
+    required this.purchaseToken,
+    required this.transactionId,
+    this.planId = '',
+  });
+
+  final String provider;
+  final String productId;
+  final String purchaseToken;
+  final String transactionId;
+  final String planId;
+
+  Map<String, dynamic> toJson() => {
+        'provider': provider,
+        'productId': productId,
+        'purchaseToken': purchaseToken,
+        'transactionId': transactionId,
+        if (planId.isNotEmpty) 'planId': planId,
+      };
+}
+
+class PurchaseVerificationResult {
+  const PurchaseVerificationResult({
+    required this.verified,
+    required this.premiumActive,
+    required this.provider,
+    required this.productId,
+    this.planId = '',
+    this.expiresAt,
+  });
+
+  final bool verified;
+  final bool premiumActive;
+  final String provider;
+  final String productId;
+  final String planId;
+  final DateTime? expiresAt;
+
+  factory PurchaseVerificationResult.fromJson(Map<String, dynamic> json) {
+    return PurchaseVerificationResult(
+      verified: json['verified'] == true,
+      premiumActive: json['premiumActive'] == true,
+      provider: '${json['provider'] ?? ''}',
+      productId: '${json['productId'] ?? ''}',
+      planId: '${json['planId'] ?? ''}',
+      expiresAt: DateTime.tryParse('${json['expiresAt'] ?? ''}'),
+    );
+  }
 }
 
 class FraudReview {
@@ -784,6 +1821,30 @@ class ReportItem {
   final String reason;
   final String status;
   final DateTime createdAt;
+
+  ReportItem copyWith({String? status}) {
+    return ReportItem(
+      id: id,
+      reporterId: reporterId,
+      targetType: targetType,
+      targetId: targetId,
+      reason: reason,
+      status: status ?? this.status,
+      createdAt: createdAt,
+    );
+  }
+}
+
+class ReportRequest {
+  const ReportRequest({
+    required this.targetType,
+    required this.reason,
+    this.targetId = '',
+  });
+
+  final String targetType;
+  final String targetId;
+  final String reason;
 }
 
 class AdminMetric {
@@ -802,10 +1863,135 @@ class AdminMetric {
   final bool healthy;
 }
 
+class AdminRecord {
+  const AdminRecord({
+    required this.id,
+    required this.title,
+    required this.status,
+    required this.owner,
+    this.description = '',
+    this.createdAt,
+    this.metadata = const {},
+  });
+
+  final String id;
+  final String title;
+  final String status;
+  final String owner;
+  final String description;
+  final DateTime? createdAt;
+  final Map<String, String> metadata;
+}
+
+class AdminRecordPage {
+  const AdminRecordPage({
+    required this.section,
+    required this.items,
+    required this.page,
+    required this.pageSize,
+    required this.totalCount,
+  });
+
+  final String section;
+  final List<AdminRecord> items;
+  final int page;
+  final int pageSize;
+  final int totalCount;
+
+  int get totalPages {
+    if (totalCount <= 0) {
+      return 1;
+    }
+    return (totalCount / pageSize).ceil();
+  }
+
+  bool get hasPrevious => page > 0;
+  bool get hasNext => page + 1 < totalPages;
+}
+
+class AdminRecordQuery {
+  const AdminRecordQuery({
+    required this.section,
+    this.search = '',
+    this.status = '전체',
+    this.page = 0,
+    this.pageSize = 10,
+  });
+
+  final String section;
+  final String search;
+  final String status;
+  final int page;
+  final int pageSize;
+
+  AdminRecordQuery copyWith({
+    String? section,
+    String? search,
+    String? status,
+    int? page,
+    int? pageSize,
+  }) {
+    return AdminRecordQuery(
+      section: section ?? this.section,
+      search: search ?? this.search,
+      status: status ?? this.status,
+      page: page ?? this.page,
+      pageSize: pageSize ?? this.pageSize,
+    );
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AdminRecordQuery &&
+        other.section == section &&
+        other.search == search &&
+        other.status == status &&
+        other.page == page &&
+        other.pageSize == pageSize;
+  }
+
+  @override
+  int get hashCode => Object.hash(section, search, status, page, pageSize);
+}
+
+class AdminActionRequest {
+  const AdminActionRequest({
+    required this.section,
+    required this.action,
+    this.record,
+  });
+
+  final String section;
+  final String action;
+  final AdminRecord? record;
+}
+
+class AdminActionLog {
+  const AdminActionLog({
+    required this.id,
+    required this.section,
+    required this.action,
+    required this.adminUserId,
+    required this.createdAt,
+    this.targetId = '',
+    this.targetTitle = '',
+    this.targetStatus = '',
+  });
+
+  final String id;
+  final String section;
+  final String action;
+  final String adminUserId;
+  final String targetId;
+  final String targetTitle;
+  final String targetStatus;
+  final DateTime createdAt;
+}
+
 class HomeSnapshot {
   const HomeSnapshot({
     required this.profile,
-    required this.vehicle,
+    this.vehicle,
     required this.activeBattle,
     required this.todayMission,
     required this.season,
@@ -815,7 +2001,7 @@ class HomeSnapshot {
   });
 
   final UserProfile profile;
-  final Vehicle vehicle;
+  final Vehicle? vehicle;
   final Battle activeBattle;
   final SeasonMission todayMission;
   final Season season;

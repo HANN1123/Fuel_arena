@@ -4,27 +4,70 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
 
 jobs:
   flutter:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
           channel: stable
-      - name: Generate platform scaffolds
-        run: flutter create . --project-name fuel_arena --platforms android,ios,web
-      - name: Install dependencies
+          cache: true
+
+      - name: Dependencies
         run: flutter pub get
+
+      - name: Python tool dependencies
+        run: python -m pip install -r requirements-dev.txt
+
+      - name: Vehicle catalog integrity
+        run: dart run tool/validate_vehicle_catalog.dart
+
+      - name: Edge Function smoke validation
+        run: dart run tool/validate_edge_functions.dart
+
+      - name: Supabase schema validation
+        run: dart run tool/validate_supabase_schema.dart
+
+      - name: Product invariant validation
+        run: dart run tool/validate_product_invariants.dart
+
+      - name: Store submission asset validation
+        run: python tool/validate_store_submission_assets.py
+
+      - name: Store privacy disclosure validation
+        run: python tool/validate_store_privacy_disclosures.py
+
+      - name: Release environment validator self-test
+        run: python tool/validate_release_environment_selftest.py
+
+      - name: Release example placeholder rejection
+        run: python tool/validate_release_example_placeholders.py
+
       - name: Format
         run: dart format --set-exit-if-changed .
+
       - name: Analyze
         run: flutter analyze
+
       - name: Test
         run: flutter test
-      - name: Build Android debug APK
+
+      - name: Build Android debug
         run: flutter build apk --debug
-      - name: Build Web
+
+      - name: Build web Wasm compatibility
+        run: flutter build web --wasm
+
+      - name: Web Wasm compatibility smoke
+        run: python tool/run_web_smoke.py
+
+      - name: Build web
         run: flutter build web
+
+      - name: Web runtime smoke
+        run: python tool/run_web_smoke.py

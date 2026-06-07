@@ -24,7 +24,8 @@ class ProfileHeader extends StatelessWidget {
           const CircleAvatar(
             radius: 34,
             backgroundColor: AppColors.surfaceHighest,
-            child: Icon(Icons.person_rounded, color: AppColors.neonGreen, size: 38),
+            child: Icon(Icons.person_rounded,
+                color: AppColors.neonGreen, size: 38),
           ),
           const SizedBox(height: AppSpacing.md),
           Text(profile.nickname, style: AppTypography.titleLarge),
@@ -34,9 +35,15 @@ class ProfileHeader extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              _ProfileMetric(label: '총점', value: NumberFormat.decimalPattern().format(profile.totalScore)),
+              _ProfileMetric(
+                  label: '총점',
+                  value:
+                      NumberFormat.decimalPattern().format(profile.totalScore)),
               _ProfileMetric(label: '최고 연승', value: '${profile.bestStreak}연승'),
-              _ProfileMetric(label: '시즌', value: NumberFormat.decimalPattern().format(profile.seasonScore)),
+              _ProfileMetric(
+                  label: '시즌',
+                  value: NumberFormat.decimalPattern()
+                      .format(profile.seasonScore)),
             ],
           ),
         ],
@@ -73,7 +80,8 @@ class BadgeGrid extends StatelessWidget {
             children: [
               const Icon(Icons.military_tech_rounded, color: AppColors.gold),
               const SizedBox(height: AppSpacing.xs),
-              Text(badge.name, style: AppTypography.dataUnit, textAlign: TextAlign.center),
+              Text(badge.name,
+                  style: AppTypography.dataUnit, textAlign: TextAlign.center),
             ],
           ),
         );
@@ -92,14 +100,18 @@ class AchievementTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final value = achievement.target == 0 ? 0.0 : achievement.progress / achievement.target;
+    final value = achievement.target == 0
+        ? 0.0
+        : achievement.progress / achievement.target;
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(achievement.title, style: AppTypography.titleMedium),
           const SizedBox(height: AppSpacing.xs),
-          Text(achievement.description, style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted)),
+          Text(achievement.description,
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.onSurfaceMuted)),
           const SizedBox(height: AppSpacing.sm),
           LinearProgressIndicator(
             value: value.clamp(0.0, 1.0).toDouble(),
@@ -127,7 +139,9 @@ class _ProfileMetric extends StatelessWidget {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Text(value, style: AppTypography.titleMedium.copyWith(color: AppColors.neonGreen)),
+        Text(value,
+            style:
+                AppTypography.titleMedium.copyWith(color: AppColors.neonGreen)),
         Text(label, style: AppTypography.dataUnit),
       ],
     );

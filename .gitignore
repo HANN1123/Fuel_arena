@@ -7,6 +7,11 @@
 .pub/
 build/
 coverage/
+*.log
+
+# Python tooling
+__pycache__/
+*.pyc
 
 # IDE
 .idea/
@@ -17,6 +22,8 @@ coverage/
 .env
 .env.*
 !.env.example
+!.env.production.example
+!.env.edge.production.example
 
 # Android/iOS generated artifacts
 android/.gradle/

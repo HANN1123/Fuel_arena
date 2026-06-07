@@ -1,0 +1,4 @@
+storeFile=../release/fuel-arena-upload.jks
+storePassword=replace-with-keystore-password
+keyAlias=fuel-arena-upload
+keyPassword=replace-with-key-password

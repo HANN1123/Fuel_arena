@@ -24,18 +24,19 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: AppColors.surfaceLow.withOpacity(0.92),
+        color: AppColors.surfaceLow.withValues(alpha: 0.92),
         borderRadius: AppRadius.card,
-        border: Border.all(color: borderColor ?? Colors.white.withOpacity(0.08)),
+        border: Border.all(
+            color: borderColor ?? Colors.white.withValues(alpha: 0.08)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.35),
+            color: Colors.black.withValues(alpha: 0.35),
             blurRadius: 24,
             offset: const Offset(0, 12),
           ),
           if (glowColor != null)
             BoxShadow(
-              color: glowColor!.withOpacity(0.18),
+              color: glowColor!.withValues(alpha: 0.18),
               blurRadius: 22,
               spreadRadius: -6,
             ),
@@ -65,13 +66,16 @@ class SectionHeader extends StatelessWidget {
         Expanded(
           child: Text(
             title,
-            style: AppTypography.labelCaps.copyWith(color: AppColors.onSurfaceMuted),
+            style: AppTypography.labelCaps
+                .copyWith(color: AppColors.onSurfaceMuted),
           ),
         ),
         if (actionLabel != null)
           TextButton(
             onPressed: onAction,
-            child: Text(actionLabel!, style: AppTypography.dataUnit.copyWith(color: AppColors.electricBlue)),
+            child: Text(actionLabel!,
+                style: AppTypography.dataUnit
+                    .copyWith(color: AppColors.electricBlue)),
           ),
       ],
     );
@@ -95,9 +99,9 @@ class StatusChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 5),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha: 0.12),
         borderRadius: AppRadius.chip,
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -165,7 +169,8 @@ class ScoreGauge extends StatelessWidget {
             children: [
               Text(
                 NumberFormat.decimalPattern().format(score),
-                style: AppTypography.displayScore.copyWith(color: AppColors.neonGreen),
+                style: AppTypography.displayScore
+                    .copyWith(color: AppColors.neonGreen),
               ),
               Text(label, style: AppTypography.dataUnit),
             ],
@@ -219,19 +224,33 @@ class VerificationStatusBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final verified = status == 'verified';
+    final normalized = status.toLowerCase().replaceAll(RegExp(r'[_\-\s]'), '');
+    final verified = normalized == 'verified';
+    final rejected = normalized == 'rejected' || normalized == 'blocked';
+    final color = verified
+        ? AppColors.neonGreen
+        : rejected
+            ? AppColors.danger
+            : AppColors.amber;
+    final icon = verified
+        ? Icons.verified_rounded
+        : rejected
+            ? Icons.report_problem_rounded
+            : Icons.pending_rounded;
+    final message = verified
+        ? '검증 완료되어 랭킹에 반영됩니다'
+        : rejected
+            ? '검증 기준을 통과하지 못해 랭킹에는 반영되지 않습니다'
+            : '검증 대기 중인 기록입니다';
     return AppCard(
-      borderColor: verified ? AppColors.neonGreen.withOpacity(0.28) : AppColors.amber.withOpacity(0.28),
+      borderColor: color.withValues(alpha: 0.28),
       child: Row(
         children: [
-          Icon(
-            verified ? Icons.verified_rounded : Icons.pending_rounded,
-            color: verified ? AppColors.neonGreen : AppColors.amber,
-          ),
+          Icon(icon, color: color),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
-              verified ? '검증 완료 후 랭킹에 반영됩니다' : '검증 대기 중인 기록입니다',
+              message,
               style: AppTypography.bodyMedium,
             ),
           ),

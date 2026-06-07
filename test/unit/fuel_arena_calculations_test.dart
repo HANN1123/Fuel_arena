@@ -33,7 +33,8 @@ void main() {
   });
 
   test('mission progress 계산은 0과 1 사이로 제한된다', () {
-    expect(calculateMissionProgress(current: 8, target: 12), closeTo(0.66, 0.02));
+    expect(
+        calculateMissionProgress(current: 8, target: 12), closeTo(0.66, 0.02));
     expect(calculateMissionProgress(current: 20, target: 12), 1);
   });
 
@@ -78,4 +79,3 @@ void main() {
     );
   });
 }
-

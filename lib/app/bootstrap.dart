@@ -32,11 +32,29 @@ Future<BootstrapResult> bootstrapFuelArena() async {
 
   final config = AppConfig.fromEnvironment();
 
-  if (config.isProduction && !config.hasSupabase) {
+  if (config.requiresSupabase && !config.hasSupabase) {
     return BootstrapResult(
       config: config,
       supabaseInitialized: false,
-      configurationError: 'production 모드에서는 SUPABASE_URL과 SUPABASE_ANON_KEY가 필요합니다.',
+      configurationError:
+          'staging/production 모드에서는 SUPABASE_URL과 SUPABASE_ANON_KEY가 필요합니다.',
+    );
+  }
+
+  if (config.isProduction && !config.hasGoogleOAuthClient) {
+    return BootstrapResult(
+      config: config,
+      supabaseInitialized: false,
+      configurationError: 'production 모드에서는 Google 로그인 클라이언트 ID가 필요합니다.',
+    );
+  }
+
+  if (config.hasSupabase && !config.hasValidSupabaseUrl) {
+    return BootstrapResult(
+      config: config,
+      supabaseInitialized: false,
+      configurationError:
+          'SUPABASE_URL 형식이 올바르지 않습니다. production에서는 https URL이 필요합니다.',
     );
   }
 
@@ -48,10 +66,19 @@ Future<BootstrapResult> bootstrapFuelArena() async {
     );
   }
 
-  await Supabase.initialize(
-    url: config.supabaseUrl,
-    anonKey: config.supabaseAnonKey,
-  );
+  try {
+    await Supabase.initialize(
+      url: config.supabaseUrl,
+      publishableKey: config.supabaseAnonKey,
+    );
+  } catch (_) {
+    return BootstrapResult(
+      config: config,
+      supabaseInitialized: false,
+      configurationError:
+          'Supabase 초기화에 실패했습니다. SUPABASE_URL과 SUPABASE_ANON_KEY를 확인해 주세요.',
+    );
+  }
 
   return BootstrapResult(
     config: config,

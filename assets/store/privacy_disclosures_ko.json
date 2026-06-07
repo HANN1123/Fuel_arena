@@ -1,0 +1,137 @@
+{
+  "version": "2026-06-07",
+  "app": "Fuel Arena",
+  "principles": [
+    "Fuel Arena는 연비 기록장이 아니라 주행 효율로 경쟁하는 게임형 드라이빙 플랫폼입니다.",
+    "정확한 위치 좌표와 raw drive_points는 공개 랭킹, 공개 프로필, 배틀 공개 화면에 노출하지 않습니다.",
+    "Supabase service_role key, 결제 검증 private key, ranking secret은 Flutter 앱에 포함하지 않습니다.",
+    "주행 중에는 광고, 팝업, 도전장, 불필요한 알림을 표시하지 않습니다.",
+    "사용자는 앱의 개인정보 설정에서 데이터 다운로드, 데이터 삭제, 계정 삭제, 동의 철회를 요청할 수 있습니다."
+  ],
+  "app_store_privacy": {
+    "tracking": {
+      "uses_tracking": false,
+      "notes": "앱 자체 privacy manifest는 tracking을 선언하지 않습니다. AdMob/Google SDK 콘솔, ATT 필요 여부, 개인 맞춤 광고 동의 흐름은 스토어 제출 전 별도 확인합니다."
+    },
+    "data_linked_to_user": [
+      {
+        "type": "사용자 ID",
+        "apple_data_type": "NSPrivacyCollectedDataTypeUserID",
+        "purposes": ["앱 기능", "분석", "부정 이용 방지"],
+        "examples": ["Google 계정 식별자", "Supabase 사용자 ID", "공개 랭킹 사용자 ID"]
+      },
+      {
+        "type": "정확한 위치",
+        "apple_data_type": "NSPrivacyCollectedDataTypePreciseLocation",
+        "purposes": ["앱 기능", "부정 이용 방지"],
+        "examples": ["주행 중 GPS 좌표", "GPS 정확도", "모의 위치 신호"]
+      },
+      {
+        "type": "대략적 위치",
+        "apple_data_type": "NSPrivacyCollectedDataTypeCoarseLocation",
+        "purposes": ["앱 기능", "부정 이용 방지"],
+        "examples": ["지역 리그 계산", "주행 요약 위치 범위"]
+      },
+      {
+        "type": "제품 상호작용",
+        "apple_data_type": "NSPrivacyCollectedDataTypeProductInteraction",
+        "purposes": ["앱 기능", "분석"],
+        "examples": ["탭 이동", "미션 보상", "쿠폰 발급", "개인정보 요청 접수"]
+      },
+      {
+        "type": "구입 내역",
+        "apple_data_type": "NSPrivacyCollectedDataTypePurchaseHistory",
+        "purposes": ["앱 기능", "부정 이용 방지"],
+        "examples": ["프리미엄 상품 ID", "스토어 transaction id", "구독 검증 상태"]
+      },
+      {
+        "type": "고객지원",
+        "apple_data_type": "NSPrivacyCollectedDataTypeCustomerSupport",
+        "purposes": ["앱 기능"],
+        "examples": ["문의 티켓", "신고/이의제기", "개인정보 요청 처리 상태"]
+      }
+    ],
+    "data_not_linked_or_optional": [
+      {
+        "type": "광고 데이터",
+        "apple_data_type": "NSPrivacyCollectedDataTypeAdvertisingData",
+        "purposes": ["타사 광고", "분석"],
+        "examples": ["광고 노출/보상 이벤트", "광고 동의 상태"],
+        "notes": "개인 맞춤 광고와 IDFA 사용 여부는 AdMob/UMP/ATT 설정 후 실제 스토어 개인정보 라벨에 맞춰 확정합니다."
+      },
+      {
+        "type": "기기 ID",
+        "apple_data_type": "NSPrivacyCollectedDataTypeDeviceID",
+        "purposes": ["타사 광고", "부정 이용 방지"],
+        "examples": ["광고 SDK 식별자", "세션 무결성 신호"],
+        "notes": "광고 ID 사용 시 Android AD_ID 권한과 iOS ATT 고지 상태를 함께 확인합니다."
+      }
+    ]
+  },
+  "google_play_data_safety": {
+    "data_collected": [
+      {
+        "category": "위치",
+        "types": ["정확한 위치", "대략적 위치"],
+        "purposes": ["앱 기능", "사기 방지, 보안, 규정 준수"],
+        "optional": false
+      },
+      {
+        "category": "개인 정보",
+        "types": ["사용자 ID"],
+        "purposes": ["계정 관리", "앱 기능", "분석"],
+        "optional": false
+      },
+      {
+        "category": "금융 정보",
+        "types": ["구매 내역"],
+        "purposes": ["앱 기능", "사기 방지, 보안, 규정 준수"],
+        "optional": false
+      },
+      {
+        "category": "앱 활동",
+        "types": ["앱 상호작용", "앱 내 검색 및 설정 행동"],
+        "purposes": ["앱 기능", "분석"],
+        "optional": false
+      },
+      {
+        "category": "기기 또는 기타 ID",
+        "types": ["광고 ID", "기기 또는 기타 ID"],
+        "purposes": ["광고 또는 마케팅", "사기 방지, 보안, 규정 준수"],
+        "optional": true
+      }
+    ],
+    "data_shared": [
+      {
+        "recipient": "Google AdMob",
+        "data": ["광고 이벤트", "광고 ID 또는 SDK 식별자"],
+        "purpose": "광고 제공과 보상형 광고 검증",
+        "user_control": "맞춤형 광고 동의는 설정에서 관리합니다."
+      },
+      {
+        "recipient": "Google OAuth",
+        "data": ["Google 계정 식별자"],
+        "purpose": "로그인과 계정 식별",
+        "user_control": "Google 계정 연결 해제와 Fuel Arena 계정 삭제 요청을 제공합니다."
+      },
+      {
+        "recipient": "Apple App Store / Google Play",
+        "data": ["구매 상품 ID", "transaction id", "영수증 검증 결과"],
+        "purpose": "프리미엄 구독 검증",
+        "user_control": "스토어 구독 관리와 앱 내 개인정보 요청을 제공합니다."
+      }
+    ],
+    "security_and_controls": [
+      "전송 중 암호화를 사용합니다.",
+      "사용자는 앱에서 데이터 삭제와 계정 삭제를 요청할 수 있습니다.",
+      "원본 위치 좌표와 raw drive_points는 공개 화면에 표시하지 않습니다.",
+      "결제 secret과 service_role key는 클라이언트 앱에 포함하지 않습니다."
+    ]
+  },
+  "public_urls": {
+    "privacy_policy": "/legal/privacy/",
+    "location_notice": "/legal/location/",
+    "account_deletion": "/legal/account-deletion/",
+    "terms": "/legal/terms/"
+  }
+}

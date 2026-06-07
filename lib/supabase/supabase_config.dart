@@ -20,5 +20,20 @@ class SupabaseRuntimeConfig {
   final String environment;
 
   bool get isConfigured => url.isNotEmpty && anonKey.isNotEmpty;
-}
+  bool get isProduction => environment == 'production';
+  bool get hasValidUrl {
+    final uri = Uri.tryParse(url);
+    if (!isConfigured ||
+        uri == null ||
+        uri.scheme.isEmpty ||
+        uri.host.isEmpty) {
+      return false;
+    }
+    if (isProduction && uri.scheme != 'https') {
+      return false;
+    }
+    return uri.scheme == 'https' || uri.scheme == 'http';
+  }
 
+  bool get canCreateClient => isConfigured && hasValidUrl;
+}

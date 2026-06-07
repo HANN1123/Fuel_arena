@@ -13,7 +13,7 @@ final supabaseRuntimeConfigProvider = Provider<SupabaseRuntimeConfig>((ref) {
 
 final supabaseClientProvider = Provider<SupabaseClient?>((ref) {
   final config = ref.watch(supabaseRuntimeConfigProvider);
-  if (!config.isConfigured) {
+  if (!config.canCreateClient) {
     return null;
   }
   try {

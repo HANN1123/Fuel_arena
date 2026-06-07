@@ -7,17 +7,20 @@ class AuthService {
 
   bool get isConfigured => _client != null;
 
-  Future<AuthResponse> signInWithPassword({
-    required String email,
-    required String password,
-  }) {
+  Future<bool> signInWithGoogleOAuth({String? redirectTo}) {
     final client = _client;
     if (client == null) {
       throw StateError('Supabase 환경변수가 설정되지 않았습니다.');
     }
-    return client.auth.signInWithPassword(
-      email: email,
-      password: password,
+    return client.auth.signInWithOAuth(
+      OAuthProvider.google,
+      redirectTo: redirectTo,
     );
+  }
+
+  User? get currentUser => _client?.auth.currentUser;
+
+  Future<void> signOut() async {
+    await _client?.auth.signOut();
   }
 }

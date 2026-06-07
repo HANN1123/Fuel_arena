@@ -23,7 +23,9 @@ class FuelArenaApp extends StatelessWidget {
       title: 'Fuel Arena',
       debugShowCheckedModeBanner: false,
       theme: FuelArenaTheme.dark,
-      routerConfig: bootstrap.canStartApp ? appRouter : configurationErrorRouter(bootstrap),
+      routerConfig: bootstrap.canStartApp
+          ? appRouter
+          : configurationErrorRouter(bootstrap),
     );
   }
 }
@@ -33,7 +35,7 @@ Widget configurationErrorScreen(BootstrapResult bootstrap) {
     scrollable: false,
     child: Center(
       child: AppCard(
-        borderColor: AppColors.error.withOpacity(0.35),
+        borderColor: AppColors.error.withValues(alpha: 0.35),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -48,18 +50,27 @@ Widget configurationErrorScreen(BootstrapResult bootstrap) {
             const SizedBox(height: AppSpacing.sm),
             Text(
               bootstrap.configurationError ?? '환경 설정을 확인해 주세요.',
-              style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.onSurfaceMuted),
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
-              'dev 모드는 Supabase 없이 mock repository로 실행할 수 있습니다.',
-              style: AppTypography.dataUnit.copyWith(color: AppColors.neonGreen),
+              _configurationRecoveryHint(bootstrap),
+              style:
+                  AppTypography.dataUnit.copyWith(color: AppColors.neonGreen),
             ),
           ],
         ),
       ),
     ),
   );
+}
+
+String _configurationRecoveryHint(BootstrapResult bootstrap) {
+  if (bootstrap.config.isDev) {
+    return '개발 모드는 Supabase 없이 로컬 저장소로 실행할 수 있습니다.';
+  }
+  return '운영/스테이징 빌드는 .env.production 또는 --dart-define 값과 Supabase/Google 콘솔 설정을 확인해야 합니다.';
 }
 
 GoRouter configurationErrorRouter(BootstrapResult bootstrap) {

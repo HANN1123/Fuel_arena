@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../core/utils/formatters.dart';
 import '../../design_system/app_colors.dart';
 import '../../design_system/app_radius.dart';
 import '../../design_system/app_spacing.dart';
@@ -28,7 +29,7 @@ class DriveResultHeader extends StatelessWidget {
     final verified = status == 'verified';
     return AppCard(
       padding: EdgeInsets.zero,
-      borderColor: AppColors.neonGreen.withOpacity(0.34),
+      borderColor: AppColors.neonGreen.withValues(alpha: 0.34),
       glowColor: AppColors.neonGreen,
       child: ClipRRect(
         borderRadius: AppRadius.card,
@@ -41,8 +42,8 @@ class DriveResultHeader extends StatelessWidget {
                     center: const Alignment(0.65, -0.85),
                     radius: 1.1,
                     colors: [
-                      AppColors.neonGreen.withOpacity(0.16),
-                      AppColors.surfaceLow.withOpacity(0.96),
+                      AppColors.neonGreen.withValues(alpha: 0.16),
+                      AppColors.surfaceLow.withValues(alpha: 0.96),
                     ],
                   ),
                 ),
@@ -56,7 +57,9 @@ class DriveResultHeader extends StatelessWidget {
                 height: 180,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  border: Border.all(color: AppColors.neonGreen.withOpacity(0.14), width: 18),
+                  border: Border.all(
+                      color: AppColors.neonGreen.withValues(alpha: 0.14),
+                      width: 18),
                 ),
               ),
             ),
@@ -70,10 +73,20 @@ class DriveResultHeader extends StatelessWidget {
                       const Expanded(
                         child: Text('주행 완료', style: AppTypography.titleLarge),
                       ),
-                      StatusChip(
-                        label: verified ? '검증 완료' : '검증 중',
-                        icon: verified ? Icons.verified_rounded : Icons.sync_rounded,
-                        color: verified ? AppColors.neonGreen : AppColors.amber,
+                      Flexible(
+                        flex: 0,
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: StatusChip(
+                            label: verified ? '검증 완료' : '검증 중',
+                            icon: verified
+                                ? Icons.verified_rounded
+                                : Icons.sync_rounded,
+                            color: verified
+                                ? AppColors.neonGreen
+                                : AppColors.amber,
+                          ),
+                        ),
                       ),
                     ],
                   ),
@@ -91,7 +104,8 @@ class DriveResultHeader extends StatelessWidget {
                           height: 0.95,
                           shadows: [
                             Shadow(
-                              color: AppColors.neonGreen.withOpacity(0.55),
+                              color:
+                                  AppColors.neonGreen.withValues(alpha: 0.55),
                               blurRadius: 24,
                             ),
                           ],
@@ -100,7 +114,9 @@ class DriveResultHeader extends StatelessWidget {
                       const SizedBox(width: AppSpacing.sm),
                       Padding(
                         padding: const EdgeInsets.only(bottom: 8),
-                        child: Text('PTS', style: AppTypography.dataUnit.copyWith(color: AppColors.neonGreen)),
+                        child: Text('PTS',
+                            style: AppTypography.dataUnit
+                                .copyWith(color: AppColors.neonGreen)),
                       ),
                     ],
                   ),
@@ -113,7 +129,8 @@ class DriveResultHeader extends StatelessWidget {
                         child: Text(
                           '승급까지 ${promotionLeft.clamp(0, 99999)}점',
                           textAlign: TextAlign.right,
-                          style: AppTypography.bodyMedium.copyWith(color: AppColors.amber),
+                          style: AppTypography.bodyMedium
+                              .copyWith(color: AppColors.amber),
                         ),
                       ),
                     ],
@@ -137,6 +154,7 @@ class DriveResultKpiGrid extends StatelessWidget {
     required this.seasonXp,
     required this.distanceKm,
     required this.duration,
+    this.fuelLeague = 'gasoline',
   });
 
   final double averageEfficiency;
@@ -145,58 +163,68 @@ class DriveResultKpiGrid extends StatelessWidget {
   final int seasonXp;
   final double distanceKm;
   final Duration duration;
+  final String fuelLeague;
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisSpacing: AppSpacing.sm,
-      mainAxisSpacing: AppSpacing.sm,
-      childAspectRatio: 1.55,
-      children: [
-        DriveResultKpiTile(
-          label: '평균 연비',
-          value: averageEfficiency.toStringAsFixed(1),
-          unit: 'km/l',
-          icon: Icons.local_gas_station_rounded,
-          color: AppColors.neonGreen,
-        ),
-        DriveResultKpiTile(
-          label: '동급 대비',
-          value: '상위 $classPercentile',
-          unit: '%',
-          icon: Icons.speed_rounded,
-          color: AppColors.electricBlue,
-        ),
-        DriveResultKpiTile(
-          label: '랭킹 변화',
-          value: '+$rankingDelta',
-          unit: '위',
-          icon: Icons.trending_up_rounded,
-          color: AppColors.neonGreen,
-        ),
-        DriveResultKpiTile(
-          label: '시즌 XP',
-          value: '+$seasonXp',
-          icon: Icons.bolt_rounded,
-          color: AppColors.gold,
-        ),
-        DriveResultKpiTile(
-          label: '주행 거리',
-          value: distanceKm.toStringAsFixed(1),
-          unit: 'km',
-          icon: Icons.route_rounded,
-          color: AppColors.electricBlueSoft,
-        ),
-        DriveResultKpiTile(
-          label: '주행 시간',
-          value: _formatDuration(duration),
-          icon: Icons.timer_rounded,
-          color: AppColors.amber,
-        ),
-      ],
+    const formatter = FuelEfficiencyFormatter();
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final useCompactList =
+            constraints.maxWidth.isFinite && constraints.maxWidth < 430;
+        return GridView.count(
+          crossAxisCount: useCompactList ? 1 : 2,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisSpacing: AppSpacing.sm,
+          mainAxisSpacing: AppSpacing.sm,
+          childAspectRatio: useCompactList ? 3.1 : 1.55,
+          children: [
+            DriveResultKpiTile(
+              label: formatter.metricLabelForFuelLeague(fuelLeague),
+              value: averageEfficiency.toStringAsFixed(1),
+              unit: formatter.unitForFuelLeague(fuelLeague),
+              icon: fuelLeague == FuelEfficiencyFormatter.electricLeague
+                  ? Icons.electric_car_rounded
+                  : Icons.local_gas_station_rounded,
+              color: AppColors.neonGreen,
+            ),
+            DriveResultKpiTile(
+              label: '동급 대비',
+              value: '상위 $classPercentile',
+              unit: '%',
+              icon: Icons.speed_rounded,
+              color: AppColors.electricBlue,
+            ),
+            DriveResultKpiTile(
+              label: '랭킹 변화',
+              value: '+$rankingDelta',
+              unit: '위',
+              icon: Icons.trending_up_rounded,
+              color: AppColors.neonGreen,
+            ),
+            DriveResultKpiTile(
+              label: '시즌 XP',
+              value: '+$seasonXp',
+              icon: Icons.bolt_rounded,
+              color: AppColors.gold,
+            ),
+            DriveResultKpiTile(
+              label: '주행 거리',
+              value: distanceKm.toStringAsFixed(1),
+              unit: 'km',
+              icon: Icons.route_rounded,
+              color: AppColors.electricBlueSoft,
+            ),
+            DriveResultKpiTile(
+              label: '주행 시간',
+              value: _formatDuration(duration),
+              icon: Icons.timer_rounded,
+              color: AppColors.amber,
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -221,7 +249,7 @@ class DriveResultKpiTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return AppCard(
       padding: const EdgeInsets.all(AppSpacing.md),
-      borderColor: color.withOpacity(0.18),
+      borderColor: color.withValues(alpha: 0.18),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -244,7 +272,8 @@ class DriveResultKpiTile extends StatelessWidget {
                   if (unit != null)
                     TextSpan(
                       text: ' $unit',
-                      style: AppTypography.dataUnit.copyWith(color: AppColors.onSurfaceMuted),
+                      style: AppTypography.dataUnit
+                          .copyWith(color: AppColors.onSurfaceMuted),
                     ),
                 ],
               ),
@@ -274,7 +303,8 @@ class DriveScoreAnalysisCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             '좋았던 습관과 다음 주행에서 줄일 손실을 분리해서 보여줍니다.',
-            style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+            style: AppTypography.bodyMedium
+                .copyWith(color: AppColors.onSurfaceMuted),
           ),
           const SizedBox(height: AppSpacing.lg),
           _ScoreLine(
@@ -292,8 +322,10 @@ class DriveScoreAnalysisCard extends StatelessWidget {
           _ScoreDelta(label: '급가속 패널티', value: score.accelerationPenalty),
           _ScoreDelta(label: '급감속 패널티', value: score.brakingPenalty),
           _ScoreDelta(label: '공회전 패널티', value: score.idlePenalty),
-          _ScoreDelta(label: '거리 보정', value: score.distanceBonus, positive: true),
-          _ScoreDelta(label: '일관성 보너스', value: score.consistencyBonus, positive: true),
+          _ScoreDelta(
+              label: '거리 보정', value: score.distanceBonus, positive: true),
+          _ScoreDelta(
+              label: '일관성 보너스', value: score.consistencyBonus, positive: true),
         ],
       ),
     );
@@ -317,11 +349,14 @@ class RankingResultCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      borderColor: AppColors.neonGreen.withOpacity(0.26),
+      borderColor: AppColors.neonGreen.withValues(alpha: 0.26),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const StatusChip(label: '랭킹 변화', color: AppColors.neonGreen, icon: Icons.leaderboard_rounded),
+          const StatusChip(
+              label: '랭킹 변화',
+              color: AppColors.neonGreen,
+              icon: Icons.leaderboard_rounded),
           const SizedBox(height: AppSpacing.md),
           Text('오늘 $overtakenCount명을 추월했어요', style: AppTypography.titleMedium),
           const SizedBox(height: AppSpacing.md),
@@ -379,7 +414,7 @@ class DriveRewardAdCard extends StatelessWidget {
             : AppColors.electricBlue;
 
     return AppCard(
-      borderColor: statusColor.withOpacity(0.28),
+      borderColor: statusColor.withValues(alpha: 0.28),
       glowColor: unavailable ? null : AppColors.electricBlue,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -387,7 +422,9 @@ class DriveRewardAdCard extends StatelessWidget {
           StatusChip(
             label: statusLabel,
             color: statusColor,
-            icon: rewardClaimed ? Icons.check_circle_rounded : Icons.play_circle_rounded,
+            icon: rewardClaimed
+                ? Icons.check_circle_rounded
+                : Icons.play_circle_rounded,
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
@@ -401,9 +438,10 @@ class DriveRewardAdCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             unavailable
-                ? '기본 보상은 그대로 지급됩니다. 광고 보상은 다시 준비되면 표시할게요.'
+                ? '기본 보상은 그대로 지급됩니다. 보상 조건이 맞으면 이 영역에서 다시 받을 수 있어요.'
                 : '광고는 선택입니다. 보지 않아도 이번 주행의 기본 보상은 유지됩니다.',
-            style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+            style: AppTypography.bodyMedium
+                .copyWith(color: AppColors.onSurfaceMuted),
           ),
           const SizedBox(height: AppSpacing.md),
           Row(
@@ -417,7 +455,8 @@ class DriveRewardAdCard extends StatelessWidget {
               ),
               Text(
                 '남은 보상 $remaining회',
-                style: AppTypography.dataUnit.copyWith(color: AppColors.onSurfaceMuted),
+                style: AppTypography.dataUnit
+                    .copyWith(color: AppColors.onSurfaceMuted),
               ),
             ],
           ),
@@ -432,7 +471,9 @@ class DriveRewardAdCard extends StatelessWidget {
           if (unavailable || rewardClaimed)
             SecondaryButton(
               label: rewardClaimed ? '보상 적용 완료' : '광고 보상 가능',
-              icon: rewardClaimed ? Icons.check_rounded : Icons.hourglass_empty_rounded,
+              icon: rewardClaimed
+                  ? Icons.check_rounded
+                  : Icons.hourglass_empty_rounded,
               onPressed: null,
             ),
           const SizedBox(height: AppSpacing.sm),
@@ -475,12 +516,14 @@ class ResultStateBanner extends StatelessWidget {
     };
 
     return AppCard(
-      borderColor: color.withOpacity(0.28),
+      borderColor: color.withValues(alpha: 0.28),
       child: Row(
         children: [
           Icon(Icons.sensors_rounded, color: color),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Text(label, style: AppTypography.bodyMedium.copyWith(color: color))),
+          Expanded(
+              child: Text(label,
+                  style: AppTypography.bodyMedium.copyWith(color: color))),
         ],
       ),
     );
@@ -510,7 +553,9 @@ class _ScoreLine extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text(label, style: AppTypography.bodyMedium)),
-              Text('+$value', style: AppTypography.bodyMedium.copyWith(color: color, fontWeight: FontWeight.w800)),
+              Text('+$value',
+                  style: AppTypography.bodyMedium
+                      .copyWith(color: color, fontWeight: FontWeight.w800)),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
@@ -546,12 +591,16 @@ class _ScoreDelta extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
         children: [
-          Icon(positive ? Icons.add_circle_rounded : Icons.remove_circle_rounded, color: color, size: 18),
+          Icon(
+              positive ? Icons.add_circle_rounded : Icons.remove_circle_rounded,
+              color: color,
+              size: 18),
           const SizedBox(width: AppSpacing.sm),
           Expanded(child: Text(label, style: AppTypography.bodyMedium)),
           Text(
             '$prefix$value',
-            style: AppTypography.bodyMedium.copyWith(color: color, fontWeight: FontWeight.w800),
+            style: AppTypography.bodyMedium
+                .copyWith(color: color, fontWeight: FontWeight.w800),
           ),
         ],
       ),
@@ -581,7 +630,9 @@ class _InsightRow extends StatelessWidget {
           Icon(icon, color: color, size: 20),
           const SizedBox(width: AppSpacing.sm),
           Expanded(child: Text(label, style: AppTypography.bodyMedium)),
-          Text(value, style: AppTypography.bodyMedium.copyWith(color: color, fontWeight: FontWeight.w800)),
+          Text(value,
+              style: AppTypography.bodyMedium
+                  .copyWith(color: color, fontWeight: FontWeight.w800)),
         ],
       ),
     );

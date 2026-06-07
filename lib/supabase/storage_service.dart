@@ -15,4 +15,3 @@ class StorageService {
     return client.storage.from('vehicle-images').getPublicUrl(path);
   }
 }
-

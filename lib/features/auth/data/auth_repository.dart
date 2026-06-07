@@ -1,2 +1,7 @@
 export '../../../shared/repositories/fuel_arena_repositories.dart'
-    show AuthRepository, MockAuthRepository, SupabaseAuthRepository;
+    show
+        AuthRepository,
+        AuthRedirectInProgressException,
+        MockAuthRepository,
+        SupabaseAuthRepository,
+        SupabaseGoogleAuthRepository;

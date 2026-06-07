@@ -2,11 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/errors/app_error.dart';
 import '../../../design_system/app_colors.dart';
 import '../../../design_system/app_spacing.dart';
 import '../../../design_system/app_typography.dart';
+import '../../../shared/models/fuel_arena_models.dart';
 import '../../../shared/providers/repository_providers.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../data/auth_repository.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -16,123 +19,202 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _emailController = TextEditingController(text: 'driver@fuelarena.net');
-  final _passwordController = TextEditingController(text: 'fuelarena!');
   var _loading = false;
+  String? _error;
+  String? _status;
 
-  @override
-  void dispose() {
-    _emailController.dispose();
-    _passwordController.dispose();
-    super.dispose();
+  String _nextRouteAfterLogin(UserProfile user) {
+    if (!user.consentCompleted) {
+      return '/consent';
+    }
+    if (!user.vehicleSetupCompleted) {
+      return '/setup';
+    }
+    return '/home';
   }
 
-  Future<void> _login() async {
-    setState(() => _loading = true);
-    await ref.read(authRepositoryProvider).loginWithEmail(
-          email: _emailController.text,
-          password: _passwordController.text,
-        );
-    if (!mounted) {
-      return;
+  Future<void> _trackAuthEvent(
+    String eventName, {
+    Map<String, Object?> properties = const {},
+  }) async {
+    try {
+      await ref
+          .read(analyticsRepositoryProvider)
+          .track(eventName, properties: properties);
+    } catch (_) {}
+  }
+
+  Future<void> _identifyLoginUser(UserProfile user) async {
+    try {
+      await ref
+          .read(analyticsRepositoryProvider)
+          .identify(user.id, properties: {'auth_provider': 'google'});
+    } catch (_) {}
+  }
+
+  Future<void> _loginWithGoogle() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _status = null;
+    });
+
+    try {
+      await _trackAuthEvent('google_login_started');
+      final user = await ref.read(authRepositoryProvider).signInWithGoogle();
+      await ref.read(appSessionServiceProvider).rememberLogin(user);
+      ref.invalidate(restoredSessionProvider);
+      await _identifyLoginUser(user);
+      await _trackAuthEvent('google_login_succeeded');
+      if (!mounted) {
+        return;
+      }
+      context.go(_nextRouteAfterLogin(user));
+    } on AuthRedirectInProgressException catch (event) {
+      if (!mounted) {
+        return;
+      }
+      await _trackAuthEvent('google_login_redirect_started');
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _status = event.toString();
+      });
+    } catch (error) {
+      if (!mounted) {
+        return;
+      }
+      setState(() {
+        _error = const ErrorMapper().messageFor(error);
+        _status = null;
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _loading = false);
+      }
     }
-    context.go('/consent');
   }
 
   @override
   Widget build(BuildContext context) {
+    final config = ref.watch(appConfigProvider);
+    final authRepository = ref.watch(authRepositoryProvider);
+    final needsGoogleConfig =
+        !config.isDev && !authRepository.isGoogleAuthConfigured();
+
     return AppScaffold(
-      scrollable: false,
+      scrollable: true,
       child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'FUEL ARENA',
-              style: AppTypography.displayLarge.copyWith(
-                color: AppColors.neonGreen,
-                fontStyle: FontStyle.italic,
+        child: AppCard(
+          glowColor: AppColors.neonGreen,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'FUEL ARENA',
+                style: AppTypography.displayLarge.copyWith(
+                  color: AppColors.neonGreen,
+                  fontStyle: FontStyle.italic,
+                ),
               ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            Text('System Access Terminal', style: AppTypography.labelCaps),
-            const SizedBox(height: AppSpacing.xl),
-            AppCard(
-              glowColor: AppColors.neonGreen,
-              child: Column(
-                children: [
-                  TextField(
-                    controller: _emailController,
-                    keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      labelText: 'Driver ID / Email',
-                      prefixIcon: Icon(Icons.account_circle_rounded),
-                    ),
+              const SizedBox(height: AppSpacing.xs),
+              Text('연비로 증명해', style: AppTypography.titleLarge),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                'Google 계정으로 시작하고, 나중에 차량을 설정해 리그에 참가하세요.',
+                style: AppTypography.bodyMedium
+                    .copyWith(color: AppColors.onSurfaceMuted),
+              ),
+              const SizedBox(height: AppSpacing.xl),
+              PrimaryButton(
+                label: 'Google로 시작하기',
+                icon: Icons.login_rounded,
+                isLoading: _loading,
+                onPressed: needsGoogleConfig ? null : _loginWithGoogle,
+              ),
+              if (needsGoogleConfig || _error != null || _status != null) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Text(
+                  needsGoogleConfig
+                      ? 'Google 로그인 설정이 필요합니다.'
+                      : _error ?? _status!,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: _error != null || needsGoogleConfig
+                        ? AppColors.error
+                        : AppColors.neonGreen,
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  TextField(
-                    controller: _passwordController,
-                    obscureText: true,
-                    decoration: const InputDecoration(
-                      labelText: 'Access Code',
-                      prefixIcon: Icon(Icons.lock_rounded),
-                    ),
+                ),
+              ],
+              const SizedBox(height: AppSpacing.lg),
+              Text(
+                '로그인 후 필수 동의 화면에서 약관과 개인정보 처리방침 동의를 확정합니다.',
+                style: AppTypography.dataUnit
+                    .copyWith(color: AppColors.onSurfaceMuted),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '가입 전 문서를 먼저 확인할 수 있어요.',
+                style: AppTypography.dataUnit
+                    .copyWith(color: AppColors.onSurfaceMuted),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xs,
+                children: const [
+                  _LegalLink(
+                    label: '약관 보기',
+                    icon: Icons.description_rounded,
+                    route: '/legal/terms',
                   ),
-                  const SizedBox(height: AppSpacing.xl),
-                  PrimaryButton(
-                    label: '로그인',
-                    icon: Icons.arrow_forward_rounded,
-                    isLoading: _loading,
-                    onPressed: _login,
+                  _LegalLink(
+                    label: '개인정보 보기',
+                    icon: Icons.privacy_tip_rounded,
+                    route: '/legal/privacy',
                   ),
-                  const SizedBox(height: AppSpacing.lg),
-                  Row(
-                    children: [
-                      Expanded(child: Divider(color: Colors.white.withOpacity(0.1))),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-                        child: Text('소셜 로그인', style: AppTypography.dataUnit),
-                      ),
-                      Expanded(child: Divider(color: Colors.white.withOpacity(0.1))),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.md),
-                  const Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _SocialButton(icon: Icons.account_box_rounded),
-                      SizedBox(width: AppSpacing.md),
-                      _SocialButton(icon: Icons.chat_rounded),
-                      SizedBox(width: AppSpacing.md),
-                      _SocialButton(icon: Icons.apple_rounded),
-                    ],
-                  ),
-                  const SizedBox(height: AppSpacing.lg),
-                  TextButton(
-                    onPressed: () => context.go('/auth/signup'),
-                    child: const Text('아직 계정이 없나요? 회원가입'),
+                  _LegalLink(
+                    label: '위치정보 보기',
+                    icon: Icons.location_on_rounded,
+                    route: '/legal/location',
                   ),
                 ],
               ),
-            ),
-          ],
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                '차량 설정은 로그인 후 추가 설정에서 진행합니다.',
+                style: AppTypography.dataUnit
+                    .copyWith(color: AppColors.onSurfaceMuted),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-class _SocialButton extends StatelessWidget {
-  const _SocialButton({required this.icon});
+class _LegalLink extends StatelessWidget {
+  const _LegalLink({
+    required this.label,
+    required this.icon,
+    required this.route,
+  });
 
+  final String label;
   final IconData icon;
+  final String route;
 
   @override
   Widget build(BuildContext context) {
-    return CircleAvatar(
-      radius: 24,
-      backgroundColor: AppColors.surface,
-      child: Icon(icon, color: AppColors.electricBlue),
+    return TextButton.icon(
+      style: TextButton.styleFrom(
+        foregroundColor: AppColors.electricBlue,
+      ),
+      onPressed: () => GoRouter.of(context).push(route),
+      icon: Icon(icon, size: 16),
+      label: Text(label, style: AppTypography.dataUnit),
     );
   }
 }

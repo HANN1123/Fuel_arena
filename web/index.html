@@ -18,19 +18,45 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="연비와 주행 효율로 경쟁하는 게임형 드라이빙 플랫폼 Fuel Arena">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="fuel_arena">
+  <meta name="apple-mobile-web-app-title" content="Fuel Arena">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>fuel_arena</title>
+  <title>Fuel Arena</title>
   <link rel="manifest" href="manifest.json">
+  <style>
+    html,
+    body {
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background: #071007;
+    }
+
+    body {
+      position: fixed;
+      inset: 0;
+    }
+
+    flutter-view,
+    flt-glass-pane {
+      width: 100vw !important;
+      height: 100vh !important;
+      max-width: 100vw;
+      max-height: 100vh;
+      overflow: hidden;
+    }
+  </style>
 </head>
 <body>
   <!--
@@ -41,6 +67,31 @@
     For more details:
     * https://docs.flutter.dev/platform-integration/web/initialization
   -->
-  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then((registrations) => registrations.forEach((registration) => registration.unregister()));
+    }
+    if ('caches' in window) {
+      caches.keys().then((keys) => keys.forEach((key) => caches.delete(key)));
+    }
+  </script>
+  <script>
+    {{flutter_js}}
+    {{flutter_build_config}}
+    _flutter.loader.load({
+      config: {
+        canvasKitBaseUrl: 'canvaskit/',
+        renderer: 'canvaskit',
+        useLocalCanvasKit: true,
+        wasmAllowList: {
+          blink: false,
+          gecko: false,
+          webkit: false,
+          unknown: false,
+        },
+      },
+    });
+  </script>
 </body>
 </html>

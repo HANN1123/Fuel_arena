@@ -8,6 +8,11 @@ Fuel Arena는 Supabase Auth, Postgres, Realtime, Storage, Edge Functions, Row Le
 
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
+- `GOOGLE_WEB_CLIENT_ID`
+- `GOOGLE_ANDROID_CLIENT_ID`
+- `GOOGLE_IOS_CLIENT_ID`
+- `GOOGLE_SERVER_CLIENT_ID`
+- `GOOGLE_REVERSED_IOS_CLIENT_ID`
 
 금지:
 
@@ -17,7 +22,7 @@ Fuel Arena는 Supabase Auth, Postgres, Realtime, Storage, Edge Functions, Row Le
 
 - RLS를 기본 전제로 한다.
 - 민감한 주행 데이터는 본인만 접근할 수 있어야 한다.
-- 공개 랭킹에는 닉네임, 티어, 점수, 차량 클래스, 연료 타입 정도만 노출한다.
+- 공개 랭킹에는 닉네임, 티어, 점수, 차량 클래스, 연료 리그 정도만 노출한다.
 - 정확한 위치 경로는 공개하지 않는다.
 - 점수 계산은 클라이언트가 아니라 Edge Function 또는 서버 신뢰 영역에서 처리한다.
 - 클라이언트 점수 제출은 검증 대기 상태로 저장하고 서버 검증 후 랭킹에 반영한다.
@@ -37,6 +42,13 @@ Fuel Arena는 Supabase Auth, Postgres, Realtime, Storage, Edge Functions, Row Le
 - current_streak
 - best_streak
 - representative_vehicle_id
+- auth_provider
+- onboarding_completed
+- consent_completed
+- additional_setup_completed
+- vehicle_setup_completed
+- selected_fuel_league
+- selected_vehicle_class
 - is_premium
 - created_at
 - updated_at
@@ -51,10 +63,23 @@ Fuel Arena는 Supabase Auth, Postgres, Realtime, Storage, Edge Functions, Row Le
 - model_name
 - model_year
 - fuel_type
+- fuel_league
 - vehicle_class
 - nickname
 - is_primary
 - created_at
+
+### vehicle catalog
+
+차량 선택 스텝퍼를 위한 공개 카탈로그.
+
+- fuel_leagues
+- vehicle_manufacturers
+- vehicle_models
+- vehicle_model_years
+- vehicle_variants
+- user_vehicles
+- league_memberships
 
 ### drive_sessions
 

@@ -20,6 +20,8 @@ class BattleCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fuelLeague = battle.requiredFuelLeague;
+    final vehicleClass = battle.requiredVehicleClass;
     return AppCard(
       glowColor: AppColors.neonGreen,
       child: Column(
@@ -34,13 +36,37 @@ class BattleCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text('${battle.battleType} · ${battle.ruleType}', style: AppTypography.dataUnit),
+          Text('${battle.battleType} · ${battle.ruleType}',
+              style: AppTypography.dataUnit),
+          const SizedBox(height: AppSpacing.sm),
+          Wrap(
+            spacing: AppSpacing.xs,
+            runSpacing: AppSpacing.xs,
+            children: [
+              StatusChip(
+                label: fuelLeague == null || fuelLeague.isEmpty
+                    ? '리그 공개'
+                    : FuelLeague.nameForKey(fuelLeague),
+                color: AppColors.neonGreen,
+              ),
+              if (vehicleClass != null && vehicleClass.isNotEmpty)
+                StatusChip(label: vehicleClass, color: AppColors.electricBlue),
+              if (battle.isFriendlyCrossLeague)
+                const StatusChip(label: '친선전', color: AppColors.amber),
+            ],
+          ),
           const SizedBox(height: AppSpacing.md),
           Row(
             children: [
-              Expanded(child: _ScoreColumn(label: '내 점수', score: battle.myScore)),
-              Text('VS', style: AppTypography.titleMedium.copyWith(color: AppColors.outline)),
-              Expanded(child: _ScoreColumn(label: battle.opponentNickname, score: battle.opponentScore)),
+              Expanded(
+                  child: _ScoreColumn(label: '내 점수', score: battle.myScore)),
+              Text('VS',
+                  style: AppTypography.titleMedium
+                      .copyWith(color: AppColors.outline)),
+              Expanded(
+                  child: _ScoreColumn(
+                      label: battle.opponentNickname,
+                      score: battle.opponentScore)),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -49,7 +75,8 @@ class BattleCard extends StatelessWidget {
               Expanded(
                 child: Text(
                   battle.rewardSummary,
-                  style: AppTypography.bodyMedium.copyWith(color: AppColors.electricBlueSoft),
+                  style: AppTypography.bodyMedium
+                      .copyWith(color: AppColors.electricBlueSoft),
                 ),
               ),
               if (onTap != null)
@@ -69,28 +96,53 @@ class MissionCard extends StatelessWidget {
   const MissionCard({
     super.key,
     required this.mission,
+    this.onClaimReward,
+    this.isClaiming = false,
   });
 
   final SeasonMission mission;
+  final VoidCallback? onClaimReward;
+  final bool isClaiming;
 
   @override
   Widget build(BuildContext context) {
     final value = mission.target == 0 ? 0.0 : mission.progress / mission.target;
+    final isComplete = mission.progress >= mission.target;
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(child: Text(mission.title, style: AppTypography.titleMedium)),
+              Expanded(
+                  child: Text(mission.title, style: AppTypography.titleMedium)),
               StatusChip(
-                label: mission.isWeekly ? '주간' : '오늘',
-                color: mission.isWeekly ? AppColors.amber : AppColors.electricBlue,
+                label: mission.rewardClaimed
+                    ? '보상 완료'
+                    : isComplete
+                        ? '완료'
+                        : mission.isWeekly
+                            ? '주간'
+                            : '오늘',
+                color: mission.rewardClaimed
+                    ? AppColors.neonGreen
+                    : isComplete
+                        ? AppColors.gold
+                        : mission.isWeekly
+                            ? AppColors.amber
+                            : AppColors.electricBlue,
+                icon: mission.rewardClaimed
+                    ? Icons.check_rounded
+                    : isComplete
+                        ? Icons.emoji_events_rounded
+                        : null,
               ),
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
-          Text(mission.description, style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted)),
+          Text(mission.description,
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.onSurfaceMuted)),
           const SizedBox(height: AppSpacing.md),
           LinearProgressIndicator(
             value: value.clamp(0.0, 1.0).toDouble(),
@@ -103,10 +155,24 @@ class MissionCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('${mission.progress} / ${mission.target}', style: AppTypography.dataUnit),
-              Text('+${mission.rewardXp} XP', style: AppTypography.dataUnit.copyWith(color: AppColors.neonGreen)),
+              Text('${mission.progress} / ${mission.target}',
+                  style: AppTypography.dataUnit),
+              Text('+${mission.rewardXp} XP',
+                  style: AppTypography.dataUnit
+                      .copyWith(color: AppColors.neonGreen)),
             ],
           ),
+          if (isComplete &&
+              !mission.rewardClaimed &&
+              onClaimReward != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            PrimaryButton(
+              label: '보상 받기',
+              icon: Icons.card_giftcard_rounded,
+              onPressed: onClaimReward,
+              isLoading: isClaiming,
+            ),
+          ],
         ],
       ),
     );
@@ -125,18 +191,21 @@ class SeasonProgressCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final remain = season.promotionTargetScore - season.seasonScore;
     return AppCard(
-      borderColor: AppColors.neonGreen.withOpacity(0.25),
+      borderColor: AppColors.neonGreen.withValues(alpha: 0.25),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Expanded(child: Text(season.name, style: AppTypography.titleMedium)),
+              Expanded(
+                  child: Text(season.name, style: AppTypography.titleMedium)),
               StatusChip(label: season.currentLeague, color: AppColors.gold),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
-          Text('승급까지 ${remain.clamp(0, 99999)}점', style: AppTypography.bodyMedium.copyWith(color: AppColors.neonGreen)),
+          Text('승급까지 ${remain.clamp(0, 99999)}점',
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.neonGreen)),
           const SizedBox(height: AppSpacing.md),
           LinearProgressIndicator(
             value: season.rewardProgress.clamp(0.0, 1.0).toDouble(),
@@ -167,17 +236,19 @@ class RivalAlertCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      borderColor: AppColors.amber.withOpacity(0.28),
+      borderColor: AppColors.amber.withValues(alpha: 0.28),
       child: Row(
         children: [
-          const Icon(Icons.local_fire_department_rounded, color: AppColors.amber),
+          const Icon(Icons.local_fire_department_rounded,
+              color: AppColors.amber),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(rival.message, style: AppTypography.titleMedium),
-                Text('${rival.nickname} · ${rival.scoreGap}점 차이', style: AppTypography.dataUnit),
+                Text('${rival.nickname} · ${rival.scoreGap}점 차이',
+                    style: AppTypography.dataUnit),
               ],
             ),
           ),
@@ -204,9 +275,12 @@ class DriveResultCard extends StatelessWidget {
           Text('이번 주행 점수', style: AppTypography.labelCaps),
           Text(
             NumberFormat.decimalPattern().format(score.totalScore),
-            style: AppTypography.displayLarge.copyWith(color: AppColors.neonGreen),
+            style:
+                AppTypography.displayLarge.copyWith(color: AppColors.neonGreen),
           ),
-          Text('동급 대비 상위 ${score.classPercentile}%', style: AppTypography.bodyMedium.copyWith(color: AppColors.electricBlueSoft)),
+          Text('동급 대비 상위 ${score.classPercentile}%',
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.electricBlueSoft)),
         ],
       ),
     );
@@ -229,13 +303,34 @@ class ScoreBreakdownCard extends StatelessWidget {
         children: [
           Text('점수 분석', style: AppTypography.titleMedium),
           const SizedBox(height: AppSpacing.md),
-          _BreakdownRow(label: '효율 점수', value: '+${score.efficiencyScore}', color: AppColors.neonGreen),
-          _BreakdownRow(label: '안정 주행', value: '+${score.stabilityScore}', color: AppColors.electricBlue),
-          _BreakdownRow(label: '거리 보너스', value: '+${score.distanceBonus}', color: AppColors.neonGreen),
-          _BreakdownRow(label: '일관성 보너스', value: '+${score.consistencyBonus}', color: AppColors.neonGreen),
-          _BreakdownRow(label: '급가속 패널티', value: '${score.accelerationPenalty}', color: AppColors.danger),
-          _BreakdownRow(label: '급제동 패널티', value: '${score.brakingPenalty}', color: AppColors.danger),
-          _BreakdownRow(label: '공회전 패널티', value: '${score.idlePenalty}', color: AppColors.danger),
+          _BreakdownRow(
+              label: '효율 점수',
+              value: '+${score.efficiencyScore}',
+              color: AppColors.neonGreen),
+          _BreakdownRow(
+              label: '안정 주행',
+              value: '+${score.stabilityScore}',
+              color: AppColors.electricBlue),
+          _BreakdownRow(
+              label: '거리 보너스',
+              value: '+${score.distanceBonus}',
+              color: AppColors.neonGreen),
+          _BreakdownRow(
+              label: '일관성 보너스',
+              value: '+${score.consistencyBonus}',
+              color: AppColors.neonGreen),
+          _BreakdownRow(
+              label: '급가속 패널티',
+              value: '${score.accelerationPenalty}',
+              color: AppColors.danger),
+          _BreakdownRow(
+              label: '급제동 패널티',
+              value: '${score.brakingPenalty}',
+              color: AppColors.danger),
+          _BreakdownRow(
+              label: '공회전 패널티',
+              value: '${score.idlePenalty}',
+              color: AppColors.danger),
         ],
       ),
     );
@@ -257,15 +352,20 @@ class RewardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      borderColor: AppColors.gold.withOpacity(0.3),
+      borderColor: AppColors.gold.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const StatusChip(label: '보상', color: AppColors.gold, icon: Icons.card_giftcard_rounded),
+          const StatusChip(
+              label: '보상',
+              color: AppColors.gold,
+              icon: Icons.card_giftcard_rounded),
           const SizedBox(height: AppSpacing.md),
           Text(title, style: AppTypography.titleMedium),
           const SizedBox(height: AppSpacing.xs),
-          Text(description, style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted)),
+          Text(description,
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.onSurfaceMuted)),
           if (onTap != null) ...[
             const SizedBox(height: AppSpacing.md),
             SecondaryButton(label: '기본 보상만 받기', onPressed: onTap),
@@ -293,14 +393,16 @@ class AdRewardCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      borderColor: AppColors.electricBlue.withOpacity(0.3),
+      borderColor: AppColors.electricBlue.withValues(alpha: 0.3),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           StatusChip(
             label: claimed ? '보상 완료' : '광고 보상',
             color: claimed ? AppColors.neonGreen : AppColors.electricBlue,
-            icon: claimed ? Icons.check_circle_rounded : Icons.play_circle_rounded,
+            icon: claimed
+                ? Icons.check_circle_rounded
+                : Icons.play_circle_rounded,
           ),
           const SizedBox(height: AppSpacing.md),
           Text(
@@ -310,7 +412,8 @@ class AdRewardCard extends StatelessWidget {
           const SizedBox(height: AppSpacing.xs),
           Text(
             '광고를 보지 않아도 기본 보상은 유지됩니다.',
-            style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+            style: AppTypography.bodyMedium
+                .copyWith(color: AppColors.onSurfaceMuted),
           ),
           const SizedBox(height: AppSpacing.md),
           PrimaryButton(
@@ -340,7 +443,9 @@ class NativeAdCard extends StatelessWidget {
         children: [
           const StatusChip(label: 'AD', color: AppColors.outline),
           const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Text(advertisement.label, style: AppTypography.bodyMedium)),
+          Expanded(
+              child:
+                  Text(advertisement.label, style: AppTypography.bodyMedium)),
         ],
       ),
     );
@@ -358,17 +463,21 @@ class SponsorChallengeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      borderColor: AppColors.electricBlue.withOpacity(0.24),
+      borderColor: AppColors.electricBlue.withValues(alpha: 0.24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          StatusChip(label: challenge.sponsorName, color: AppColors.electricBlue),
+          StatusChip(
+              label: challenge.sponsorName, color: AppColors.electricBlue),
           const SizedBox(height: AppSpacing.md),
           Text(challenge.title, style: AppTypography.titleMedium),
           const SizedBox(height: AppSpacing.xs),
-          Text(challenge.description, style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted)),
+          Text(challenge.description,
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.onSurfaceMuted)),
           const SizedBox(height: AppSpacing.md),
-          Text(challenge.rewardSummary, style: AppTypography.dataUnit.copyWith(color: AppColors.gold)),
+          Text(challenge.rewardSummary,
+              style: AppTypography.dataUnit.copyWith(color: AppColors.gold)),
         ],
       ),
     );
@@ -386,10 +495,11 @@ class CouponCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      borderColor: AppColors.gold.withOpacity(0.3),
+      borderColor: AppColors.gold.withValues(alpha: 0.3),
       child: ListTile(
         contentPadding: EdgeInsets.zero,
-        leading: const Icon(Icons.confirmation_number_rounded, color: AppColors.gold),
+        leading: const Icon(Icons.confirmation_number_rounded,
+            color: AppColors.gold),
         title: Text(coupon.title, style: AppTypography.titleMedium),
         subtitle: Text(coupon.description),
       ),
@@ -417,7 +527,8 @@ class VehicleCard extends StatelessWidget {
               borderRadius: BorderRadius.circular(12),
               gradient: AppColors.surfaceGradient,
             ),
-            child: const Icon(Icons.directions_car_rounded, color: AppColors.neonGreen, size: 36),
+            child: const Icon(Icons.directions_car_rounded,
+                color: AppColors.neonGreen, size: 36),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -427,10 +538,22 @@ class VehicleCard extends StatelessWidget {
                 Text(vehicle.nickname, style: AppTypography.titleMedium),
                 Text(
                   '${vehicle.manufacturer} ${vehicle.modelName}',
-                  style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+                  style: AppTypography.bodyMedium
+                      .copyWith(color: AppColors.onSurfaceMuted),
                 ),
                 const SizedBox(height: AppSpacing.xs),
-                StatusChip(label: '${vehicle.vehicleClass} · ${vehicle.fuelType}', color: AppColors.electricBlue),
+                Wrap(
+                  spacing: AppSpacing.xs,
+                  runSpacing: AppSpacing.xs,
+                  children: [
+                    StatusChip(
+                        label: '${vehicle.vehicleClass} · ${vehicle.fuelType}',
+                        color: AppColors.electricBlue),
+                    StatusChip(
+                        label: vehicle.leagueDisplayName,
+                        color: AppColors.neonGreen),
+                  ],
+                ),
               ],
             ),
           ),
@@ -446,17 +569,21 @@ class SafetyModePanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      borderColor: AppColors.neonGreen.withOpacity(0.28),
+      borderColor: AppColors.neonGreen.withValues(alpha: 0.28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const StatusChip(label: 'Safety Mode', color: AppColors.neonGreen, icon: Icons.shield_rounded),
+          const StatusChip(
+              label: '안전 모드',
+              color: AppColors.neonGreen,
+              icon: Icons.shield_rounded),
           const SizedBox(height: AppSpacing.md),
           Text('주행 중에는 알림과 광고가 표시되지 않아요', style: AppTypography.titleMedium),
           const SizedBox(height: AppSpacing.xs),
           Text(
             '광고 없음 · 팝업 없음 · 도전장 없음. 기록과 안전에만 집중합니다.',
-            style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+            style: AppTypography.bodyMedium
+                .copyWith(color: AppColors.onSurfaceMuted),
           ),
         ],
       ),
@@ -479,18 +606,24 @@ class LockedPremiumCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return AppCard(
-      borderColor: AppColors.gold.withOpacity(0.28),
+      borderColor: AppColors.gold.withValues(alpha: 0.28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const StatusChip(label: 'Premium', color: AppColors.gold, icon: Icons.lock_rounded),
+          const StatusChip(
+              label: '프리미엄', color: AppColors.gold, icon: Icons.lock_rounded),
           const SizedBox(height: AppSpacing.md),
           Text(title, style: AppTypography.titleMedium),
           const SizedBox(height: AppSpacing.xs),
-          Text(description, style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted)),
+          Text(description,
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.onSurfaceMuted)),
           if (onTap != null) ...[
             const SizedBox(height: AppSpacing.md),
-            PrimaryButton(label: '프리미엄 시작하기', icon: Icons.arrow_forward_rounded, onPressed: onTap),
+            PrimaryButton(
+                label: '프리미엄 시작하기',
+                icon: Icons.arrow_forward_rounded,
+                onPressed: onTap),
           ],
         ],
       ),
@@ -528,7 +661,8 @@ class StatMetricCard extends StatelessWidget {
                 if (unit != null)
                   TextSpan(
                     text: ' $unit',
-                    style: AppTypography.dataUnit.copyWith(color: AppColors.onSurfaceMuted),
+                    style: AppTypography.dataUnit
+                        .copyWith(color: AppColors.onSurfaceMuted),
                   ),
               ],
             ),
@@ -577,7 +711,9 @@ class _BreakdownRow extends StatelessWidget {
       child: Row(
         children: [
           Expanded(child: Text(label, style: AppTypography.bodyMedium)),
-          Text(value, style: AppTypography.bodyMedium.copyWith(color: color, fontWeight: FontWeight.w800)),
+          Text(value,
+              style: AppTypography.bodyMedium
+                  .copyWith(color: color, fontWeight: FontWeight.w800)),
         ],
       ),
     );

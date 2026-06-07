@@ -15,4 +15,3 @@ class RealtimeService {
     return client.channel('rankings:user:$userId');
   }
 }
-

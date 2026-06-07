@@ -1,11 +1,11 @@
 {
-    "name": "fuel_arena",
-    "short_name": "fuel_arena",
+    "name": "Fuel Arena",
+    "short_name": "Fuel Arena",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#07140F",
+    "theme_color": "#37F26B",
+    "description": "연비와 주행 효율로 경쟁하는 게임형 드라이빙 플랫폼",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

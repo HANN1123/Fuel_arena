@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 
 import 'app_colors.dart';
 
@@ -28,7 +28,7 @@ abstract final class AppShadows {
   ];
 
   static BoxShadow glow(Color color) => BoxShadow(
-        color: color.withOpacity(0.28),
+        color: color.withValues(alpha: 0.28),
         blurRadius: 22,
         spreadRadius: -5,
       );

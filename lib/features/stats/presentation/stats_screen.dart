@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../design_system/app_colors.dart';
 import '../../../design_system/app_spacing.dart';
@@ -18,11 +19,30 @@ class StatsScreen extends ConsumerWidget {
       child: FutureBuilder(
         future: stats,
         builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const LoadingSkeletonView(lines: 5);
+          }
+          if (snapshot.hasError) {
+            return ErrorStateView(
+              message: '통계를 불러오지 못했어요.',
+              onRetry: () => ref.invalidate(statsRepositoryProvider),
+            );
+          }
           final items = snapshot.data ?? const [];
+          if (items.isEmpty) {
+            return EmptyStateView(
+              title: '주행 기록이 아직 없어요',
+              message: '첫 검증 주행이 끝나면 평균 연비, 검증 주행 수, 동급 백분위가 자동으로 채워집니다.',
+              actionLabel: '첫 주행 시작하기',
+              onAction: () => context.go('/drive/start'),
+            );
+          }
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('숫자로 보는\n나의 주행 스타일', style: AppTypography.displayScore.copyWith(color: AppColors.electricBlue)),
+              Text('숫자로 보는\n나의 주행 스타일',
+                  style: AppTypography.displayScore
+                      .copyWith(color: AppColors.electricBlue)),
               const SizedBox(height: AppSpacing.lg),
               Wrap(
                 spacing: AppSpacing.sm,
@@ -35,7 +55,9 @@ class StatsScreen extends ConsumerWidget {
                           label: metric.label,
                           value: metric.value,
                           unit: metric.unit,
-                          color: metric.id == 'avg-efficiency' ? AppColors.neonGreen : AppColors.electricBlue,
+                          color: metric.id == 'avg-efficiency'
+                              ? AppColors.neonGreen
+                              : AppColors.electricBlue,
                         ),
                       ),
                     )

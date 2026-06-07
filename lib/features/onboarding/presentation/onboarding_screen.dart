@@ -1,19 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../design_system/app_colors.dart';
 import '../../../design_system/app_spacing.dart';
 import '../../../design_system/app_typography.dart';
+import '../../../shared/providers/repository_providers.dart';
 import '../../../shared/widgets/widgets.dart';
 
-class OnboardingScreen extends StatefulWidget {
+class OnboardingScreen extends ConsumerStatefulWidget {
   const OnboardingScreen({super.key});
 
   @override
-  State<OnboardingScreen> createState() => _OnboardingScreenState();
+  ConsumerState<OnboardingScreen> createState() => _OnboardingScreenState();
 }
 
-class _OnboardingScreenState extends State<OnboardingScreen> {
+class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _controller = PageController();
   var _index = 0;
 
@@ -25,7 +27,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     ),
     _OnboardingPageData(
       title: '친구뿐 아니라\n모든 운전자와 겨루세요',
-      body: '동급 차량, 지역, 연료 타입별 리더보드에서 라이벌을 추월하세요.',
+      body: '동급 차량, 지역, 연료 리그별 리더보드에서 라이벌을 추월하세요.',
       icon: Icons.sports_mma_rounded,
     ),
     _OnboardingPageData(
@@ -41,9 +43,17 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
+  Future<void> _complete() async {
+    await ref.read(localStateServiceProvider).markOnboardingCompleted();
+    await ref.read(analyticsRepositoryProvider).track('onboarding_completed');
+    if (mounted) {
+      context.go('/auth/login');
+    }
+  }
+
   void _next() {
     if (_index == _pages.length - 1) {
-      context.go('/auth/login');
+      _complete();
       return;
     }
     _controller.nextPage(
@@ -61,8 +71,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           Align(
             alignment: Alignment.centerRight,
             child: TextButton(
-              onPressed: () => context.go('/auth/login'),
-              child: const Text('Skip'),
+              onPressed: () => _complete(),
+              child: const Text('건너뛰기'),
             ),
           ),
           Expanded(
@@ -70,7 +80,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               controller: _controller,
               itemCount: _pages.length,
               onPageChanged: (value) => setState(() => _index = value),
-              itemBuilder: (context, index) => _OnboardingPage(data: _pages[index]),
+              itemBuilder: (context, index) =>
+                  _OnboardingPage(data: _pages[index]),
             ),
           ),
           Row(
@@ -83,7 +94,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 height: 8,
                 margin: const EdgeInsets.symmetric(horizontal: 4),
                 decoration: BoxDecoration(
-                  color: selected ? AppColors.neonGreen : AppColors.surfaceHighest,
+                  color:
+                      selected ? AppColors.neonGreen : AppColors.surfaceHighest,
                   borderRadius: BorderRadius.circular(99),
                 ),
               );
@@ -91,7 +103,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
           ),
           const SizedBox(height: AppSpacing.lg),
           PrimaryButton(
-            label: _index == _pages.length - 1 ? '시작하기' : 'Next',
+            label: _index == _pages.length - 1 ? '시작하기' : '다음',
             icon: Icons.arrow_forward_rounded,
             onPressed: _next,
           ),
@@ -114,27 +126,28 @@ class _OnboardingPage extends StatelessWidget {
         AppCard(
           glowColor: AppColors.neonGreen,
           child: SizedBox(
-            height: 260,
+            height: 228,
             child: Center(
               child: Stack(
                 alignment: Alignment.center,
                 children: [
                   Container(
-                    width: 170,
-                    height: 170,
+                    width: 150,
+                    height: 150,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: AppColors.neonGreen.withOpacity(0.08),
-                      border: Border.all(color: AppColors.neonGreen.withOpacity(0.22)),
+                      color: AppColors.neonGreen.withValues(alpha: 0.08),
+                      border: Border.all(
+                          color: AppColors.neonGreen.withValues(alpha: 0.22)),
                     ),
                   ),
-                  Icon(data.icon, size: 82, color: AppColors.neonGreen),
+                  Icon(data.icon, size: 74, color: AppColors.neonGreen),
                 ],
               ),
             ),
           ),
         ),
-        const SizedBox(height: AppSpacing.xl),
+        const SizedBox(height: AppSpacing.lg),
         Text(
           data.title,
           textAlign: TextAlign.center,
@@ -144,7 +157,8 @@ class _OnboardingPage extends StatelessWidget {
         Text(
           data.body,
           textAlign: TextAlign.center,
-          style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+          style: AppTypography.bodyMedium
+              .copyWith(color: AppColors.onSurfaceMuted),
         ),
       ],
     );

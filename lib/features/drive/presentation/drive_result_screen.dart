@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/utils/formatters.dart';
 import '../../../design_system/app_colors.dart';
 import '../../../design_system/app_spacing.dart';
 import '../../../design_system/app_typography.dart';
@@ -12,7 +13,7 @@ import '../../../shared/widgets/widgets.dart';
 class DriveResultScreen extends ConsumerStatefulWidget {
   const DriveResultScreen({
     super.key,
-    this.sessionId = 'mock-session',
+    this.sessionId = 'local-session',
   });
 
   final String sessionId;
@@ -36,8 +37,34 @@ class _DriveResultScreenState extends ConsumerState<DriveResultScreen> {
   Future<_DriveResultPayload> _loadResult() async {
     final driveRepository = ref.read(driveRepositoryProvider);
     final adsRepository = ref.read(adsRepositoryProvider);
+    final localState = ref.read(localStateServiceProvider);
+    final routeSessionId = _routeSessionId;
+    final resolvedSessionId = await ref
+        .read(offlineQueueServiceProvider)
+        .resolveDriveSessionId(routeSessionId);
+    final summary =
+        await localState.getLatestDriveResultSummary(routeSessionId);
+    if (summary == null ||
+        summary.distanceKm <= 0 ||
+        summary.duration <= Duration.zero ||
+        summary.averageEfficiency <= 0) {
+      throw _MissingDriveResultSummaryException(routeSessionId);
+    }
 
-    final score = await driveRepository.finishDriveSession();
+    final distanceKm = summary.distanceKm;
+    final duration = summary.duration;
+    final averageEfficiency = summary.averageEfficiency;
+    final fuelUsedLiters = summary.fuelUsedLiters > 0
+        ? summary.fuelUsedLiters
+        : distanceKm / averageEfficiency;
+
+    final score = await driveRepository.finishDriveSession(
+      sessionId: resolvedSessionId,
+      distanceKm: distanceKm,
+      duration: duration,
+      averageEfficiency: averageEfficiency,
+      fuelUsedLiters: fuelUsedLiters,
+    );
     final adAvailable = await adsRepository.isRewardAdAvailable();
     final dailyLimit = await adsRepository.getDailyRewardAdLimit();
 
@@ -45,12 +72,40 @@ class _DriveResultScreenState extends ConsumerState<DriveResultScreen> {
       score: score,
       adAvailable: adAvailable,
       dailyAdLimit: dailyLimit,
+      distanceKm: distanceKm,
+      duration: duration,
+      averageEfficiency: averageEfficiency,
+      sessionId: resolvedSessionId,
     );
+  }
+
+  String get _routeSessionId {
+    final trimmed = widget.sessionId.trim();
+    return trimmed.isEmpty ? 'local-session' : trimmed;
   }
 
   Future<void> _watchAd() async {
     setState(() => _rewardLoading = true);
-    await ref.read(adsRepositoryProvider).watchRewardAd();
+    try {
+      final config = ref.read(appConfigProvider);
+      var verifiedByAdSdk = false;
+      if (config.isProduction && config.hasSupabase) {
+        await ref.read(rewardedAdServiceProvider).showRewardedAd(config);
+        verifiedByAdSdk = true;
+      }
+      await ref
+          .read(adsRepositoryProvider)
+          .watchRewardAd(verifiedByAdSdk: verifiedByAdSdk);
+    } catch (_) {
+      if (!mounted) {
+        return;
+      }
+      setState(() => _rewardLoading = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('광고 보상을 확인하지 못했어요. 기본 보상은 유지됩니다.')),
+      );
+      return;
+    }
     if (!mounted) {
       return;
     }
@@ -79,6 +134,15 @@ class _DriveResultScreenState extends ConsumerState<DriveResultScreen> {
           }
 
           if (snapshot.hasError || !snapshot.hasData) {
+            if (snapshot.error is _MissingDriveResultSummaryException) {
+              return EmptyStateView(
+                title: '주행 결과 기록이 없어요',
+                message:
+                    '완료된 주행 요약을 찾지 못했습니다. 저장된 거리, 시간, 연비가 없으면 점수와 랭킹 기록을 만들지 않습니다.',
+                actionLabel: '주행 시작하기',
+                onAction: () => context.go('/drive/start'),
+              );
+            }
             return ErrorStateView(
               message: '주행 결과를 계산하지 못했어요.',
               onRetry: () => setState(() {
@@ -89,6 +153,11 @@ class _DriveResultScreenState extends ConsumerState<DriveResultScreen> {
 
           final payload = snapshot.data!;
           final score = payload.score;
+          final fuelLeague = ref.watch(primaryVehicleProvider).maybeWhen(
+                data: (vehicle) => vehicle?.leagueKey ?? 'gasoline',
+                orElse: () => 'gasoline',
+              );
+          const efficiencyFormatter = FuelEfficiencyFormatter();
           final adState = _rewardClaimed
               ? 'rewardClaimed'
               : payload.adAvailable
@@ -114,12 +183,19 @@ class _DriveResultScreenState extends ConsumerState<DriveResultScreen> {
               const SizedBox(height: AppSpacing.lg),
               const SectionHeader(title: '핵심 지표'),
               DriveResultKpiGrid(
-                averageEfficiency: 18.4,
+                averageEfficiency: payload.averageEfficiency,
                 classPercentile: score.classPercentile,
                 rankingDelta: 3,
                 seasonXp: _rewardClaimed ? 360 : 180,
-                distanceKm: 24.8,
-                duration: const Duration(minutes: 38, seconds: 12),
+                distanceKm: payload.distanceKm,
+                duration: payload.duration,
+                fuelLeague: fuelLeague,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                efficiencyFormatter.helperCopyForFuelLeague(fuelLeague),
+                style: AppTypography.dataUnit
+                    .copyWith(color: AppColors.onSurfaceMuted),
               ),
               const SizedBox(height: AppSpacing.lg),
               DriveScoreAnalysisCard(score: score),
@@ -152,7 +228,8 @@ class _DriveResultScreenState extends ConsumerState<DriveResultScreen> {
                 const SizedBox(height: AppSpacing.sm),
                 Text(
                   '기본 보상은 확보됐습니다. 추가 보상은 원할 때만 선택하세요.',
-                  style: AppTypography.dataUnit.copyWith(color: AppColors.neonGreen),
+                  style: AppTypography.dataUnit
+                      .copyWith(color: AppColors.neonGreen),
                 ),
               ],
               const SizedBox(height: AppSpacing.xl),
@@ -169,6 +246,13 @@ class _DriveResultScreenState extends ConsumerState<DriveResultScreen> {
               ),
               const SizedBox(height: AppSpacing.sm),
               SecondaryButton(
+                label: '이 기록 검토 요청',
+                icon: Icons.fact_check_rounded,
+                onPressed: () =>
+                    context.go('/support/review-request/${payload.sessionId}'),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              SecondaryButton(
                 label: '홈으로 돌아가기',
                 icon: Icons.home_rounded,
                 onPressed: () => context.go('/home'),
@@ -176,7 +260,8 @@ class _DriveResultScreenState extends ConsumerState<DriveResultScreen> {
               const SizedBox(height: AppSpacing.md),
               Text(
                 '검증 완료 후 랭킹에 반영됩니다. 정확한 위치 경로는 공개되지 않습니다.',
-                style: AppTypography.dataUnit.copyWith(color: AppColors.onSurfaceMuted),
+                style: AppTypography.dataUnit
+                    .copyWith(color: AppColors.onSurfaceMuted),
               ),
             ],
           );
@@ -184,6 +269,12 @@ class _DriveResultScreenState extends ConsumerState<DriveResultScreen> {
       ),
     );
   }
+}
+
+class _MissingDriveResultSummaryException implements Exception {
+  const _MissingDriveResultSummaryException(this.sessionId);
+
+  final String sessionId;
 }
 
 class _CalculatingResultView extends StatelessWidget {
@@ -214,7 +305,8 @@ class _CalculatingResultView extends StatelessWidget {
               Text(
                 '연비, 안정 주행, 동급 보정, 랭킹 반영 가능 여부를 분리해서 확인합니다.',
                 textAlign: TextAlign.center,
-                style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+                style: AppTypography.bodyMedium
+                    .copyWith(color: AppColors.onSurfaceMuted),
               ),
               const SizedBox(height: AppSpacing.md),
             ],
@@ -232,9 +324,17 @@ class _DriveResultPayload {
     required this.score,
     required this.adAvailable,
     required this.dailyAdLimit,
+    required this.distanceKm,
+    required this.duration,
+    required this.averageEfficiency,
+    required this.sessionId,
   });
 
   final DriveScore score;
   final bool adAvailable;
   final int dailyAdLimit;
+  final double distanceKm;
+  final Duration duration;
+  final double averageEfficiency;
+  final String sessionId;
 }

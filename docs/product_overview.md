@@ -26,8 +26,9 @@ Phase 1:
 
 - Splash
 - Onboarding
-- Login
-- Vehicle Register
+- Google Login
+- Additional Setup
+- Vehicle Setup
 - Main Shell
 - Home
 - Bottom Navigation
@@ -41,6 +42,10 @@ Phase 2:
 - Battle
 - Season
 - Profile
+
+차량 설정은 로그인 직후 강제하지 않는다. 사용자는 홈에 먼저 들어갈 수 있고, 주행/랭킹/배틀/시즌 참여 시 대표 차량을 설정한다.
+
+랭킹과 배틀은 가솔린, 디젤, 하이브리드, 전기차, LPG, 플러그인 하이브리드, 기타 리그를 분리한다.
 
 Phase 3:
 
