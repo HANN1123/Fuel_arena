@@ -68,7 +68,7 @@ Widget configurationErrorScreen(BootstrapResult bootstrap) {
 
 String _configurationRecoveryHint(BootstrapResult bootstrap) {
   if (bootstrap.config.isDev) {
-    return '개발 모드는 Supabase 없이 로컬 저장소로 실행할 수 있습니다.';
+    return '로컬 확인 환경은 Supabase 연결 없이도 기본 흐름을 볼 수 있습니다.';
   }
   return '운영/스테이징 빌드는 .env.production 또는 --dart-define 값과 Supabase/Google 콘솔 설정을 확인해야 합니다.';
 }

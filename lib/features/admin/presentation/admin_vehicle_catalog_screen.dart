@@ -157,7 +157,7 @@ class _CatalogToolingPanel extends StatelessWidget {
           _ToolCard(
             title: 'JSON 내보내기',
             body:
-                '개발용 로컬 fallback은 assets/data/vehicle_catalog_kr_seed.json을 사용합니다.',
+                '앱 내 기본 카탈로그 자산은 assets/data/vehicle_catalog_kr_seed.json을 사용합니다.',
             icon: Icons.data_object_rounded,
             actionLabel: 'asset 위치 보기',
             onTap: () => _showCommand(

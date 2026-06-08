@@ -85,6 +85,13 @@ void main() {
   for (final expected in expectedFunctions) {
     check(expected, functionNames.contains(expected), 'function is missing');
   }
+  for (final functionName in functionNames) {
+    check(
+      functionName,
+      expectedFunctions.contains(functionName),
+      'function is not covered by expectedFunctions/release preflight lists',
+    );
+  }
 
   for (final functionName in functionNames.toList()..sort()) {
     final file = File('${functionsRoot.path}/$functionName/index.ts');
@@ -108,6 +115,11 @@ void main() {
   final sharedCors = File('${sharedRoot.path}/cors.ts');
   if (sharedCors.existsSync()) {
     final source = sharedCors.readAsStringSync();
+    check(
+      '_shared/cors.ts',
+      source.contains('Access-Control-Allow-Origin'),
+      'CORS preflight must send Access-Control-Allow-Origin',
+    );
     check(
       '_shared/cors.ts',
       source.contains('Access-Control-Allow-Headers') &&

@@ -1,4 +1,4 @@
-﻿# Drive Result Offline Mapping
+# Drive Result Offline Mapping
 
 ## 2026-06-06 Update
 - Offline drive start creates a `local-drive-*` session and stores the local-to-server session mapping in `offline_drive_session_id_map` after queued session upload.
@@ -14,4 +14,4 @@
 - `flutter test test/widget/flow_screens_test.dart --plain-name "DriveResultScreen resolves local drive session before finish"` passed.
 - `flutter test test/widget/flow_screens_test.dart --plain-name "DriveResultScreen missing local summary shows recovery without finish"` passed.
 - `flutter test test/widget/flow_screens_test.dart --plain-name "DriveResultScreen fits 390px mobile width"` passed.
-- `dart run tool/validate_product_invariants.dart` passed with 1613 checks.
+- `dart run tool/validate_product_invariants.dart` passed with 1819 checks.

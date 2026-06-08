@@ -11,7 +11,8 @@
 - debug placeholder `ca-app-pub-3940256099942544~3347511713`이 release에 남지 않는지 확인
 - debug signing과 release signing 분리
 - Play Console 업로드 전 `android/key.properties`를 실제 upload keystore, key alias, password로 채우고 release APK/AAB 서명 확인
-- Google OAuth Android client에 package name, SHA-1, SHA-256 등록
+- Google OAuth Web/Android/iOS/Server client ID를 production env에 등록하고 Android client에 package name, release SHA-1, release SHA-256 등록
+- `.env.production`의 `GOOGLE_ANDROID_RELEASE_PACKAGE_NAME`, `GOOGLE_ANDROID_RELEASE_SHA1`, `GOOGLE_ANDROID_RELEASE_SHA256`가 Google Cloud Console Android OAuth client와 일치하는지 확인
 - Android OAuth callback intent filter가 `APP_AUTH_REDIRECT_SCHEME`/`APP_AUTH_REDIRECT_HOST`로 `fuelarena://login-callback`을 받는지 확인
 - `package_info_plus` Kotlin Gradle Plugin 경고가 남아 있으면 upstream fixed version 확인 후 의존성 갱신
 
@@ -24,7 +25,7 @@
 - `ios/Flutter/FuelArenaSecrets.xcconfig.example`를 `FuelArenaSecrets.xcconfig`로 복사하고 실제 Google/AdMob 값 설정
 - `FuelArenaSecrets.xcconfig`가 git에 포함되지 않는지 확인
 - 위치 권한 설명 확인
-- Google reversed iOS client ID URL scheme 확인
+- Google reversed iOS client ID URL scheme 확인. `GOOGLE_REVERSED_IOS_CLIENT_ID`는 `GOOGLE_IOS_CLIENT_ID`의 `.apps.googleusercontent.com` 앞부분을 `com.googleusercontent.apps.` 뒤에 붙인 값과 일치해야 한다.
 - Google iOS client ID, server client ID, AdMob iOS App ID가 Xcode build setting에 주입되는지 확인
 - `fuelarena` custom URL scheme 확인
 - 광고 추적 안내 필요 여부 확인
@@ -120,14 +121,18 @@
 - `dart run tool/validate_product_invariants.dart`
 - `python tool/validate_store_submission_assets.py`
 - `python tool/validate_store_privacy_disclosures.py`
+- `python tool/validate_secret_hygiene.py`
 - `python tool/validate_release_environment_selftest.py`
+- `python tool/validate_release_native_sources.py`
 - `python tool/validate_release_example_placeholders.py`
 - `.env.production.example`을 `.env.production`으로 복사 후 실제 client/public 값 입력
 - `.env.edge.production.example`을 `.env.edge.production`으로 복사 후 Edge secret 값 입력
-- `python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production`
-- `python tool/validate_release_environment.py --env-file .env.production --client-only --check-public-urls`
-- `python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production --check-public-urls --check-supabase-live`
-- `--check-supabase-live`는 public REST seed/RLS, Edge Function CORS, Google OAuth provider와 web/native redirect allow-list가 실제로 동작하는지 확인한다.
+- `ios/Flutter/FuelArenaSecrets.xcconfig.example`을 `ios/Flutter/FuelArenaSecrets.xcconfig`로 복사 후 iOS Google/AdMob 값 입력
+- `android/key.properties.example`을 `android/key.properties`로 복사 후 실제 Android upload keystore 값 입력
+- `python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production --ios-xcconfig ios/Flutter/FuelArenaSecrets.xcconfig --ios-info-plist ios/Runner/Info.plist --android-key-properties android/key.properties --android-manifest android/app/src/main/AndroidManifest.xml`
+- `python tool/validate_release_environment.py --env-file .env.production --client-only --ios-xcconfig ios/Flutter/FuelArenaSecrets.xcconfig --ios-info-plist ios/Runner/Info.plist --android-key-properties android/key.properties --android-manifest android/app/src/main/AndroidManifest.xml --check-public-urls`
+- `python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production --ios-xcconfig ios/Flutter/FuelArenaSecrets.xcconfig --ios-info-plist ios/Runner/Info.plist --android-key-properties android/key.properties --android-manifest android/app/src/main/AndroidManifest.xml --check-public-urls --check-supabase-live`
+- `--check-supabase-live`는 public REST seed/RLS, 공개 legal URL origin 기준 Edge Function CORS, Google OAuth provider와 web/native redirect allow-list가 실제로 동작하는지 확인한다.
 - `flutter test`
 - `flutter build apk --debug`
 - `flutter build web --wasm`
@@ -145,11 +150,13 @@ Web runtime은 현재 Flutter 3.44 Wasm/Skwasm 조합의 blank render 회귀를 
 
 `tool/verify_web_core_routes.py`는 로그인, 동의, 차량 설정, 홈, 랭킹, 프로필, 프리미엄, 공정성 센터, 고객지원 route를 390px 모바일 폭으로 열고, `/admin`, `/admin/vehicles`는 1440px 데스크톱 폭으로 열어 각 화면이 초록 배경이 아니라 본문 UI를 렌더링하는지 확인한다.
 
-`tool/validate_release_environment.py`는 production `SUPABASE_URL`, Google OAuth client ID, AdMob live App/Unit ID, IAP product ID, store legal URL, Edge Function 구매 검증 secret을 검사한다. Flutter client env에는 `SUPABASE_SERVICE_ROLE_KEY`, App Store private key, ranking secret을 넣지 않는다. `--check-supabase-live`는 `/auth/v1/authorize?provider=google`가 web origin과 `fuelarena://login-callback`에서 `accounts.google.com`으로 redirect되는지도 확인한다.
+`tool/validate_release_environment.py`는 production `SUPABASE_URL`, Web/Android/iOS/Server Google OAuth client ID 형식, iOS reversed client ID 짝, iOS xcconfig의 Google/AdMob build setting 일치, AdMob live App/Unit ID, IAP product ID, store legal URL, Edge Function 구매 검증 secret을 검사한다. Public legal URL은 HTTPS이면서 같은 origin의 `/legal/privacy/`, `/legal/location/`, `/legal/account-deletion/`, `/legal/terms/` 정적 경로를 정확히 가리켜야 하고 query/fragment를 포함하지 않는다. `--check-public-urls`는 각 URL이 200 응답뿐 아니라 Fuel Arena legal 페이지 본문과 문서별 핵심 한국어 문구를 포함하는지도 확인한다. Flutter client env에는 `SUPABASE_SERVICE_ROLE_KEY`, App Store private key, ranking secret을 넣지 않는다. `--check-supabase-live`는 Edge Function CORS를 그 public origin으로 preflight하고, `/auth/v1/authorize?provider=google`가 web origin과 `fuelarena://login-callback`에서 `accounts.google.com`으로 redirect되는지도 확인한다.
 
-`tool/validate_store_submission_assets.py`는 스토어 등록 문구, feature graphic, 휴대폰 스크린샷의 크기·용량·색상 복잡도·UI 대비, Web legal 정적 페이지를 검사한다. 배포 도메인 연결 후에는 `--base-url`로 실제 공개 URL도 확인한다.
+`tool/validate_store_submission_assets.py`는 스토어 등록 문구, feature graphic, 휴대폰 스크린샷의 크기·용량·색상 복잡도·UI 대비, Web legal 정적 페이지를 검사한다. 배포 도메인 연결 후에는 `--base-url`로 실제 공개 URL이 Fuel Arena legal 본문과 문서별 핵심 한국어 문구를 포함하는지도 확인한다.
 
 `tool/validate_store_privacy_disclosures.py`는 `assets/store/privacy_disclosures_ko.json`, iOS `PrivacyInfo.xcprivacy`, Android `AD_ID` 권한, ATT 고지 문구를 함께 검사한다. Play Console 데이터 보안과 App Store 개인정보 라벨 제출 전 실행한다.
+
+`tool/validate_secret_hygiene.py`는 production env, Android keystore/key.properties, iOS secret xcconfig, Google service plist/json, App Store `.p8` key/provisioning profile이 git 추적 대상이나 unignored untracked 대상에 들어오지 않았고 `git check-ignore` 기준으로 실제 ignore되는지 확인한다.
 
 `tool/run_local_release_gate.py`는 CI와 같은 validator, format, analyze, test, Android debug build, Web/Wasm build, Web smoke를 로컬에서 순서대로 실행한다. 기본 smoke 포트는 기존 개발 서버와 섞이지 않도록 `6173`이며, `--quick`은 빌드를 제외한 빠른 게이트로 사용한다. 게이트는 `.env.production.example`과 `.env.edge.production.example`이 명확한 placeholder로 남아 있어 `validate_release_environment.py`에서 실패하는지도 확인해, 예제 값이 실수로 출시 가능한 값처럼 통과하지 못하게 한다.
 

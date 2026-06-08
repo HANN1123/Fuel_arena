@@ -116,7 +116,9 @@ def main() -> int:
         _run("Product invariant validation", [dart, "run", "tool/validate_product_invariants.dart"])
         _run("Store submission asset validation", [python, "tool/validate_store_submission_assets.py"])
         _run("Store privacy disclosure validation", [python, "tool/validate_store_privacy_disclosures.py"])
+        _run("Secret hygiene validation", [python, "tool/validate_secret_hygiene.py"])
         _run("Release environment validator self-test", [python, "tool/validate_release_environment_selftest.py"])
+        _run("Release native source validation", [python, "tool/validate_release_native_sources.py"])
         _run(
             "Release example placeholder rejection",
             [python, "tool/validate_release_example_placeholders.py"],

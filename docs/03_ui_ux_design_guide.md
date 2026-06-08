@@ -18,7 +18,7 @@
 AppScaffold, FuelArenaAppBar, MainBottomNavigation, AppCard, StatusChip, TierBadge, ScoreGauge, BattleCard, MissionCard, SeasonProgressCard, DriveResultCard, AdRewardCard, PremiumBadge 계열을 재사용한다.
 
 ## 인증 UX
-로그인 화면은 Google 계정 단일 CTA만 제공한다. 이메일/비밀번호 입력, 소셜 로그인 다중 선택, 가입 폼 링크는 노출하지 않는다. production 모드에서 Google OAuth 값이 없으면 로그인 화면이 아니라 설정 오류 화면으로 안내한다.
+로그인 화면은 Google 계정 단일 CTA만 제공한다. 이메일/비밀번호 입력, 소셜 로그인 다중 선택, 가입 폼 링크는 노출하지 않는다. production 모드에서 Web/Android/iOS/Server Google OAuth client ID, iOS reversed client ID, `fuelarena://login-callback` callback 설정이 누락되거나 형식이 맞지 않으면 로그인 화면이 아니라 설정 오류 화면으로 안내한다.
 
 ## 차량 설정 UX
 차량 설정은 제조사 → 모델/파생모델 → 기준 연식 → 엔진·미션 파워트레인 → 확인 순서의 스텝퍼다. 각 단계는 뒤로 돌아가도 이전 선택을 유지하고, 다음 선택이 바뀌면 하위 단계만 초기화한다. 기준 연식은 카드 그리드가 아니라 클릭 후 하단에서 펼쳐지는 피커/스크롤 리스트로 선택한다. 판매 트림과 휠 인치수는 선택 축으로 쓰지 않고, 카탈로그에 없는 차량은 검토 대기 요청으로 접수한다.

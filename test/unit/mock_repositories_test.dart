@@ -442,9 +442,10 @@ void main() {
     expect(config.hasValidSupabaseUrl, isTrue);
     expect(config.hasGoogleAuth, isFalse);
     expect(config.hasGoogleOAuthClient, isFalse);
+    expect(config.hasProductionGoogleOAuthConfig, isFalse);
   });
 
-  test('Production config requires web or server Google OAuth client', () {
+  test('Production config requires complete Google OAuth client set', () {
     final androidOnly = _testConfig(
       environment: AppEnvironment.production,
       googleAndroidClientId: 'android-client.apps.googleusercontent.com',
@@ -461,11 +462,49 @@ void main() {
       googleWebClientId: '',
       googleServerClientId: 'server-client.apps.googleusercontent.com',
     );
+    final fullGoogleOAuth = _testConfig(
+      environment: AppEnvironment.production,
+      googleWebClientId: 'web-client.apps.googleusercontent.com',
+      googleAndroidClientId: 'android-client.apps.googleusercontent.com',
+      googleIosClientId: 'ios-client.apps.googleusercontent.com',
+      googleServerClientId: 'server-client.apps.googleusercontent.com',
+      googleReversedIosClientId: 'com.googleusercontent.apps.ios-client',
+    );
+    final wrongReversedIosClient = _testConfig(
+      environment: AppEnvironment.production,
+      googleWebClientId: 'web-client.apps.googleusercontent.com',
+      googleAndroidClientId: 'android-client.apps.googleusercontent.com',
+      googleIosClientId: 'ios-client.apps.googleusercontent.com',
+      googleServerClientId: 'server-client.apps.googleusercontent.com',
+      googleReversedIosClientId: 'com.googleusercontent.apps.other-ios-client',
+    );
+    final malformedClientId = _testConfig(
+      environment: AppEnvironment.production,
+      googleWebClientId: 'web-client',
+      googleAndroidClientId: 'android-client.apps.googleusercontent.com',
+      googleIosClientId: 'ios-client.apps.googleusercontent.com',
+      googleServerClientId: 'server-client.apps.googleusercontent.com',
+      googleReversedIosClientId: 'com.googleusercontent.apps.ios-client',
+    );
 
     expect(androidOnly.hasGoogleAuth, isTrue);
     expect(androidOnly.hasGoogleOAuthClient, isFalse);
+    expect(androidOnly.hasProductionGoogleOAuthConfig, isFalse);
     expect(webClient.hasGoogleOAuthClient, isTrue);
+    expect(webClient.hasProductionGoogleOAuthConfig, isFalse);
     expect(serverClient.hasGoogleOAuthClient, isTrue);
+    expect(serverClient.hasProductionGoogleOAuthConfig, isFalse);
+    expect(
+      fullGoogleOAuth.expectedGoogleReversedIosClientId,
+      'com.googleusercontent.apps.ios-client',
+    );
+    expect(fullGoogleOAuth.hasValidGoogleOAuthClientIds, isTrue);
+    expect(fullGoogleOAuth.hasProductionGoogleOAuthConfig, isTrue);
+    expect(
+        wrongReversedIosClient.hasMatchingGoogleIosReversedClientId, isFalse);
+    expect(wrongReversedIosClient.hasProductionGoogleOAuthConfig, isFalse);
+    expect(malformedClientId.hasValidGoogleOAuthClientIds, isFalse);
+    expect(malformedClientId.hasProductionGoogleOAuthConfig, isFalse);
   });
 
   test('Supabase Google auth requires token and platform client on native', () {
@@ -765,6 +804,7 @@ AppConfig _testConfig({
   String googleAndroidClientId = '',
   String googleIosClientId = '',
   String googleServerClientId = '',
+  String googleReversedIosClientId = '',
 }) {
   return AppConfig(
     environment: environment,
@@ -774,7 +814,7 @@ AppConfig _testConfig({
     googleAndroidClientId: googleAndroidClientId,
     googleIosClientId: googleIosClientId,
     googleServerClientId: googleServerClientId,
-    googleReversedIosClientId: '',
+    googleReversedIosClientId: googleReversedIosClientId,
     authRedirectScheme: 'fuelarena',
     authRedirectHost: 'login-callback',
     adMobAndroidAppId: '',

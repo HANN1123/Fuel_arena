@@ -355,6 +355,11 @@ void _validateProductionAuthConsentFallbackPolicy(
           'Future<void> deleteAccount() async {\n    await signOut();'),
       'deleteAccount must not silently perform signOut instead of deletion request processing',
     );
+    check(
+      repositoryFile.path,
+      !source.contains('LegacySupabaseAuthRepository'),
+      'auth repositories must not keep a legacy Supabase mock fallback class',
+    );
   }
 
   final providerFile = File('lib/shared/providers/repository_providers.dart');
@@ -519,11 +524,36 @@ void _validateProfileSelfWriteHardening(
       "'auth_provider': 'google'",
       "'updated_at': updatedAt",
       '_nicknameFromGoogleMetadata(metadata, email)',
+      'final preservedNickname = existingProfile.nickname.trim().isEmpty',
+      '? nickname',
+      ': existingProfile.nickname',
+      'final preservedEmail =',
+      '? existingProfile.email',
+      ': email.trim()',
+      'final preservedAvatarUrl = existingProfile.avatarUrl.trim().isEmpty',
+      '? avatarUrl.trim()',
+      ': existingProfile.avatarUrl',
     ]) {
       check(
         repositoryFile.path,
         ensureProfileSection.contains(token),
         'Google auth profile repair must use safe profile write token $token',
+      );
+    }
+    final updateProfileSection = _sectionBetween(
+      ensureProfileSection,
+      'final updateProfile = <String, dynamic>',
+      'final updated = await _client',
+    );
+    for (final token in [
+      "'email': preservedEmail",
+      "'nickname': preservedNickname",
+      "updateProfile['avatar_url'] = preservedAvatarUrl",
+    ]) {
+      check(
+        repositoryFile.path,
+        updateProfileSection.contains(token),
+        'Google auth existing profile repair must preserve user-owned field $token',
       );
     }
     check(
@@ -964,6 +994,20 @@ void _validateRuntimeConfigSafety(
           source.contains('uri.scheme.isEmpty'),
       'AppConfig must reject malformed Supabase URLs',
     );
+    for (final token in [
+      'hasValidGoogleOAuthClientIds',
+      '_looksLikeGoogleOAuthClientId',
+      '.apps.googleusercontent.com',
+      'expectedGoogleReversedIosClientId',
+      'hasMatchingGoogleIosReversedClientId',
+      'hasProductionGoogleOAuthConfig',
+    ]) {
+      check(
+        configFile.path,
+        source.contains(token),
+        'AppConfig must validate production Google OAuth configuration token $token',
+      );
+    }
   }
 
   final runtimeConfigFile = File('lib/supabase/supabase_config.dart');
@@ -1014,7 +1058,10 @@ void _validateRuntimeConfigSafety(
       'config.requiresSupabase && !config.hasSupabase',
       'staging/production',
       '!config.hasValidSupabaseUrl',
-      'config.isProduction && !config.hasGoogleOAuthClient',
+      'config.isProduction && !config.hasProductionGoogleOAuthConfig',
+      'authOptions: const FlutterAuthClientOptions(',
+      'authFlowType: AuthFlowType.pkce',
+      'detectSessionInUri: true',
       'SUPABASE_URL 형식이 올바르지 않습니다',
       'try {',
       'Supabase 초기화에 실패했습니다',
@@ -1055,7 +1102,7 @@ void _validateRuntimeConfigSafety(
             'Dev auth provider keeps mock login when only Google values exist',
           ) &&
           source.contains(
-            'Production config requires web or server Google OAuth client',
+            'Production config requires complete Google OAuth client set',
           ) &&
           source.contains(
             'Supabase Google auth requires token and platform client on native',
@@ -1072,9 +1119,19 @@ void _validateRuntimeConfigSafety(
     check(
       appWidgetTest.path,
       source.contains('운영/스테이징 빌드') &&
-          source.contains('개발 모드는 Supabase 없이') &&
+          source.contains('로컬 확인 환경') &&
           source.contains('findsNothing'),
       'production configuration error screen must have widget coverage for non-dev guidance',
+    );
+    check(
+      appWidgetTest.path,
+      source.contains(
+            'Fuel Arena app shows production Google OAuth configuration error',
+          ) &&
+          source.contains('Web/Android/iOS/Server Google OAuth') &&
+          source.contains('iOS reversed client ID') &&
+          source.contains('Supabase/Google 콘솔 설정'),
+      'production Google OAuth configuration error screen must have widget coverage',
     );
   }
 }
@@ -1333,6 +1390,10 @@ void _validateUserFacingTextHygiene(
     'error.toString()',
     'exception.toString()',
     "replaceFirst('Bad state:",
+    '개발 모드',
+    '개발용',
+    '개발 저장소',
+    'local fallback',
     "label: 'Premium'",
     "title: 'Premium'",
     "title: 'FAQ'",
@@ -1377,17 +1438,29 @@ void _validateUserFacingTextHygiene(
   final encodingFiles = _dartAndTextFiles(['lib']).where(
     (file) => file.path.replaceAll('\\', '/').endsWith('.dart'),
   );
+  final cjkIdeographPattern = RegExp(r'[\u4E00-\u9FFF\uF900-\uFAFF]');
   for (final file in encodingFiles) {
     final normalizedPath = file.path.replaceAll('\\', '/');
     final lines = file.readAsLinesSync();
     for (var i = 0; i < lines.length; i += 1) {
+      var matchedKnownMojibakeToken = false;
       for (final term in _mojibakeTokens) {
         if (!lines[i].contains(term)) continue;
+        matchedKnownMojibakeToken = true;
         violationCount += 1;
         check(
           '$normalizedPath:${i + 1}',
           false,
           'app source must not contain mojibake text',
+        );
+      }
+      if (!matchedKnownMojibakeToken &&
+          cjkIdeographPattern.hasMatch(lines[i])) {
+        violationCount += 1;
+        check(
+          '$normalizedPath:${i + 1}',
+          false,
+          'app source must not contain CJK ideograph mojibake text',
         );
       }
     }
@@ -1397,7 +1470,7 @@ void _validateUserFacingTextHygiene(
     check(
       'lib/app source',
       true,
-      'user-facing presentation/widgets contain no placeholder/dev terms and lib contains no mojibake text',
+      'user-facing presentation/widgets contain no placeholder/dev terms and lib contains no mojibake/CJK ideograph text',
     );
   }
 }
@@ -4281,6 +4354,14 @@ void _validateIosReleaseConfig(
         'iOS secrets example must include $key',
       );
     }
+    check(
+      exampleFile.path,
+      source.contains(
+            'GOOGLE_REVERSED_IOS_CLIENT_ID = com.googleusercontent.apps.replace-with-ios-client-id',
+          ) &&
+          !source.contains('replace-with-reversed-ios-client-id'),
+      'iOS secrets example must show reversed client ID derived from GOOGLE_IOS_CLIENT_ID',
+    );
   }
 
   final ignoreFile = File('ios/.gitignore');
@@ -4315,7 +4396,9 @@ void _validateReleaseReadinessArtifacts(
       'dart run tool/validate_product_invariants.dart',
       'python tool/validate_store_submission_assets.py',
       'python tool/validate_store_privacy_disclosures.py',
+      'python tool/validate_secret_hygiene.py',
       'python tool/validate_release_environment_selftest.py',
+      'python tool/validate_release_native_sources.py',
       'python tool/validate_release_example_placeholders.py',
       'python tool/run_web_smoke.py',
       'dart format --set-exit-if-changed .',
@@ -4341,6 +4424,30 @@ void _validateReleaseReadinessArtifacts(
       !source.contains('sleep 2'),
       'Flutter CI web smoke must wait for server readiness, not fixed sleep',
     );
+    final wasmBuildIndex = source.indexOf('flutter build web --wasm');
+    final webBuildIndex =
+        source.indexOf('flutter build web', wasmBuildIndex + 1);
+    final webSmokeOccurrences =
+        source.split('python tool/run_web_smoke.py').length - 1;
+    check(
+      workflow.path,
+      webSmokeOccurrences >= 2,
+      'Flutter CI must run web smoke after both Wasm and CanvasKit builds',
+    );
+    check(
+      workflow.path,
+      wasmBuildIndex >= 0 &&
+          source.indexOf('python tool/run_web_smoke.py', wasmBuildIndex) >
+              wasmBuildIndex,
+      'Flutter CI must smoke test the Wasm compatibility build',
+    );
+    check(
+      workflow.path,
+      webBuildIndex > wasmBuildIndex &&
+          source.indexOf('python tool/run_web_smoke.py', webBuildIndex) >
+              webBuildIndex,
+      'Flutter CI must smoke test the final Web runtime build',
+    );
   }
 
   final localReleaseGate = File('tool/run_local_release_gate.py');
@@ -4362,10 +4469,16 @@ void _validateReleaseReadinessArtifacts(
       'validate_product_invariants.dart',
       'validate_store_submission_assets.py',
       'validate_store_privacy_disclosures.py',
+      'validate_secret_hygiene.py',
       'validate_release_environment_selftest.py',
+      'validate_release_native_sources.py',
+      'Release native source validation',
       'validate_release_example_placeholders.py',
       'Release example placeholder rejection',
+      'Secret hygiene validation',
       'run_web_smoke.py',
+      'Web Wasm compatibility smoke',
+      'Web runtime smoke',
       'format',
       'analyze',
       'test',
@@ -4383,9 +4496,79 @@ void _validateReleaseReadinessArtifacts(
       !source.contains('--pwa-strategy'),
       'local release gate must not use deprecated --pwa-strategy',
     );
+    for (final command in [
+      '_run("Build Android debug", [flutter, "build", "apk", "--debug"])',
+      '"Build web Wasm compatibility"',
+      '[flutter, "build", "web", "--wasm"]',
+      '_web_smoke(python, "Web Wasm compatibility smoke", args.port)',
+      '_run("Build web", [flutter, "build", "web"])',
+      '_web_smoke(python, "Web runtime smoke", args.port)',
+    ]) {
+      check(
+        localReleaseGate.path,
+        source.contains(command),
+        'local release gate must keep exact full-gate command $command',
+      );
+    }
   }
 
-  const releaseDocPaths = [
+  final secretHygieneTool = File('tool/validate_secret_hygiene.py');
+  check(
+    secretHygieneTool.path,
+    secretHygieneTool.existsSync(),
+    'secret hygiene validator is required',
+  );
+  if (secretHygieneTool.existsSync()) {
+    final source = secretHygieneTool.readAsStringSync();
+    for (final token in [
+      'git',
+      'ls-files',
+      '--others',
+      '--exclude-standard',
+      'check-ignore',
+      'FORBIDDEN_TRACKED_NAMES',
+      'FORBIDDEN_TRACKED_SUFFIXES',
+      'REQUIRED_GITIGNORE_TOKENS',
+      'SECRET_IGNORE_CANDIDATES',
+      'FuelArenaSecrets.xcconfig',
+      'google-services.json',
+      'GoogleService-Info.plist',
+      '*.p8',
+      '*.mobileprovision',
+      'secret hygiene valid',
+    ]) {
+      check(
+        secretHygieneTool.path,
+        source.contains(token),
+        'secret hygiene validator must keep $token',
+      );
+    }
+  }
+
+  final edgeFunctionTool = File('tool/validate_edge_functions.dart');
+  check(
+    edgeFunctionTool.path,
+    edgeFunctionTool.existsSync(),
+    'edge function validator is required',
+  );
+  if (edgeFunctionTool.existsSync()) {
+    final source = edgeFunctionTool.readAsStringSync();
+    for (final token in [
+      'Access-Control-Allow-Origin',
+      'CORS preflight must send Access-Control-Allow-Origin',
+      'Access-Control-Allow-Headers',
+      'x-idempotency-key',
+      'CORS preflight must allow x-idempotency-key',
+    ]) {
+      check(
+        edgeFunctionTool.path,
+        source.contains(token),
+        'edge function validator must keep CORS check token $token',
+      );
+    }
+  }
+
+  const requiredReleaseDocPaths = [
     'README.md',
     'AGENTS.md',
     'docs/00_project_overview.md',
@@ -4411,9 +4594,21 @@ void _validateReleaseReadinessArtifacts(
     'docs/20_product_completion_audit.md',
     'docs/21_production_runbook.md',
   ];
-  for (final path in releaseDocPaths) {
+  for (final path in requiredReleaseDocPaths) {
     final file = File(path);
     check(path, file.existsSync(), 'release documentation is missing');
+  }
+
+  final documentationFiles = <File>[
+    File('README.md'),
+    File('AGENTS.md'),
+    ...Directory('docs')
+        .listSync()
+        .whereType<File>()
+        .where((file) => file.path.replaceAll('\\', '/').endsWith('.md')),
+  ]..sort((a, b) => a.path.compareTo(b.path));
+  for (final file in documentationFiles) {
+    final path = file.path.replaceAll('\\', '/');
     if (!file.existsSync()) {
       continue;
     }
@@ -4441,6 +4636,23 @@ void _validateReleaseReadinessArtifacts(
       source.contains('python tool/run_local_release_gate.py'),
       'release docs must document the local release gate',
     );
+  }
+
+  final agentGuide = File('AGENTS.md');
+  if (agentGuide.existsSync()) {
+    final source = agentGuide.readAsStringSync();
+    for (final token in [
+      'Web/Android/iOS/Server Google OAuth client ID',
+      'iOS reversed client ID',
+      'fuelarena://login-callback',
+      '설정 오류 화면',
+    ]) {
+      check(
+        agentGuide.path,
+        source.contains(token),
+        'AGENTS.md production rule must mention $token',
+      );
+    }
   }
 
   final productGapAudit = File('docs/15_product_gap_audit.md');
@@ -4477,6 +4689,8 @@ void _validateReleaseReadinessArtifacts(
       'IAP',
       'ADMOB_ANDROID_APP_ID',
       'android/key.properties',
+      'GOOGLE_ANDROID_RELEASE_SHA1',
+      'GOOGLE_ANDROID_RELEASE_SHA256',
       'GOOGLE_REVERSED_IOS_CLIENT_ID',
       "APP_STORE_BUNDLE_ID='$_iosRunnerBundleId'",
       'iOS Bundle ID `$_iosRunnerBundleId`',
@@ -4490,6 +4704,9 @@ void _validateReleaseReadinessArtifacts(
     for (final token in [
       '- `GOOGLE_WEB_CLIENT_ID`',
       '- `GOOGLE_ANDROID_CLIENT_ID`',
+      '- `GOOGLE_ANDROID_RELEASE_PACKAGE_NAME`',
+      '- `GOOGLE_ANDROID_RELEASE_SHA1`',
+      '- `GOOGLE_ANDROID_RELEASE_SHA256`',
       '- `GOOGLE_IOS_CLIENT_ID`',
       '- `GOOGLE_SERVER_CLIENT_ID`',
       '- `GOOGLE_REVERSED_IOS_CLIENT_ID`',
@@ -4543,6 +4760,9 @@ void _validateReleaseReadinessArtifacts(
       'SUPABASE_ANON_KEY',
       'GOOGLE_WEB_CLIENT_ID',
       'GOOGLE_ANDROID_CLIENT_ID',
+      'GOOGLE_ANDROID_RELEASE_PACKAGE_NAME',
+      'GOOGLE_ANDROID_RELEASE_SHA1',
+      'GOOGLE_ANDROID_RELEASE_SHA256',
       'GOOGLE_IOS_CLIENT_ID',
       'GOOGLE_SERVER_CLIENT_ID',
       'GOOGLE_REVERSED_IOS_CLIENT_ID',
@@ -5019,6 +5239,7 @@ void _validateStoreSubmissionPreflightTool(
     for (final token in [
       'store_listing_ko.json',
       'REQUIRED_LEGAL_ROUTES',
+      'LEGAL_ROUTE_CONTENT_TOKENS',
       'REQUIRED_SCREENSHOTS',
       'FEATURE_GRAPHIC',
       'MOJIBAKE_RE',
@@ -5029,6 +5250,8 @@ void _validateStoreSubmissionPreflightTool(
       'min_ui_ratio',
       'has too few color buckets',
       'has too little visible UI/text contrast',
+      'does not look like the expected Fuel Arena legal page',
+      '주행 효율을 게임처럼 비교',
       '--base-url',
       'store submission assets valid',
     ]) {
@@ -5179,6 +5402,11 @@ void _validateStorePrivacyDisclosureArtifacts(
     for (final token in [
       'REQUIRED_APPLE_TYPES',
       'REQUIRED_PLAY_CATEGORIES',
+      'MOJIBAKE_RE',
+      'HANGUL_RE',
+      'validate_no_mojibake_tree',
+      'validate_korean_text',
+      'contains mojibake or non-Korean CJK glyphs',
       'PrivacyInfo.xcprivacy',
       'NSUserTrackingUsageDescription',
       'com.google.android.gms.permission.AD_ID',
@@ -5415,6 +5643,7 @@ void _validateReleaseEnvironmentPreflightTool(
     final source = preflight.readAsStringSync();
     for (final token in [
       'CLIENT_REQUIRED',
+      'IOS_XCCONFIG_REQUIRED',
       'ADMOB_UNIT_ID_KEYS',
       '*ADMOB_UNIT_ID_KEYS',
       'EDGE_FUNCTION_NAMES',
@@ -5422,6 +5651,15 @@ void _validateReleaseEnvironmentPreflightTool(
       'REDIRECT_STATUSES',
       'NoRedirectHandler',
       'IOS_RUNNER_BUNDLE_ID',
+      'ANDROID_PACKAGE_NAME',
+      'ANDROID_KEY_PROPERTIES_REQUIRED',
+      'PUBLIC_LEGAL_URL_PATHS',
+      'PUBLIC_LEGAL_URL_CONTENT_TOKENS',
+      'legal_url_origins',
+      'SHA1_FINGERPRINT_PATTERN',
+      'SHA256_FINGERPRINT_PATTERN',
+      'HANGUL_PATTERN',
+      'CJK_PATTERN',
       'IOS_BUNDLE_ID_PATTERN',
       'EDGE_REQUIRED',
       'IAP_PRODUCT_IDS',
@@ -5429,7 +5667,31 @@ void _validateReleaseEnvironmentPreflightTool(
       'APPLE_KEY_ID_PATTERN',
       'decode_jwt_part',
       'validate_supabase_anon_key',
+      'parse_xcconfig_file',
+      'parse_properties_file',
+      'parse_plist_file',
+      'parse_xml_file',
+      'validate_ios_xcconfig',
+      'validate_ios_info_plist',
+      'validate_android_key_properties',
+      'validate_android_manifest',
       'SUPABASE_ANON_KEY JWT role claim must be anon',
+      'expected_reversed_ios_client_id',
+      'GOOGLE_REVERSED_IOS_CLIENT_ID must match GOOGLE_IOS_CLIENT_ID',
+      'GOOGLE_ANDROID_RELEASE_PACKAGE_NAME must be',
+      'GOOGLE_ANDROID_RELEASE_SHA1 must be a colon-separated SHA-1 fingerprint',
+      'GOOGLE_ANDROID_RELEASE_SHA256 must be a colon-separated SHA-256 fingerprint',
+      'storeFile must not point at a debug keystore',
+      'storeFile does not exist',
+      'GADApplicationIdentifier',
+      'NSLocationWhenInUseUsageDescription',
+      'must use approved Korean copy',
+      'must contain readable Korean copy without mojibake',
+      '주행 거리와 지역 리그 계산을 위해 위치 정보가 필요합니다.',
+      r'$(ADMOB_IOS_APP_ID)',
+      r'$(GOOGLE_REVERSED_IOS_CLIENT_ID)',
+      'OAuth callback data must use APP_AUTH_REDIRECT_SCHEME/HOST placeholders',
+      'expected {expected_reversed_id}',
       'must match seeded subscription product_id',
       'GOOGLE_PLAY_SERVICE_ACCOUNT_JSON type must be service_account',
       'APP_STORE_CONNECT_ISSUER_ID must be an App Store Connect UUID',
@@ -5443,17 +5705,28 @@ void _validateReleaseEnvironmentPreflightTool(
       'web-client',
       '1234567890123456',
       '--edge-secrets-file',
+      '--ios-xcconfig',
+      '--ios-info-plist',
+      '--android-key-properties',
+      '--android-manifest',
       '--check-public-urls',
       '--check-supabase-live',
+      'check_public_urls',
       'no_redirect_urlopen',
       'public_web_origin',
+      'cors_origin = public_web_origin(values)',
       'google_oauth_redirect_checks',
       'check_google_oauth_live',
       'check_supabase_live',
       '/auth/v1/authorize',
       'accounts.google.com',
+      '"Origin": cors_origin',
       'x-idempotency-key',
       'SUPABASE_URL must look like https://<project-ref>.supabase.co',
+      'must point to {expected_path}',
+      'must not include query or fragment',
+      'does not look like the expected Fuel Arena legal page',
+      'PUBLIC legal URLs must share the same origin',
       'APP_STORE_BUNDLE_ID must match iOS',
       'release environment valid: production',
     ]) {
@@ -5462,6 +5735,25 @@ void _validateReleaseEnvironmentPreflightTool(
         source.contains(token),
         'release environment preflight tool must keep $token',
       );
+    }
+    final functionsDirectory = Directory('supabase/functions');
+    if (functionsDirectory.existsSync()) {
+      final functionNames = functionsDirectory
+          .listSync()
+          .whereType<Directory>()
+          .map((directory) => directory.uri.pathSegments
+              .where((segment) => segment.isNotEmpty)
+              .last)
+          .where((name) => !name.startsWith('_'))
+          .toList()
+        ..sort();
+      for (final functionName in functionNames) {
+        check(
+          preflight.path,
+          source.contains('"$functionName"'),
+          'release live preflight must check Edge Function $functionName',
+        );
+      }
     }
   }
 
@@ -5479,15 +5771,37 @@ void _validateReleaseEnvironmentPreflightTool(
       'test_release_env_requires_interstitial_ad_units',
       'test_client_rejects_bad_anon_jwt_and_wrong_iap_product_id',
       'test_release_env_rejects_wrong_native_redirect',
+      'test_release_env_rejects_wrong_legal_url_paths',
+      'test_release_env_rejects_split_legal_url_origins',
+      'test_public_url_check_requires_legal_page_content',
+      '_public_urlopen_factory',
+      'PUBLIC_TERMS_URL does not look like the expected Fuel Arena legal page',
+      'test_release_env_rejects_bad_android_oauth_evidence',
+      'test_release_env_rejects_mismatched_ios_reversed_client_id',
+      'test_ios_xcconfig_must_match_client_env',
+      'test_android_key_properties_preflight',
+      'test_native_source_config_preflight',
+      'expected com.googleusercontent.apps.fuelarena-ios-9876543210',
       'test_edge_rejects_store_and_service_account_metadata',
       'test_edge_rejects_android_package_as_app_store_bundle',
       'test_supabase_live_preflight_passes_with_public_rest_and_edge_cors',
+      'test_supabase_live_preflight_uses_public_legal_origin_for_edge_cors',
+      'expected_edge_origin',
+      'request.get_header("Origin")',
       'test_supabase_live_preflight_requires_edge_idempotency_cors_header',
       'test_supabase_live_preflight_requires_seeded_public_rest_rows',
       'test_supabase_live_preflight_requires_google_oauth_redirect',
       'SUPABASE_SERVICE_ROLE_KEY',
       'Google test App ID',
       'ALLOW_MOCK_PURCHASE_VERIFICATION must be false',
+      'GOOGLE_REVERSED_IOS_CLIENT_ID must match GOOGLE_IOS_CLIENT_ID',
+      'GOOGLE_ANDROID_RELEASE_SHA1 must be a colon-separated SHA-1 fingerprint',
+      'GOOGLE_IOS_CLIENT_ID must match .env.production',
+      'keyAlias must not use androiddebugkey',
+      r'GIDClientID must be $(GOOGLE_IOS_CLIENT_ID)',
+      'NSLocationWhenInUseUsageDescription must use approved Korean copy',
+      'NSUserNotificationUsageDescription must contain readable Korean copy',
+      r'AdMob APPLICATION_ID must use ${ADMOB_ANDROID_APP_ID}',
       'CORS headers must allow x-idempotency-key',
       'Google OAuth web origin authorize',
       'accounts.google.com',
@@ -5531,6 +5845,32 @@ void _validateReleaseEnvironmentPreflightTool(
     }
   }
 
+  final nativeSourceTool = File('tool/validate_release_native_sources.py');
+  check(
+    nativeSourceTool.path,
+    nativeSourceTool.existsSync(),
+    'release native source validator missing',
+  );
+  if (nativeSourceTool.existsSync()) {
+    final source = nativeSourceTool.readAsStringSync();
+    for (final token in [
+      'validate_release_environment',
+      'validate_ios_info_plist',
+      'validate_android_manifest',
+      'ios',
+      'Runner',
+      'Info.plist',
+      'AndroidManifest.xml',
+      'release native sources valid',
+    ]) {
+      check(
+        nativeSourceTool.path,
+        source.contains(token),
+        'release native source validator must keep $token',
+      );
+    }
+  }
+
   final workflow = File('.github/workflows/flutter_ci.yml');
   check(workflow.path, workflow.existsSync(), 'Flutter CI workflow missing');
   if (workflow.existsSync()) {
@@ -5539,6 +5879,11 @@ void _validateReleaseEnvironmentPreflightTool(
       workflow.path,
       source.contains('python tool/validate_release_environment_selftest.py'),
       'Flutter CI must run release environment validator self-test',
+    );
+    check(
+      workflow.path,
+      source.contains('python tool/validate_release_native_sources.py'),
+      'Flutter CI must run release native source validation',
     );
     check(
       workflow.path,
@@ -5579,6 +5924,11 @@ void _validateReleaseEnvironmentPreflightTool(
       'APP_ENV=production',
       'SUPABASE_URL=replace-with-production-supabase-url',
       'GOOGLE_WEB_CLIENT_ID=replace-with-google-web-client-id.apps.googleusercontent.com',
+      'GOOGLE_ANDROID_RELEASE_PACKAGE_NAME=com.fuelarena.fuel_arena',
+      'GOOGLE_ANDROID_RELEASE_SHA1=replace-with-google-android-release-sha1',
+      'GOOGLE_ANDROID_RELEASE_SHA256=replace-with-google-android-release-sha256',
+      'GOOGLE_IOS_CLIENT_ID=replace-with-google-ios-client-id.apps.googleusercontent.com',
+      'GOOGLE_REVERSED_IOS_CLIENT_ID=com.googleusercontent.apps.replace-with-google-ios-client-id',
       'ADMOB_ANDROID_APP_ID=replace-with-admob-android-app-id',
       'PUBLIC_PRIVACY_POLICY_URL=replace-with-public-privacy-policy-url',
     ]) {
@@ -5593,6 +5943,7 @@ void _validateReleaseEnvironmentPreflightTool(
       'GOOGLE_PLAY_SERVICE_ACCOUNT_JSON=',
       'APP_STORE_CONNECT_PRIVATE_KEY=',
       'RANKING_JOB_SECRET=',
+      'replace-with-reversed-ios-client-id',
     ]) {
       check(
         productionEnvExample.path,
@@ -5644,6 +5995,10 @@ void _validateReleaseEnvironmentPreflightTool(
       'python tool/validate_release_environment.py',
       '--env-file .env.production',
       '--edge-secrets-file .env.edge.production',
+      '--ios-xcconfig ios/Flutter/FuelArenaSecrets.xcconfig',
+      '--ios-info-plist ios/Runner/Info.plist',
+      '--android-key-properties android/key.properties',
+      '--android-manifest android/app/src/main/AndroidManifest.xml',
       '--check-supabase-live',
       'accounts.google.com',
     ]) {

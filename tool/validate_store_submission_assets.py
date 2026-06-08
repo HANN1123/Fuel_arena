@@ -19,6 +19,13 @@ REQUIRED_LEGAL_ROUTES = [
     "/legal/terms/",
 ]
 
+LEGAL_ROUTE_CONTENT_TOKENS = {
+    "/legal/privacy/": "필요한 정보만 수집",
+    "/legal/location/": "주행 거리, 속도",
+    "/legal/account-deletion/": "운영 큐에 접수",
+    "/legal/terms/": "주행 효율을 게임처럼 비교",
+}
+
 REQUIRED_SCREENSHOTS = [
     "assets/store/screenshots/phone/01_home_league.png",
     "assets/store/screenshots/phone/02_vehicle_catalog.png",
@@ -231,13 +238,7 @@ def legal_path_for(route):
 
 
 def validate_legal_pages(failures):
-    expected = {
-        "/legal/privacy/": "필요한 정보만 수집",
-        "/legal/location/": "주행 거리, 속도",
-        "/legal/account-deletion/": "운영 큐에 접수",
-        "/legal/terms/": "주행 효율을 게임처럼 비교",
-    }
-    for route, token in expected.items():
+    for route, token in LEGAL_ROUTE_CONTENT_TOKENS.items():
         path = legal_path_for(route)
         scope = route
         if not path.exists():
@@ -251,7 +252,7 @@ def validate_legal_pages(failures):
 
 def validate_deployed_legal_urls(base_url, failures):
     normalized = base_url.rstrip("/")
-    for route in REQUIRED_LEGAL_ROUTES:
+    for route, token in LEGAL_ROUTE_CONTENT_TOKENS.items():
         url = f"{normalized}{route}"
         try:
             request = urllib.request.Request(
@@ -259,11 +260,15 @@ def validate_deployed_legal_urls(base_url, failures):
                 headers={"User-Agent": "FuelArenaStoreSubmissionPreflight/1.0"},
             )
             with urllib.request.urlopen(request, timeout=10) as response:
-                body = response.read(2048).decode("utf-8", errors="replace")
+                body = response.read(8192).decode("utf-8", errors="replace")
                 if response.status >= 400:
                     fail(failures, url, f"returned HTTP {response.status}")
-                if "<html" not in body or "Fuel Arena" not in body:
-                    fail(failures, url, "does not look like a Fuel Arena legal page")
+                if "<html" not in body or "Fuel Arena" not in body or token not in body:
+                    fail(
+                        failures,
+                        url,
+                        "does not look like the expected Fuel Arena legal page",
+                    )
         except Exception as error:  # noqa: BLE001 - release diagnostics need the exact error.
             fail(failures, url, f"is not reachable: {error}")
 

@@ -438,16 +438,22 @@ class SupabaseGoogleAuthRepository implements AuthRepository {
     }
 
     final existingProfile = UserProfile.fromJson(existingRow);
+    final preservedNickname = existingProfile.nickname.trim().isEmpty
+        ? nickname
+        : existingProfile.nickname;
+    final preservedEmail =
+        email.trim().isEmpty ? existingProfile.email : email.trim();
+    final preservedAvatarUrl = existingProfile.avatarUrl.trim().isEmpty
+        ? avatarUrl.trim()
+        : existingProfile.avatarUrl;
     final updateProfile = <String, dynamic>{
-      'email': email,
-      'nickname': nickname,
+      'email': preservedEmail,
+      'nickname': preservedNickname,
       'auth_provider': 'google',
       'updated_at': updatedAt,
     };
-    if (avatarUrl.isNotEmpty) {
-      updateProfile['avatar_url'] = avatarUrl;
-    } else if (existingProfile.avatarUrl.isNotEmpty) {
-      updateProfile['avatar_url'] = existingProfile.avatarUrl;
+    if (preservedAvatarUrl.isNotEmpty) {
+      updateProfile['avatar_url'] = preservedAvatarUrl;
     }
     final updated = await _client
         .from('profiles')
@@ -504,57 +510,6 @@ class SupabaseAuthRepository extends SupabaseGoogleAuthRepository {
     super.googleServerClientId,
     super.redirectUri,
   });
-}
-
-class LegacySupabaseAuthRepository implements AuthRepository {
-  final MockAuthRepository _fallback = MockAuthRepository();
-
-  @override
-  Future<UserProfile?> currentUser() {
-    return _fallback.currentUser();
-  }
-
-  @override
-  Future<UserProfile> signInWithGoogle() {
-    return _fallback.signInWithGoogle();
-  }
-
-  @override
-  Future<UserProfile> ensureProfileAfterGoogleLogin() {
-    return _fallback.ensureProfileAfterGoogleLogin();
-  }
-
-  @override
-  bool isGoogleAuthConfigured() => _fallback.isGoogleAuthConfigured();
-
-  @override
-  Future<UserProfile?> getCurrentUser() {
-    return _fallback.getCurrentUser();
-  }
-
-  @override
-  Future<UserProfile> loginWithEmail({
-    required String email,
-    required String password,
-  }) {
-    return _fallback.loginWithEmail(email: email, password: password);
-  }
-
-  @override
-  Future<UserProfile> signUp({
-    required String email,
-    required String password,
-    required String nickname,
-  }) {
-    return _fallback.signUp(
-        email: email, password: password, nickname: nickname);
-  }
-
-  @override
-  Future<void> signOut() => _fallback.signOut();
-
-  @override
-  Future<void> deleteAccount() => _fallback.deleteAccount();
 }
 
 abstract class ConsentRepository {

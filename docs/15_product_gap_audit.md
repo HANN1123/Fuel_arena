@@ -4,7 +4,7 @@
 
 ## 출시를 막는 외부 확인 항목
 - Supabase production project에 모든 migration, seed, Edge Function이 배포되어야 한다.
-- Google OAuth Web/Android/iOS client, Android SHA-1/SHA-256, iOS URL scheme, Supabase redirect allow list가 실제 도메인과 일치해야 한다.
+- Google OAuth Web/Android/iOS/Server client, Android release package/SHA-1/SHA-256, iOS reversed client ID 짝, iOS URL scheme, Supabase redirect allow list가 실제 도메인과 일치해야 한다.
 - AdMob production app id와 reward/native/interstitial ad unit id가 live 값으로 설정되어야 한다.
 - Play Console/App Store IAP 상품 ID, sandbox 계정, 서버 검증 secret이 실제 상품과 일치해야 한다.
 - 개인정보 처리방침, 위치정보 이용 고지, 계정 삭제/데이터 삭제 요청 URL은 Web 정적 페이지로 준비되어 있으며 실제 배포 도메인 연결이 필요하다.
@@ -42,12 +42,14 @@
 - `dart run tool/validate_edge_functions.dart`
 - `dart run tool/validate_product_invariants.dart`
 - `python tool/validate_release_environment_selftest.py`
+- `python tool/validate_release_native_sources.py`
 - `python tool/validate_release_example_placeholders.py`
 - `.env.production.example`을 `.env.production`으로 복사 후 production client/public 값을 채운다.
 - `.env.edge.production.example`을 `.env.edge.production`으로 복사 후 Edge Function secret 값을 채운다.
-- `python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production`
-- `python tool/validate_release_environment.py --env-file .env.production --client-only --check-public-urls`
-- `python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production --check-public-urls --check-supabase-live`
+- `ios/Flutter/FuelArenaSecrets.xcconfig.example`을 `ios/Flutter/FuelArenaSecrets.xcconfig`로 복사 후 iOS Google/AdMob 값을 채운다.
+- `python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production --ios-xcconfig ios/Flutter/FuelArenaSecrets.xcconfig --ios-info-plist ios/Runner/Info.plist --android-key-properties android/key.properties --android-manifest android/app/src/main/AndroidManifest.xml`
+- `python tool/validate_release_environment.py --env-file .env.production --client-only --ios-xcconfig ios/Flutter/FuelArenaSecrets.xcconfig --ios-info-plist ios/Runner/Info.plist --android-key-properties android/key.properties --android-manifest android/app/src/main/AndroidManifest.xml --check-public-urls`
+- `python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production --ios-xcconfig ios/Flutter/FuelArenaSecrets.xcconfig --ios-info-plist ios/Runner/Info.plist --android-key-properties android/key.properties --android-manifest android/app/src/main/AndroidManifest.xml --check-public-urls --check-supabase-live`
 - `python tool/validate_store_submission_assets.py`
 - `python tool/validate_store_privacy_disclosures.py`
 - `flutter build web --wasm`

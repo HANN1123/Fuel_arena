@@ -1668,6 +1668,10 @@ void main() {
     expect(find.text('업적'), findsOneWidget);
     expect(find.text('로그아웃'), findsOneWidget);
     expect(find.text('Google 계정 세션'), findsOneWidget);
+    expect(
+      tester.getTopLeft(find.text('Google 계정 세션')).dy,
+      lessThan(tester.getTopLeft(find.text('대표 차량')).dy),
+    );
   });
 
   testWidgets('ProfileScreen signs out and returns to Google login',

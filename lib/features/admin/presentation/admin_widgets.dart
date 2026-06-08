@@ -424,7 +424,7 @@ class AdminActionMenu extends StatelessWidget {
           return;
         }
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('$value 작업을 개발 저장소에서 확인했어요.')),
+          SnackBar(content: Text('$value 작업을 운영 로그에서 확인했어요.')),
         );
       },
     );

@@ -191,6 +191,40 @@ class AppConfig {
       googleServerClientId.isNotEmpty;
   bool get hasGoogleOAuthClient =>
       googleWebClientId.isNotEmpty || googleServerClientId.isNotEmpty;
+  static bool _looksLikeGoogleOAuthClientId(String value) {
+    const suffix = '.apps.googleusercontent.com';
+    return value.endsWith(suffix) && value.length > suffix.length;
+  }
+
+  bool get hasValidGoogleOAuthClientIds =>
+      _looksLikeGoogleOAuthClientId(googleWebClientId) &&
+      _looksLikeGoogleOAuthClientId(googleAndroidClientId) &&
+      _looksLikeGoogleOAuthClientId(googleIosClientId) &&
+      _looksLikeGoogleOAuthClientId(googleServerClientId);
+
+  String get expectedGoogleReversedIosClientId {
+    const suffix = '.apps.googleusercontent.com';
+    if (!googleIosClientId.endsWith(suffix)) {
+      return '';
+    }
+    final clientPrefix = googleIosClientId.substring(
+      0,
+      googleIosClientId.length - suffix.length,
+    );
+    return clientPrefix.isEmpty
+        ? ''
+        : 'com.googleusercontent.apps.$clientPrefix';
+  }
+
+  bool get hasMatchingGoogleIosReversedClientId =>
+      expectedGoogleReversedIosClientId.isNotEmpty &&
+      googleReversedIosClientId == expectedGoogleReversedIosClientId;
+
+  bool get hasProductionGoogleOAuthConfig =>
+      hasValidGoogleOAuthClientIds &&
+      hasMatchingGoogleIosReversedClientId &&
+      authRedirectScheme == 'fuelarena' &&
+      authRedirectHost == 'login-callback';
   bool get canUseMockRepositories => isDev && !hasSupabase;
   String get authRedirectUri => '$authRedirectScheme://$authRedirectHost';
   bool get hasRewardedAds =>

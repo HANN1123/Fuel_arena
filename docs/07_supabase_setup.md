@@ -11,7 +11,7 @@
 ## 실행 모드
 - dev: Supabase 또는 Google 키가 없어도 mock repository 사용
 - staging: Supabase 필수, Google OAuth 권장, test ad unit 사용
-- production: Supabase와 Google OAuth 필수, live ad와 실제 IAP 상품 필요
+- production: Supabase와 Web/Android/iOS/Server Google OAuth client, iOS reversed client ID, `fuelarena://login-callback` callback 설정 필수. live ad와 실제 IAP 상품 필요
 
 ## Google OAuth 값
 
@@ -20,6 +20,9 @@
 ```bash
 GOOGLE_WEB_CLIENT_ID=
 GOOGLE_ANDROID_CLIENT_ID=
+GOOGLE_ANDROID_RELEASE_PACKAGE_NAME=com.fuelarena.fuel_arena
+GOOGLE_ANDROID_RELEASE_SHA1=
+GOOGLE_ANDROID_RELEASE_SHA256=
 GOOGLE_IOS_CLIENT_ID=
 GOOGLE_SERVER_CLIENT_ID=
 GOOGLE_REVERSED_IOS_CLIENT_ID=
@@ -27,9 +30,9 @@ APP_AUTH_REDIRECT_SCHEME=fuelarena
 APP_AUTH_REDIRECT_HOST=login-callback
 ```
 
-Android/iOS는 Google ID token/access token을 Supabase `signInWithIdToken(OAuthProvider.google)`로 교환한다. Android는 Google Cloud Console에 package name, SHA-1, SHA-256을 등록한다. Android manifest는 `APP_AUTH_REDIRECT_SCHEME`/`APP_AUTH_REDIRECT_HOST` placeholder로 `fuelarena://login-callback` OAuth callback을 받는다. iOS는 bundle ID와 reversed client ID를 등록하고 `ios/Flutter/FuelArenaSecrets.xcconfig.example`를 `FuelArenaSecrets.xcconfig`로 복사해 `GIDClientID`, `GIDServerClientID`, `CFBundleURLTypes`, `ADMOB_IOS_APP_ID`에 들어갈 build setting 값을 채운다.
+Android/iOS는 Google ID token/access token을 Supabase `signInWithIdToken(OAuthProvider.google)`로 교환한다. Android는 Google Cloud Console에 package name, release SHA-1, release SHA-256을 등록하고 같은 값을 `.env.production`의 `GOOGLE_ANDROID_RELEASE_PACKAGE_NAME`, `GOOGLE_ANDROID_RELEASE_SHA1`, `GOOGLE_ANDROID_RELEASE_SHA256`에 기록한다. release preflight는 package name과 fingerprint 형식을 검사한다. Android manifest는 `APP_AUTH_REDIRECT_SCHEME`/`APP_AUTH_REDIRECT_HOST` placeholder로 `fuelarena://login-callback` OAuth callback을 받는다. iOS는 bundle ID와 reversed client ID를 등록하고 `ios/Flutter/FuelArenaSecrets.xcconfig.example`를 `FuelArenaSecrets.xcconfig`로 복사해 `GIDClientID`, `GIDServerClientID`, `CFBundleURLTypes`, `ADMOB_IOS_APP_ID`에 들어갈 build setting 값을 채운다. `GOOGLE_REVERSED_IOS_CLIENT_ID`는 `GOOGLE_IOS_CLIENT_ID`의 `.apps.googleusercontent.com` 앞부분과 정확히 짝이어야 한다.
 
-Web은 Supabase OAuth redirect를 사용한다. Supabase Redirect URL allow list에는 `fuelarena://login-callback`, production Web origin, staging Web origin, 로컬 확인용 `http://127.0.0.1:5173`을 추가한다. Google Cloud Web OAuth client에는 Supabase Auth callback URL을 등록하고, Supabase Google provider에는 Web client id/secret을 설정한다.
+Web은 Supabase OAuth redirect를 사용한다. Supabase Redirect URL allow list에는 `fuelarena://login-callback`, production Web origin, staging Web origin, 로컬 확인용 `http://127.0.0.1:5173`을 추가한다. Google Cloud Web OAuth client에는 Supabase Auth callback URL을 등록하고, Supabase Google provider에는 Web client id/secret을 설정한다. 앱 초기화는 Supabase Auth `AuthFlowType.pkce`와 `detectSessionInUri: true`를 명시해 Web/native callback 진입 시 세션 복구가 켜져 있어야 한다.
 
 ## 차량 카탈로그와 리그
 

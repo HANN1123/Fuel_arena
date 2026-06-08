@@ -137,7 +137,7 @@ class _PremiumScreenState extends ConsumerState<PremiumScreen> {
       _purchased = ok;
       _activePlanId = ok ? plan.id : '';
     });
-    _showSnack('개발 모드 결제 확인이 완료됐어요.');
+    _showSnack('구매 확인 흐름을 완료했어요.');
   }
 
   Future<void> _restorePurchases() async {

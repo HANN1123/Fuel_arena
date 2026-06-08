@@ -26,8 +26,8 @@ python tool/validate_store_submission_assets.py
 - 주행 중 광고, 팝업, 도전장, 불필요한 알림을 표시하지 않는 안전 정책을 포함한다.
 - 정확한 위치 좌표와 raw drive_points가 공개 화면에 노출되지 않는다는 privacy guard를 포함한다.
 - 스토어 등록 전 실제 배포 도메인의 `/legal/privacy/`, `/legal/location/`, `/legal/account-deletion/`, `/legal/terms/` URL을 연결한다.
-- 제출 전 `python tool/validate_store_submission_assets.py`로 한국어 문구 깨짐, 이미지 크기·용량·색상 복잡도·UI 대비, legal 정적 페이지 누락을 검사한다.
-- 배포 도메인이 준비되면 `python tool/validate_store_submission_assets.py --base-url https://example.com` 형태로 실제 공개 legal URL도 확인한다.
+- 제출 전 `python tool/validate_store_submission_assets.py`로 한국어 문구 깨짐, 이미지 크기·용량·색상 복잡도·UI 대비, legal 정적 페이지 누락과 문서별 핵심 한국어 문구를 검사한다.
+- 배포 도메인이 준비되면 `python tool/validate_store_submission_assets.py --base-url https://example.com` 형태로 실제 공개 legal URL의 Fuel Arena legal 본문도 확인한다.
 
 ## 남은 외부 작업
 

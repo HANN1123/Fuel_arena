@@ -1,7 +1,7 @@
 # Behavior Spec
 
 ## 로그인
-로그인은 Google 계정만 지원한다. dev mode에서 Google OAuth 값이 없으면 mock 로그인으로 흐름을 검증하고, production mode에서 Google OAuth 값이 없으면 설정 오류 화면을 표시한다.
+로그인은 Google 계정만 지원한다. dev mode에서 Google OAuth 값이 없으면 mock 로그인으로 흐름을 검증하고, production mode에서 Web/Android/iOS/Server Google OAuth client ID, iOS reversed client ID, `fuelarena://login-callback` callback 설정이 누락되거나 형식이 맞지 않으면 설정 오류 화면을 표시한다.
 
 ## 차량 설정
 차량은 제조사 → 모델/파생모델 → 기준 연식 → 엔진·미션 파워트레인 → 확인 순서로 설정한다. 기준 연식은 클릭 후 펼쳐지는 피커/스크롤 리스트에서 선택하며, 해당 연식의 엔진·미션 파워트레인만 다음 단계에 노출한다. 대표 차량이 설정되면 fuel_league와 vehicle_class를 계산해 profile, user_vehicles, league_memberships에 반영한다. 판매 트림과 휠 인치수는 공식 리그 분류 축으로 쓰지 않는다. 카탈로그에 없는 차량은 검수 대기 상태로 접수하고 공개 랭킹에 바로 반영하지 않는다.

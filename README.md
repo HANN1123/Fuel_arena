@@ -34,12 +34,15 @@ SUPABASE_URL=
 SUPABASE_ANON_KEY=
 GOOGLE_WEB_CLIENT_ID=
 GOOGLE_ANDROID_CLIENT_ID=
+GOOGLE_ANDROID_RELEASE_PACKAGE_NAME=com.fuelarena.fuel_arena
+GOOGLE_ANDROID_RELEASE_SHA1=
+GOOGLE_ANDROID_RELEASE_SHA256=
 GOOGLE_IOS_CLIENT_ID=
 GOOGLE_SERVER_CLIENT_ID=
 GOOGLE_REVERSED_IOS_CLIENT_ID=
 ```
 
-production mode에서는 Supabase URL, anon key, Google OAuth client ID가 필수입니다. service_role key는 Flutter 앱에 넣지 않습니다.
+production mode에서는 Supabase URL, anon key, Web/Android/iOS/Server Google OAuth client ID, iOS reversed client ID, `fuelarena://login-callback` callback 설정이 모두 필수입니다. service_role key는 Flutter 앱에 넣지 않습니다.
 
 ## 실행
 
@@ -60,7 +63,9 @@ dart run tool/validate_product_invariants.dart
 python -m pip install -r requirements-dev.txt
 python tool/validate_store_submission_assets.py
 python tool/validate_store_privacy_disclosures.py
+python tool/validate_secret_hygiene.py
 python tool/validate_release_environment_selftest.py
+python tool/validate_release_native_sources.py
 python tool/validate_release_example_placeholders.py
 flutter test
 flutter analyze
@@ -74,23 +79,27 @@ python tool/run_local_release_gate.py
 python tool/run_local_release_gate.py --quick
 ```
 
-`validate_supabase_schema.dart`는 필수 public table, RLS 활성화, 핵심 정책, public view privacy, RPC 보안 속성, Edge 전용 RPC 권한, 중복 방지 index를 정적으로 검사한다. `validate_product_invariants.dart`는 service role 노출, `.env` 번들링, 사용자 화면 430px 제한 우회, 모바일 레이아웃 토큰, compact 제조사 카드, core route smoke coverage, 직접 `Scaffold` 사용, placeholder/dev 문구 재도입, 주행 중 팝업/광고/알림 차단, 공개 화면 좌표/raw drive_points 노출, 공개 랭킹 privacy, drive_points RLS, 구조화 로그의 민감 키 제거, runtime fallback 차량 카탈로그의 현재 파워트레인 ID, 브랜드 아이콘/스플래시 자산, 플랫폼 권한 선언, Android release signing/AdMob gate, CI 명령, 릴리스 문서, runbook Edge Function deploy 목록과 `.env.example` 필수 키를 함께 검사한다.
+`validate_supabase_schema.dart`는 필수 public table, RLS 활성화, 핵심 정책, public view privacy, RPC 보안 속성, Edge 전용 RPC 권한, 중복 방지 index를 정적으로 검사한다. `validate_product_invariants.dart`는 service role 노출, `.env` 번들링, 사용자 화면 430px 제한 우회, 모바일 레이아웃 토큰, compact 제조사 카드, core route smoke coverage, 직접 `Scaffold` 사용, placeholder/dev 문구 재도입, lib 앱 소스의 mojibake/CJK 깨짐 문자, 주행 중 팝업/광고/알림 차단, 공개 화면 좌표/raw drive_points 노출, 공개 랭킹 privacy, drive_points RLS, 구조화 로그의 민감 키 제거, runtime fallback 차량 카탈로그의 현재 파워트레인 ID, 브랜드 아이콘/스플래시 자산, 플랫폼 권한 선언, Android release signing/AdMob gate, CI 명령, 릴리스 문서, runbook Edge Function deploy 목록과 `.env.example` 필수 키를 함께 검사한다.
 
-`validate_store_submission_assets.py`는 스토어 등록용 한국어 문구가 UTF-8/Hangul 상태인지, feature graphic과 휴대폰 스크린샷 크기·용량·색상 복잡도·UI 대비가 맞는지, `/legal/*` 정적 고지 페이지가 제출 URL로 쓸 수 있는 구조인지 검사한다.
+`validate_store_submission_assets.py`는 스토어 등록용 한국어 문구가 UTF-8/Hangul 상태인지, feature graphic과 휴대폰 스크린샷 크기·용량·색상 복잡도·UI 대비가 맞는지, `/legal/*` 정적 고지 페이지와 배포 URL이 Fuel Arena legal 본문과 문서별 핵심 한국어 문구를 포함하는지 검사한다.
 
 `validate_store_privacy_disclosures.py`는 Play Console 데이터 보안 섹션, App Store 개인정보 라벨, iOS `PrivacyInfo.xcprivacy`, Android 광고 ID 권한, ATT 고지 문구가 현재 앱의 위치/광고/결제/고객지원 데이터 흐름과 맞는지 검사한다.
+
+`validate_secret_hygiene.py`는 `.env.production`, `.env.edge.production`, Android keystore, `android/key.properties`, iOS `FuelArenaSecrets.xcconfig`, Google service plist/json, App Store `.p8` key/provisioning profile 같은 로컬 비밀 파일이 git 추적 대상이나 unignored untracked 대상이 아니며 `git check-ignore`로 실제 ignore되는지 검사한다.
 
 production 제출 전에는 Flutter client env와 Edge Function secret을 분리해 프리플라이트를 실행합니다.
 
 ```bash
 cp .env.production.example .env.production
 cp .env.edge.production.example .env.edge.production
-python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production
-python tool/validate_release_environment.py --env-file .env.production --client-only --check-public-urls
-python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production --check-public-urls --check-supabase-live
+cp ios/Flutter/FuelArenaSecrets.xcconfig.example ios/Flutter/FuelArenaSecrets.xcconfig
+cp android/key.properties.example android/key.properties
+python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production --ios-xcconfig ios/Flutter/FuelArenaSecrets.xcconfig --ios-info-plist ios/Runner/Info.plist --android-key-properties android/key.properties --android-manifest android/app/src/main/AndroidManifest.xml
+python tool/validate_release_environment.py --env-file .env.production --client-only --ios-xcconfig ios/Flutter/FuelArenaSecrets.xcconfig --ios-info-plist ios/Runner/Info.plist --android-key-properties android/key.properties --android-manifest android/app/src/main/AndroidManifest.xml --check-public-urls
+python tool/validate_release_environment.py --env-file .env.production --edge-secrets-file .env.edge.production --ios-xcconfig ios/Flutter/FuelArenaSecrets.xcconfig --ios-info-plist ios/Runner/Info.plist --android-key-properties android/key.properties --android-manifest android/app/src/main/AndroidManifest.xml --check-public-urls --check-supabase-live
 ```
 
-`--check-supabase-live` checks public REST seed/RLS visibility, Edge Function CORS preflight, and Supabase Google OAuth `/auth/v1/authorize?provider=google` redirects for the production web origin plus `fuelarena://login-callback`.
+`--ios-xcconfig` checks that iOS Google/AdMob build settings are present and that the iOS client ID/reversed client ID match `.env.production`. `--ios-info-plist` and `--android-manifest` check that native Google/AdMob placeholders and OAuth callback URL schemes are wired into the platform source files. `--android-key-properties` checks that Android release signing uses a real upload keystore file instead of placeholder/debug values. `--check-public-urls` fetches the public legal URLs and verifies Fuel Arena legal page content, while `--check-supabase-live` checks public REST seed/RLS visibility, Edge Function CORS preflight from the public legal URL origin, and Supabase Google OAuth `/auth/v1/authorize?provider=google` redirects for the production web origin plus `fuelarena://login-callback`.
 
 `.env.production`에는 Flutter client에 들어갈 anon/public 값만 두고, service role key, purchase private key, ranking secret은 `.env.edge.production` 또는 Supabase secrets에만 둡니다.
 
@@ -170,11 +179,11 @@ Edge Function의 `SUPABASE_SERVICE_ROLE_KEY`는 `supabase secrets set`으로만 
 
 ## Google 로그인
 
-앱 로그인 화면은 Google 계정만 제공합니다. dev mode에서 Supabase 값이 없으면 Google client 값이 일부 남아 있어도 MockAuthRepository로 로그인 흐름을 통과하고, production mode에서 Google 값이 없으면 설정 오류 화면을 표시합니다.
+앱 로그인 화면은 Google 계정만 제공합니다. dev mode에서 Supabase 값이 없으면 Google client 값이 일부 남아 있어도 MockAuthRepository로 로그인 흐름을 통과하고, production mode에서 Web/Android/iOS/Server Google OAuth client와 callback 값 중 하나라도 빠지거나 형식이 맞지 않으면 설정 오류 화면을 표시합니다.
 
-Android/iOS는 `google_sign_in`에서 받은 Google ID token/access token을 Supabase `signInWithIdToken(OAuthProvider.google)`로 교환합니다. Web은 Google Sign-In SDK의 앱 버튼 인증을 쓰지 않고 Supabase OAuth redirect로 이동한 뒤, 앱 재진입 시 Splash가 Supabase 세션을 복구합니다.
+Android/iOS는 `google_sign_in`에서 받은 Google ID token/access token을 Supabase `signInWithIdToken(OAuthProvider.google)`로 교환합니다. Web은 Google Sign-In SDK의 앱 버튼 인증을 쓰지 않고 Supabase OAuth redirect로 이동한 뒤, 앱 재진입 시 Splash가 Supabase 세션을 복구합니다. iOS의 `GOOGLE_REVERSED_IOS_CLIENT_ID`는 `GOOGLE_IOS_CLIENT_ID`의 앞부분을 `com.googleusercontent.apps.` 뒤에 붙인 값이어야 합니다.
 
-Supabase Dashboard의 Authentication Provider에서 Google을 활성화하고, Google Cloud OAuth client와 Supabase callback URL을 연결합니다. Web 배포 도메인과 로컬 확인 URL(`http://127.0.0.1:5173` 등)은 Supabase Auth redirect allow list에 등록합니다. Android는 package name과 SHA-1/SHA-256을 등록하고, iOS는 reversed client ID를 연결합니다. 앱 커스텀 redirect는 `fuelarena://login-callback`을 사용합니다. Android manifest는 `APP_AUTH_REDIRECT_SCHEME`/`APP_AUTH_REDIRECT_HOST` placeholder로 이 URI를 받으며, iOS URL scheme은 `GOOGLE_REVERSED_IOS_CLIENT_ID`와 `fuelarena`를 등록합니다.
+Supabase Dashboard의 Authentication Provider에서 Google을 활성화하고, Google Cloud OAuth client와 Supabase callback URL을 연결합니다. Web 배포 도메인과 로컬 확인 URL(`http://127.0.0.1:5173` 등)은 Supabase Auth redirect allow list에 등록합니다. Android는 package name과 release SHA-1/SHA-256을 Google Cloud Console에 등록하고 같은 값을 `.env.production`의 `GOOGLE_ANDROID_RELEASE_*`에 기록해 preflight로 검증합니다. iOS는 reversed client ID를 연결합니다. 앱 커스텀 redirect는 `fuelarena://login-callback`을 사용합니다. Android manifest는 `APP_AUTH_REDIRECT_SCHEME`/`APP_AUTH_REDIRECT_HOST` placeholder로 이 URI를 받으며, iOS URL scheme은 `GOOGLE_REVERSED_IOS_CLIENT_ID`와 `fuelarena`를 등록합니다.
 
 Before release, run `--check-supabase-live`; Google OAuth provider and redirect allow-list are considered ready only when both the web origin and `fuelarena://login-callback` authorize URLs redirect to `accounts.google.com`.
 

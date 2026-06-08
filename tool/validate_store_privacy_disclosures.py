@@ -39,6 +39,9 @@ REQUIRED_PUBLIC_URLS = {
     "terms": "/legal/terms/",
 }
 
+MOJIBAKE_RE = re.compile(r"[\ufffd\u00c0-\u00ff]|[一-龥豈-\ufaff]")
+HANGUL_RE = re.compile(r"[가-힣]")
+
 
 class Failure:
     def __init__(self, scope, message):
@@ -51,6 +54,35 @@ class Failure:
 
 def fail(failures, scope, message):
     failures.append(Failure(scope, message))
+
+
+def validate_no_mojibake_tree(failures, scope, value):
+    if isinstance(value, dict):
+        for key, item in value.items():
+            validate_no_mojibake_tree(failures, f"{scope}.{key}", item)
+    elif isinstance(value, list):
+        for index, item in enumerate(value):
+            validate_no_mojibake_tree(failures, f"{scope}[{index}]", item)
+    elif isinstance(value, str) and MOJIBAKE_RE.search(value):
+        fail(failures, scope, "contains mojibake or non-Korean CJK glyphs")
+
+
+def validate_korean_text(failures, scope, value):
+    if not isinstance(value, str) or not value.strip():
+        fail(failures, scope, "must be a non-empty string")
+        return
+    if not HANGUL_RE.search(value):
+        fail(failures, scope, "must contain readable Korean text")
+    if MOJIBAKE_RE.search(value):
+        fail(failures, scope, "contains mojibake or non-Korean CJK glyphs")
+
+
+def validate_korean_list(failures, scope, values):
+    if not isinstance(values, list) or not values:
+        fail(failures, scope, "must be a non-empty list")
+        return
+    for index, value in enumerate(values):
+        validate_korean_text(failures, f"{scope}[{index}]", value)
 
 
 def read_json(path, failures):
@@ -68,11 +100,13 @@ def validate_disclosures(data, failures):
     if not isinstance(data, dict):
         fail(failures, "privacy disclosures", "root must be an object")
         return
+    validate_no_mojibake_tree(failures, "privacy disclosures", data)
 
     principles = data.get("principles")
     if not isinstance(principles, list):
         fail(failures, "principles", "must be a list")
     else:
+        validate_korean_list(failures, "principles", principles)
         text = "\n".join(str(item) for item in principles)
         for token in [
             "raw drive_points는 공개",
@@ -99,6 +133,38 @@ def validate_disclosures(data, failures):
         fail(failures, "app_store_privacy.tracking", "uses_tracking must be false until ATT/AdMob tracking is explicitly configured")
     if "AdMob/Google SDK" not in tracking.get("notes", ""):
         fail(failures, "app_store_privacy.tracking", "must document AdMob/Google SDK follow-up")
+    validate_korean_text(
+        failures,
+        "app_store_privacy.tracking.notes",
+        tracking.get("notes", ""),
+    )
+
+    for group_name in ["data_linked_to_user", "data_not_linked_or_optional"]:
+        for index, item in enumerate(app_store.get(group_name, [])):
+            if not isinstance(item, dict):
+                fail(failures, f"app_store_privacy.{group_name}[{index}]", "must be an object")
+                continue
+            validate_korean_text(
+                failures,
+                f"app_store_privacy.{group_name}[{index}].type",
+                item.get("type", ""),
+            )
+            validate_korean_list(
+                failures,
+                f"app_store_privacy.{group_name}[{index}].purposes",
+                item.get("purposes"),
+            )
+            validate_korean_list(
+                failures,
+                f"app_store_privacy.{group_name}[{index}].examples",
+                item.get("examples"),
+            )
+            if "notes" in item:
+                validate_korean_text(
+                    failures,
+                    f"app_store_privacy.{group_name}[{index}].notes",
+                    item.get("notes", ""),
+                )
 
     play = data.get("google_play_data_safety", {})
     categories = {
@@ -109,11 +175,49 @@ def validate_disclosures(data, failures):
     for category in REQUIRED_PLAY_CATEGORIES:
         if category not in categories:
             fail(failures, "google_play_data_safety", f"missing category {category}")
+    for index, item in enumerate(play.get("data_collected", [])):
+        if not isinstance(item, dict):
+            fail(failures, f"google_play_data_safety.data_collected[{index}]", "must be an object")
+            continue
+        validate_korean_text(
+            failures,
+            f"google_play_data_safety.data_collected[{index}].category",
+            item.get("category", ""),
+        )
+        validate_korean_list(
+            failures,
+            f"google_play_data_safety.data_collected[{index}].types",
+            item.get("types"),
+        )
+        validate_korean_list(
+            failures,
+            f"google_play_data_safety.data_collected[{index}].purposes",
+            item.get("purposes"),
+        )
     shared_text = json.dumps(play.get("data_shared", []), ensure_ascii=False)
     for token in ["Google AdMob", "Google OAuth", "Apple App Store / Google Play"]:
         if token not in shared_text:
             fail(failures, "google_play_data_safety.data_shared", f"missing recipient {token}")
+    for index, item in enumerate(play.get("data_shared", [])):
+        if not isinstance(item, dict):
+            fail(failures, f"google_play_data_safety.data_shared[{index}]", "must be an object")
+            continue
+        validate_korean_text(
+            failures,
+            f"google_play_data_safety.data_shared[{index}].purpose",
+            item.get("purpose", ""),
+        )
+        validate_korean_text(
+            failures,
+            f"google_play_data_safety.data_shared[{index}].user_control",
+            item.get("user_control", ""),
+        )
     controls = "\n".join(str(item) for item in play.get("security_and_controls", []))
+    validate_korean_list(
+        failures,
+        "google_play_data_safety.security_and_controls",
+        play.get("security_and_controls"),
+    )
     for token in ["전송 중 암호화", "데이터 삭제", "raw drive_points", "service_role key"]:
         if token not in controls:
             fail(failures, "google_play_data_safety.security_and_controls", f"missing {token}")
@@ -172,8 +276,7 @@ def validate_platform_manifests(failures):
             "NSUserTrackingUsageDescription",
         ]:
             value = info.get(key, "")
-            if not isinstance(value, str) or not re.search(r"[가-힣]", value):
-                fail(failures, "Info.plist", f"{key} must have Korean copy")
+            validate_korean_text(failures, f"Info.plist.{key}", value)
 
     if not ANDROID_MANIFEST.exists():
         fail(failures, str(ANDROID_MANIFEST.relative_to(ROOT)), "Android manifest is missing")
@@ -200,6 +303,7 @@ def validate_docs(failures):
         fail(failures, str(docs.relative_to(ROOT)), "privacy disclosure guide is missing")
         return
     source = docs.read_text(encoding="utf-8")
+    validate_korean_text(failures, str(docs.relative_to(ROOT)), source)
     for token in [
         "python tool/validate_store_privacy_disclosures.py",
         "PrivacyInfo.xcprivacy",

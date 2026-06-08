@@ -42,8 +42,14 @@ jobs:
       - name: Store privacy disclosure validation
         run: python tool/validate_store_privacy_disclosures.py
 
+      - name: Secret hygiene validation
+        run: python tool/validate_secret_hygiene.py
+
       - name: Release environment validator self-test
         run: python tool/validate_release_environment_selftest.py
+
+      - name: Release native source validation
+        run: python tool/validate_release_native_sources.py
 
       - name: Release example placeholder rejection
         run: python tool/validate_release_example_placeholders.py

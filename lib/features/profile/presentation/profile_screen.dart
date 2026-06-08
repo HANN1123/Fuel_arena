@@ -65,6 +65,30 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             data: (value) => ProfileHeader(profile: value),
           ),
           const SizedBox(height: AppSpacing.lg),
+          const SectionHeader(title: '계정'),
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Google 계정 세션',
+                    style: AppTypography.titleMedium
+                        .copyWith(color: AppColors.onSurface)),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '로그아웃하면 인증 세션과 사용자별 로컬 주행 큐, 동의/차량 설정 힌트를 함께 정리합니다.',
+                  style: AppTypography.bodyMedium
+                      .copyWith(color: AppColors.onSurfaceMuted),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                SecondaryButton(
+                  label: _signingOut ? '로그아웃 중' : '로그아웃',
+                  icon: Icons.logout_rounded,
+                  onPressed: _signingOut ? null : _signOut,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
           const SectionHeader(title: '대표 차량'),
           primaryVehicle.when(
             loading: () => const LoadingSkeletonView(lines: 1),
@@ -134,30 +158,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         )
                         .toList(),
                   ),
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          const SectionHeader(title: '계정'),
-          AppCard(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('Google 계정 세션',
-                    style: AppTypography.titleMedium
-                        .copyWith(color: AppColors.onSurface)),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  '로그아웃하면 인증 세션과 사용자별 로컬 주행 큐, 동의/차량 설정 힌트를 함께 정리합니다.',
-                  style: AppTypography.bodyMedium
-                      .copyWith(color: AppColors.onSurfaceMuted),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                SecondaryButton(
-                  label: _signingOut ? '로그아웃 중' : '로그아웃',
-                  icon: Icons.logout_rounded,
-                  onPressed: _signingOut ? null : _signOut,
-                ),
-              ],
-            ),
           ),
         ],
       ),

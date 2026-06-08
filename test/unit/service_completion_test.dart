@@ -554,6 +554,17 @@ void main() {
     );
   });
 
+  test('Supabase bootstrap keeps PKCE deep link session recovery explicit', () {
+    final bootstrap = File('lib/app/bootstrap.dart').readAsStringSync();
+
+    expect(
+      bootstrap,
+      contains('authOptions: const FlutterAuthClientOptions('),
+    );
+    expect(bootstrap, contains('authFlowType: AuthFlowType.pkce'));
+    expect(bootstrap, contains('detectSessionInUri: true'));
+  });
+
   test('Production vehicle catalog repository never falls back to mock asset',
       () {
     final repositories =
@@ -1570,6 +1581,34 @@ void main() {
       expect(insertColumns, isNot(contains(sensitiveColumn)));
       expect(updateColumns, isNot(contains(sensitiveColumn)));
     }
+  });
+
+  test('Google profile repair preserves user-owned public profile fields', () {
+    final repository =
+        File('lib/shared/repositories/fuel_arena_repositories.dart')
+            .readAsStringSync();
+
+    expect(
+      repository,
+      contains(
+          'final preservedNickname = existingProfile.nickname.trim().isEmpty'),
+    );
+    expect(repository, contains('? nickname'));
+    expect(repository, contains(': existingProfile.nickname'));
+    expect(repository, contains('final preservedEmail ='));
+    expect(repository, contains('? existingProfile.email'));
+    expect(repository, contains(': email.trim()'));
+    expect(
+      repository,
+      contains(
+          'final preservedAvatarUrl = existingProfile.avatarUrl.trim().isEmpty'),
+    );
+    expect(repository, contains('? avatarUrl.trim()'));
+    expect(repository, contains(': existingProfile.avatarUrl'));
+    expect(repository, contains("'nickname': preservedNickname"));
+    expect(repository, contains("'email': preservedEmail"));
+    expect(repository,
+        contains("updateProfile['avatar_url'] = preservedAvatarUrl"));
   });
 
   test('Supabase schema validator is wired into CI', () {

@@ -41,11 +41,12 @@ Future<BootstrapResult> bootstrapFuelArena() async {
     );
   }
 
-  if (config.isProduction && !config.hasGoogleOAuthClient) {
+  if (config.isProduction && !config.hasProductionGoogleOAuthConfig) {
     return BootstrapResult(
       config: config,
       supabaseInitialized: false,
-      configurationError: 'production 모드에서는 Google 로그인 클라이언트 ID가 필요합니다.',
+      configurationError:
+          'production 모드에서는 Web/Android/iOS/Server Google OAuth 클라이언트, iOS reversed client ID, 앱 callback 설정이 모두 필요합니다.',
     );
   }
 
@@ -70,6 +71,10 @@ Future<BootstrapResult> bootstrapFuelArena() async {
     await Supabase.initialize(
       url: config.supabaseUrl,
       publishableKey: config.supabaseAnonKey,
+      authOptions: const FlutterAuthClientOptions(
+        authFlowType: AuthFlowType.pkce,
+        detectSessionInUri: true,
+      ),
     );
   } catch (_) {
     return BootstrapResult(

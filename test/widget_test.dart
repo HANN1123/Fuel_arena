@@ -73,8 +73,61 @@ void main() {
     expect(find.text('앱을 시작할 수 없어요'), findsOneWidget);
     expect(find.textContaining('SUPABASE_URL'), findsOneWidget);
     expect(find.textContaining('운영/스테이징 빌드'), findsOneWidget);
-    expect(find.textContaining('개발 모드는 Supabase 없이'), findsNothing);
+    expect(find.textContaining('로컬 확인 환경'), findsNothing);
   });
+
+  testWidgets(
+    'Fuel Arena app shows production Google OAuth configuration error',
+    (tester) async {
+      await tester.pumpWidget(
+        const ProviderScope(
+          child: FuelArenaApp(
+            bootstrap: BootstrapResult(
+              config: AppConfig(
+                environment: AppEnvironment.production,
+                supabaseUrl: 'https://fuelarena123.supabase.co',
+                supabaseAnonKey: 'public-anon-key',
+                googleWebClientId: '',
+                googleAndroidClientId: '',
+                googleIosClientId: '',
+                googleServerClientId: '',
+                googleReversedIosClientId: '',
+                authRedirectScheme: 'fuelarena',
+                authRedirectHost: 'login-callback',
+                adMobAndroidAppId: '',
+                adMobIosAppId: '',
+                rewardedAndroidUnitId: '',
+                rewardedIosUnitId: '',
+                nativeAndroidUnitId: '',
+                nativeIosUnitId: '',
+                interstitialAndroidUnitId: '',
+                interstitialIosUnitId: '',
+                iapPremiumMonthlyId: 'fuel_arena_premium_monthly',
+                iapPremiumYearlyId: 'fuel_arena_premium_yearly',
+                iapSeasonPassId: 'fuel_arena_season_pass',
+                iapPremiumBundleId: 'fuel_arena_premium_bundle',
+                kakaoMapKey: '',
+                googleMapsApiKey: '',
+              ),
+              supabaseInitialized: false,
+              configurationError:
+                  'production 모드에서는 Web/Android/iOS/Server Google OAuth 클라이언트, iOS reversed client ID, 앱 callback 설정이 모두 필요합니다.',
+            ),
+          ),
+        ),
+      );
+
+      expect(find.text('설정 오류'), findsOneWidget);
+      expect(find.text('앱을 시작할 수 없어요'), findsOneWidget);
+      expect(
+        find.textContaining('Web/Android/iOS/Server Google OAuth'),
+        findsOneWidget,
+      );
+      expect(find.textContaining('iOS reversed client ID'), findsOneWidget);
+      expect(find.textContaining('Supabase/Google 콘솔 설정'), findsOneWidget);
+      expect(find.textContaining('로컬 확인 환경'), findsNothing);
+    },
+  );
 
   testWidgets('SplashScreen shows retry when session restore fails', (
     tester,

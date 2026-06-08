@@ -14,7 +14,7 @@ Fuel Arena는 연비 기록장이 아니라 연비로 경쟁하는 게임형 드
 ## 개발 규칙
 - Flutter + Dart + Riverpod + go_router 패턴을 유지한다.
 - 외부 키가 없을 때 dev 모드는 MockRepository로 동작한다.
-- production 모드는 Supabase URL과 anon key가 없으면 설정 오류 화면을 보여준다.
+- production 모드는 Supabase URL/anon key 또는 Web/Android/iOS/Server Google OAuth client ID, iOS reversed client ID, `fuelarena://login-callback` callback 설정이 누락되거나 형식이 맞지 않으면 설정 오류 화면을 보여준다.
 - 사용자에게 보이는 텍스트는 한국어를 우선한다.
 - 주행 중 광고, 팝업, 도전장, 알림을 표시하지 않는다.
 - 정확한 위치 좌표와 raw drive_points는 공개 화면에 노출하지 않는다.

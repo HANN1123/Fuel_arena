@@ -2,8 +2,10 @@ import argparse
 import base64
 import json
 import os
+import plistlib
 import re
 import sys
+import xml.etree.ElementTree as ET
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -26,12 +28,29 @@ IAP_PRODUCT_IDS = {
     "IAP_PREMIUM_BUNDLE_ID": "fuel_arena_premium_bundle",
 }
 
+PUBLIC_LEGAL_URL_PATHS = {
+    "PUBLIC_PRIVACY_POLICY_URL": "/legal/privacy/",
+    "PUBLIC_LOCATION_NOTICE_URL": "/legal/location/",
+    "PUBLIC_ACCOUNT_DELETION_URL": "/legal/account-deletion/",
+    "PUBLIC_TERMS_URL": "/legal/terms/",
+}
+
+PUBLIC_LEGAL_URL_CONTENT_TOKENS = {
+    "PUBLIC_PRIVACY_POLICY_URL": "필요한 정보만 수집",
+    "PUBLIC_LOCATION_NOTICE_URL": "주행 거리, 속도",
+    "PUBLIC_ACCOUNT_DELETION_URL": "운영 큐에 접수",
+    "PUBLIC_TERMS_URL": "주행 효율을 게임처럼 비교",
+}
+
 CLIENT_REQUIRED = [
     "APP_ENV",
     "SUPABASE_URL",
     "SUPABASE_ANON_KEY",
     "GOOGLE_WEB_CLIENT_ID",
     "GOOGLE_ANDROID_CLIENT_ID",
+    "GOOGLE_ANDROID_RELEASE_PACKAGE_NAME",
+    "GOOGLE_ANDROID_RELEASE_SHA1",
+    "GOOGLE_ANDROID_RELEASE_SHA256",
     "GOOGLE_IOS_CLIENT_ID",
     "GOOGLE_SERVER_CLIENT_ID",
     "GOOGLE_REVERSED_IOS_CLIENT_ID",
@@ -48,6 +67,20 @@ CLIENT_REQUIRED = [
     "PUBLIC_LOCATION_NOTICE_URL",
     "PUBLIC_ACCOUNT_DELETION_URL",
     "PUBLIC_TERMS_URL",
+]
+
+IOS_XCCONFIG_REQUIRED = [
+    "ADMOB_IOS_APP_ID",
+    "GOOGLE_IOS_CLIENT_ID",
+    "GOOGLE_SERVER_CLIENT_ID",
+    "GOOGLE_REVERSED_IOS_CLIENT_ID",
+]
+
+ANDROID_KEY_PROPERTIES_REQUIRED = [
+    "storeFile",
+    "storePassword",
+    "keyAlias",
+    "keyPassword",
 ]
 
 EDGE_REQUIRED = [
@@ -153,6 +186,11 @@ TEST_ADMOB_UNIT_IDS = {
 }
 
 IOS_RUNNER_BUNDLE_ID = "com.fuelarena.fuelArena"
+ANDROID_PACKAGE_NAME = "com.fuelarena.fuel_arena"
+SHA1_FINGERPRINT_PATTERN = re.compile(r"^(?:[0-9A-Fa-f]{2}:){19}[0-9A-Fa-f]{2}$")
+SHA256_FINGERPRINT_PATTERN = re.compile(r"^(?:[0-9A-Fa-f]{2}:){31}[0-9A-Fa-f]{2}$")
+HANGUL_PATTERN = re.compile(r"[\uac00-\ud7a3]")
+CJK_PATTERN = re.compile(r"[\u4e00-\u9fff]")
 IOS_BUNDLE_ID_PATTERN = re.compile(r"^[A-Za-z0-9]+(?:[.-][A-Za-z0-9]+)+$")
 APPLE_ISSUER_ID_PATTERN = re.compile(
     r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-"
@@ -192,6 +230,59 @@ def parse_env_file(path):
         if not line or line.startswith("#") or "=" not in line:
             continue
         key, value = line.split("=", 1)
+        values[key.strip().lstrip("\ufeff")] = strip_quotes(value.strip())
+    return values
+
+
+def parse_xcconfig_file(path):
+    values = {}
+    if not path:
+        return values
+    file_path = Path(path)
+    if not file_path.exists():
+        raise SystemExit(f"iOS xcconfig file does not exist: {file_path}")
+    for raw_line in file_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or line.startswith("//") or "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        value = value.split("//", 1)[0].strip().rstrip(";").strip()
+        values[key.strip().lstrip("\ufeff")] = strip_quotes(value)
+    return values
+
+
+def parse_plist_file(path):
+    file_path = Path(path)
+    if not file_path.exists():
+        raise SystemExit(f"iOS plist file does not exist: {file_path}")
+    return plistlib.loads(file_path.read_bytes())
+
+
+def parse_xml_file(path, label):
+    file_path = Path(path)
+    if not file_path.exists():
+        raise SystemExit(f"{label} file does not exist: {file_path}")
+    try:
+        return ET.parse(file_path).getroot()
+    except ET.ParseError as error:
+        raise SystemExit(f"{label} XML is invalid: {error}") from error
+
+
+def parse_properties_file(path):
+    values = {}
+    if not path:
+        return values
+    file_path = Path(path)
+    if not file_path.exists():
+        raise SystemExit(f"properties file does not exist: {file_path}")
+    for raw_line in file_path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#") or line.startswith("!"):
+            continue
+        separator = "=" if "=" in line else ":"
+        if separator not in line:
+            continue
+        key, value = line.split(separator, 1)
         values[key.strip().lstrip("\ufeff")] = strip_quotes(value.strip())
     return values
 
@@ -250,6 +341,16 @@ def validate_supabase_anon_key(value, failures):
         )
 
 
+def expected_reversed_ios_client_id(ios_client_id):
+    suffix = ".apps.googleusercontent.com"
+    if not ios_client_id.endswith(suffix):
+        return ""
+    client_prefix = ios_client_id[: -len(suffix)]
+    if not client_prefix:
+        return ""
+    return f"com.googleusercontent.apps.{client_prefix}"
+
+
 def require_present(failures, values, keys, scope):
     for key in keys:
         value = values.get(key, "")
@@ -295,12 +396,51 @@ def validate_client(values, failures):
                 Failure("client env", f"{key} must end with .apps.googleusercontent.com")
             )
 
+    if values.get("GOOGLE_ANDROID_RELEASE_PACKAGE_NAME", "") != ANDROID_PACKAGE_NAME:
+        failures.append(
+            Failure(
+                "client env",
+                f"GOOGLE_ANDROID_RELEASE_PACKAGE_NAME must be {ANDROID_PACKAGE_NAME}",
+            )
+        )
+    android_sha1 = values.get("GOOGLE_ANDROID_RELEASE_SHA1", "")
+    if android_sha1 and not SHA1_FINGERPRINT_PATTERN.match(android_sha1):
+        failures.append(
+            Failure(
+                "client env",
+                "GOOGLE_ANDROID_RELEASE_SHA1 must be a colon-separated SHA-1 fingerprint",
+            )
+        )
+    android_sha256 = values.get("GOOGLE_ANDROID_RELEASE_SHA256", "")
+    if android_sha256 and not SHA256_FINGERPRINT_PATTERN.match(android_sha256):
+        failures.append(
+            Failure(
+                "client env",
+                "GOOGLE_ANDROID_RELEASE_SHA256 must be a colon-separated SHA-256 fingerprint",
+            )
+        )
+
     reversed_id = values.get("GOOGLE_REVERSED_IOS_CLIENT_ID", "")
     if reversed_id and not reversed_id.startswith("com.googleusercontent.apps."):
         failures.append(
             Failure(
                 "client env",
                 "GOOGLE_REVERSED_IOS_CLIENT_ID must start with com.googleusercontent.apps.",
+            )
+        )
+    expected_reversed_id = expected_reversed_ios_client_id(
+        values.get("GOOGLE_IOS_CLIENT_ID", "")
+    )
+    if (
+        reversed_id
+        and expected_reversed_id
+        and reversed_id != expected_reversed_id
+    ):
+        failures.append(
+            Failure(
+                "client env",
+                "GOOGLE_REVERSED_IOS_CLIENT_ID must match GOOGLE_IOS_CLIENT_ID "
+                f"(expected {expected_reversed_id})",
             )
         )
 
@@ -343,15 +483,250 @@ def validate_client(values, failures):
                 )
             )
 
-    for key in [
-        "PUBLIC_PRIVACY_POLICY_URL",
-        "PUBLIC_LOCATION_NOTICE_URL",
-        "PUBLIC_ACCOUNT_DELETION_URL",
-        "PUBLIC_TERMS_URL",
-    ]:
+    legal_url_origins = {}
+    for key, expected_path in PUBLIC_LEGAL_URL_PATHS.items():
         value = values.get(key, "")
         if value and not value.startswith("https://"):
             failures.append(Failure("client env", f"{key} must be an https URL"))
+            continue
+        parsed = urllib.parse.urlparse(value)
+        if value and parsed.scheme == "https" and parsed.netloc:
+            legal_url_origins[key] = f"{parsed.scheme}://{parsed.netloc}"
+        normalized_path = parsed.path.rstrip("/") + "/"
+        if value and normalized_path != expected_path:
+            failures.append(
+                Failure(
+                    "client env",
+                    f"{key} must point to {expected_path}",
+                )
+            )
+        if value and (parsed.query or parsed.fragment):
+            failures.append(
+                Failure(
+                    "client env",
+                    f"{key} must not include query or fragment",
+                )
+            )
+    if len(set(legal_url_origins.values())) > 1:
+        failures.append(
+            Failure(
+                "client env",
+                "PUBLIC legal URLs must share the same origin",
+            )
+        )
+
+
+def validate_ios_xcconfig(values, client_values, failures):
+    require_present(failures, values, IOS_XCCONFIG_REQUIRED, "iOS xcconfig")
+
+    for key in IOS_XCCONFIG_REQUIRED:
+        xcconfig_value = values.get(key, "").strip()
+        client_value = client_values.get(key, "").strip()
+        if (
+            xcconfig_value
+            and client_value
+            and not is_placeholder(xcconfig_value)
+            and not is_placeholder(client_value)
+            and xcconfig_value != client_value
+        ):
+            failures.append(
+                Failure(
+                    "iOS xcconfig",
+                    f"{key} must match .env.production {key}",
+                )
+            )
+
+    reversed_id = values.get("GOOGLE_REVERSED_IOS_CLIENT_ID", "")
+    expected_reversed_id = expected_reversed_ios_client_id(
+        values.get("GOOGLE_IOS_CLIENT_ID", "")
+    )
+    if (
+        reversed_id
+        and expected_reversed_id
+        and not is_placeholder(reversed_id)
+        and reversed_id != expected_reversed_id
+    ):
+        failures.append(
+            Failure(
+                "iOS xcconfig",
+                "GOOGLE_REVERSED_IOS_CLIENT_ID must match GOOGLE_IOS_CLIENT_ID "
+                f"in iOS xcconfig (expected {expected_reversed_id})",
+            )
+        )
+
+
+def validate_ios_info_plist(values, failures):
+    expected_settings = {
+        "GADApplicationIdentifier": "$(ADMOB_IOS_APP_ID)",
+        "GIDClientID": "$(GOOGLE_IOS_CLIENT_ID)",
+        "GIDServerClientID": "$(GOOGLE_SERVER_CLIENT_ID)",
+    }
+    for key, expected_value in expected_settings.items():
+        actual_value = values.get(key, "")
+        if actual_value != expected_value:
+            failures.append(
+                Failure(
+                    "iOS Info.plist",
+                    f"{key} must be {expected_value}",
+                )
+            )
+
+    expected_usage_copy = {
+        "NSLocationWhenInUseUsageDescription":
+            "주행 거리와 지역 리그 계산을 위해 위치 정보가 필요합니다.",
+        "NSUserNotificationUsageDescription":
+            "랭킹 추월, 배틀 결과, 시즌 보상을 알려드리기 위해 알림을 사용합니다.",
+        "NSUserTrackingUsageDescription":
+            "개인 맞춤 광고 제공 여부를 사용자가 선택할 수 있도록 광고 식별자 사용 가능성을 안내합니다.",
+    }
+    for key, expected_value in expected_usage_copy.items():
+        actual_value = values.get(key, "")
+        if actual_value != expected_value:
+            failures.append(
+                Failure(
+                    "iOS Info.plist",
+                    f"{key} must use approved Korean copy",
+                )
+            )
+        if (
+            not isinstance(actual_value, str)
+            or not HANGUL_PATTERN.search(actual_value)
+            or CJK_PATTERN.search(actual_value)
+            or "\ufffd" in actual_value
+        ):
+            failures.append(
+                Failure(
+                    "iOS Info.plist",
+                    f"{key} must contain readable Korean copy without mojibake",
+                )
+            )
+
+    url_schemes = []
+    for item in values.get("CFBundleURLTypes", []):
+        if isinstance(item, dict):
+            url_schemes.extend(item.get("CFBundleURLSchemes", []))
+    for scheme in ["$(GOOGLE_REVERSED_IOS_CLIENT_ID)", "fuelarena"]:
+        if scheme not in url_schemes:
+            failures.append(
+                Failure(
+                    "iOS Info.plist",
+                    f"CFBundleURLSchemes must include {scheme}",
+                )
+            )
+
+
+def android_store_file_path(key_properties_path, store_file):
+    raw_path = Path(store_file)
+    if raw_path.is_absolute():
+        return raw_path
+    return (Path(key_properties_path).parent / "app" / raw_path).resolve()
+
+
+def validate_android_key_properties(values, key_properties_path, failures):
+    require_present(
+        failures,
+        values,
+        ANDROID_KEY_PROPERTIES_REQUIRED,
+        "Android key.properties",
+    )
+
+    store_file = values.get("storeFile", "").strip()
+    if store_file and not is_placeholder(store_file):
+        resolved_store_file = android_store_file_path(key_properties_path, store_file)
+        lower_store_file = str(resolved_store_file).lower()
+        if "debug" in lower_store_file or "androiddebugkey" in lower_store_file:
+            failures.append(
+                Failure(
+                    "Android key.properties",
+                    "storeFile must not point at a debug keystore",
+                )
+            )
+        if resolved_store_file.suffix.lower() not in {".jks", ".keystore"}:
+            failures.append(
+                Failure(
+                    "Android key.properties",
+                    "storeFile should point to a .jks or .keystore upload keystore",
+                )
+            )
+        if not resolved_store_file.is_file():
+            failures.append(
+                Failure(
+                    "Android key.properties",
+                    f"storeFile does not exist: {resolved_store_file}",
+                )
+            )
+
+    key_alias = values.get("keyAlias", "").strip().lower()
+    if key_alias == "androiddebugkey":
+        failures.append(
+            Failure(
+                "Android key.properties",
+                "keyAlias must not use androiddebugkey",
+            )
+        )
+
+    for key in ["storePassword", "keyPassword"]:
+        value = values.get(key, "")
+        if value and not is_placeholder(value) and len(value) < 12:
+            failures.append(
+                Failure(
+                    "Android key.properties",
+                    f"{key} must be at least 12 characters for release signing",
+                )
+            )
+
+
+def validate_android_manifest(root, failures):
+    android_namespace = "{http://schemas.android.com/apk/res/android}"
+    application = root.find("application")
+    if application is None:
+        failures.append(Failure("Android manifest", "application node is missing"))
+        return
+
+    cleartext = application.attrib.get(f"{android_namespace}usesCleartextTraffic")
+    if cleartext != "false":
+        failures.append(
+            Failure(
+                "Android manifest",
+                "application must set android:usesCleartextTraffic=\"false\"",
+            )
+        )
+
+    admob_metadata_found = False
+    for metadata in application.findall("meta-data"):
+        name = metadata.attrib.get(f"{android_namespace}name", "")
+        value = metadata.attrib.get(f"{android_namespace}value", "")
+        if name == "com.google.android.gms.ads.APPLICATION_ID":
+            admob_metadata_found = True
+            if value != "${ADMOB_ANDROID_APP_ID}":
+                failures.append(
+                    Failure(
+                        "Android manifest",
+                        "AdMob APPLICATION_ID must use ${ADMOB_ANDROID_APP_ID}",
+                    )
+                )
+    if not admob_metadata_found:
+        failures.append(
+            Failure(
+                "Android manifest",
+                "AdMob APPLICATION_ID meta-data is missing",
+            )
+        )
+
+    callback_found = False
+    for data in application.findall(".//data"):
+        scheme = data.attrib.get(f"{android_namespace}scheme", "")
+        host = data.attrib.get(f"{android_namespace}host", "")
+        if scheme == "${APP_AUTH_REDIRECT_SCHEME}" and host == "${APP_AUTH_REDIRECT_HOST}":
+            callback_found = True
+            break
+    if not callback_found:
+        failures.append(
+            Failure(
+                "Android manifest",
+                "OAuth callback data must use APP_AUTH_REDIRECT_SCHEME/HOST placeholders",
+            )
+        )
 
 
 def validate_edge(values, failures):
@@ -457,13 +832,10 @@ def validate_edge(values, failures):
         )
 
 
-def check_public_urls(values, failures):
-    for key in [
-        "PUBLIC_PRIVACY_POLICY_URL",
-        "PUBLIC_LOCATION_NOTICE_URL",
-        "PUBLIC_ACCOUNT_DELETION_URL",
-        "PUBLIC_TERMS_URL",
-    ]:
+def check_public_urls(values, failures, urlopen=None):
+    if urlopen is None:
+        urlopen = urllib.request.urlopen
+    for key, expected_token in PUBLIC_LEGAL_URL_CONTENT_TOKENS.items():
         url = values.get(key, "")
         if not url:
             continue
@@ -472,9 +844,20 @@ def check_public_urls(values, failures):
                 url,
                 headers={"User-Agent": "FuelArenaReleasePreflight/1.0"},
             )
-            with urllib.request.urlopen(request, timeout=10) as response:
+            with urlopen(request, timeout=10) as response:
                 if response.status >= 400:
                     failures.append(Failure("public url", f"{key} returned {response.status}"))
+                    continue
+                body = response.read(8192).decode("utf-8", errors="replace")
+                for token in ["<html", "Fuel Arena", expected_token]:
+                    if token not in body:
+                        failures.append(
+                            Failure(
+                                "public url",
+                                f"{key} does not look like the expected Fuel Arena legal page",
+                            )
+                        )
+                        break
         except Exception as error:  # noqa: BLE001 - release diagnostics need the exact error.
             failures.append(Failure("public url", f"{key} is not reachable: {error}"))
 
@@ -657,6 +1040,7 @@ def check_supabase_live(values, failures, urlopen=None):
 
     check_google_oauth_live(base_url, anon_key, values, failures, urlopen)
 
+    cors_origin = public_web_origin(values) or "https://fuelarena.app"
     for function_name in EDGE_FUNCTION_NAMES:
         url = f"{base_url}/functions/v1/{urllib.parse.quote(function_name)}"
         try:
@@ -664,7 +1048,7 @@ def check_supabase_live(values, failures, urlopen=None):
                 url,
                 method="OPTIONS",
                 headers={
-                    "Origin": "https://fuelarena.app",
+                    "Origin": cors_origin,
                     "Access-Control-Request-Method": "POST",
                     "Access-Control-Request-Headers":
                         "authorization, apikey, content-type, x-idempotency-key",
@@ -708,6 +1092,14 @@ def check_supabase_live(values, failures, urlopen=None):
                     f"{function_name} CORS methods must include POST and OPTIONS",
                 )
             )
+        allow_origin = headers.get("access-control-allow-origin", "")
+        if allow_origin not in {"*", cors_origin}:
+            failures.append(
+                Failure(
+                    "supabase live",
+                    f"{function_name} CORS origin must allow {cors_origin}",
+                )
+            )
         if "x-idempotency-key" not in allow_headers:
             failures.append(
                 Failure(
@@ -738,11 +1130,46 @@ def main():
         action="store_true",
         help="Fetch production Supabase public REST endpoints and Edge Function CORS preflight.",
     )
+    parser.add_argument(
+        "--ios-xcconfig",
+        help="Validate ios/Flutter/FuelArenaSecrets.xcconfig against .env.production.",
+    )
+    parser.add_argument(
+        "--ios-info-plist",
+        help="Validate Runner Info.plist Google/AdMob build-setting references.",
+    )
+    parser.add_argument(
+        "--android-key-properties",
+        help="Validate android/key.properties and the referenced upload keystore.",
+    )
+    parser.add_argument(
+        "--android-manifest",
+        help="Validate Android manifest AdMob and OAuth callback placeholders.",
+    )
     args = parser.parse_args()
 
     failures = []
     client_values = merged_env(args.env_file)
     validate_client(client_values, failures)
+    if args.ios_xcconfig:
+        validate_ios_xcconfig(
+            parse_xcconfig_file(args.ios_xcconfig),
+            client_values,
+            failures,
+        )
+    if args.ios_info_plist:
+        validate_ios_info_plist(parse_plist_file(args.ios_info_plist), failures)
+    if args.android_key_properties:
+        validate_android_key_properties(
+            parse_properties_file(args.android_key_properties),
+            args.android_key_properties,
+            failures,
+        )
+    if args.android_manifest:
+        validate_android_manifest(
+            parse_xml_file(args.android_manifest, "Android manifest"),
+            failures,
+        )
 
     edge_values = client_values
     if args.edge_secrets_file:
@@ -765,7 +1192,18 @@ def main():
     edge_label = "client only" if args.client_only else "client + edge"
     url_label = " with public URL checks" if args.check_public_urls else ""
     live_label = " with Supabase live checks" if args.check_supabase_live else ""
-    print(f"release environment valid: production {edge_label}{url_label}{live_label}")
+    android_label = (
+        " with Android signing checks" if args.android_key_properties else ""
+    )
+    native_label = (
+        " with native source checks"
+        if args.ios_info_plist or args.android_manifest
+        else ""
+    )
+    print(
+        f"release environment valid: production "
+        f"{edge_label}{android_label}{native_label}{url_label}{live_label}"
+    )
 
 
 if __name__ == "__main__":

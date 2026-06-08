@@ -1,9 +1,9 @@
-﻿# Completion Audit
+# Completion Audit
 
 ## 현재 완료된 항목
 - Flutter + Dart + Riverpod + go_router 구조를 유지하고 `lib/app`, `lib/core`, `lib/shared`, `lib/features`, `lib/supabase`로 책임을 분리했다.
 - dev/mock mode는 외부 키 없이 MockRepository로 가입, 동의, 차량 설정, 주행, 점수, 랭킹, 배틀, 시즌, 보상, 광고, 프리미엄, 쿠폰, 신고, 고객지원, 관리자 흐름을 이동할 수 있다.
-- production mode는 Supabase URL/anon key 또는 Google client id가 없으면 설정 오류 화면을 표시한다.
+- production mode는 Supabase URL/anon key 또는 Web/Android/iOS/Server Google OAuth client ID, iOS reversed client ID, `fuelarena://login-callback` callback 설정이 누락되거나 형식이 맞지 않으면 설정 오류 화면을 표시한다.
 - 로그인은 Google CTA 중심이며, 온보딩/동의/권한/차량 설정/홈 라우팅이 연결되어 있다.
 - 필수 동의와 설정의 광고/마케팅 동의는 `app_consents` 현재값과 `consent_logs` 감사 로그로 저장된다.
 - 사용자 앱 화면은 공통 `AppScaffold.mobileMaxWidth = 430`으로 제한하고, 관리자 대시보드만 `maxWidth: null`로 데스크톱 full width를 사용한다.
@@ -65,13 +65,14 @@
 - 전역 Flutter/Platform/Zone 오류와 주행 완료 fallback은 `AppLogger` 구조화 로그로 남기며, 로그 context에서 좌표, raw drive_points, 토큰, service role, secret 계열 키를 제거한다.
 - 주행 결과 확정 fallback은 dev/staging에서만 허용하고, production에서는 `finish_drive_session` 검증 실패 또는 공식 세션 누락 시 mock 점수를 반환하지 않고 재시도 오류로 남긴다.
 - 프리미엄 활성화 fallback도 dev/staging에서만 허용하고, production에서는 스토어/IAP 검증 없이 mock premium을 활성화하지 않는다.
+- Google 로그인 프로필 복구는 기존 프로필 row가 있으면 사용자가 앱에서 정한 닉네임, 비어 있지 않은 이메일, 프로필 이미지를 보존하고, Google 메타데이터는 신규 프로필 생성 또는 빈 값 보완에만 사용한다.
 - 리워드 광고 보상은 production에서 광고 시청 검증 없이 `grant_ad_reward`를 직접 호출하지 않으며, 검증 실패 시 기본 보상 유지 안내로 복구한다.
 - 온보딩의 영어 CTA를 한국어 문구로 정리했다.
 - 356/390px 좁은 viewport, 430px 최대 폭, 1920px 데스크톱 미리보기에서 사용자 앱이 모바일 폭으로 제한되는지와 app bar/bottom bar 제한, 하단 5개 탭 표시, 관리자 full-width shell을 위젯 테스트로 고정했다.
 - `AppLayout`, `AppIconSize`, `AppCardSize`, `AppButtonHeight` 토큰과 compact manufacturer card를 추가하고, core route smoke 테스트로 주요 사용자 URL이 router를 통해 본문을 렌더링하는지 고정했다.
-- Deno 없이도 Edge Function 공통 CORS/응답/error/idempotency 구조와 `x-idempotency-key` CORS 허용 여부를 검사하는 `tool/validate_edge_functions.dart` smoke validator를 추가하고 CI에 연결했다.
+- Deno 없이도 Edge Function 공통 CORS/응답/error/idempotency 구조와 `Access-Control-Allow-Origin`, `x-idempotency-key` CORS 허용 여부를 검사하는 `tool/validate_edge_functions.dart` smoke validator를 추가하고 CI에 연결했다.
 - Supabase migration 묶음의 필수 테이블, RLS, 정책, public view privacy, RPC 보안 속성, Edge 전용 RPC 권한, 중복 방지 index를 검사하는 `tool/validate_supabase_schema.dart`를 추가하고 CI에 연결했다.
-- service role 비밀값, `.env` 번들링 차단, 사용자 화면 폭 제한, AppScaffold 우회 방지, 사용자 presentation/widget placeholder 문구 방지, 사용자 주요 화면 빈 상태 복구 CTA, 공개 화면 좌표/raw drive_points 노출 방지, 비현금 배틀 보상, analytics 민감 키 제거, 구조화 로그 민감 키 제거, 공개 랭킹 privacy, drive_points RLS, 플랫폼 권한, Android release signing/AdMob gate, CI 명령, 릴리스 문서, runbook Edge Function deploy 목록과 환경 변수 템플릿을 검사하는 `tool/validate_product_invariants.dart`를 추가하고 CI에 연결했다.
+- service role 비밀값, `.env` 번들링 차단, 사용자 화면 폭 제한, AppScaffold 우회 방지, 사용자 presentation/widget placeholder 문구와 lib 앱 소스 mojibake/CJK 문자 방지, 사용자 주요 화면 빈 상태 복구 CTA, 공개 화면 좌표/raw drive_points 노출 방지, 비현금 배틀 보상, analytics 민감 키 제거, 구조화 로그 민감 키 제거, 공개 랭킹 privacy, drive_points RLS, 플랫폼 권한, Android release signing/AdMob gate, CI 명령, 릴리스 문서, runbook Edge Function deploy 목록과 환경 변수 템플릿을 검사하는 `tool/validate_product_invariants.dart`를 추가하고 CI에 연결했다.
 - product invariant validator는 runtime fallback 차량 카탈로그와 mock 가입 흐름이 현재 아반떼 2026 파워트레인 ID를 쓰는지도 검사해, 오래된 `variant-avante-2024-*` 데이터가 다시 들어오지 못하게 한다.
 - 직접 의존성의 `any` 버전 범위를 lockfile 기준 caret range로 고정하고, product invariant validator가 `pubspec.yaml`의 `any` 재도입을 막도록 보강했다.
 - Android 13+ 알림 권한 `POST_NOTIFICATIONS`와 OAuth callback intent filter를 manifest에 추가하고, Android/iOS 권한, iOS secret xcconfig, OAuth/AdMob plist placeholder 선언을 product invariant validator로 검증한다.
@@ -79,7 +80,7 @@
 ## 남은 외부 연동 확인
 - Supabase CLI가 로컬 PATH에 없어 migration push, seed 적용, Edge Function deploy/serve는 실행하지 못했다.
 - Deno가 로컬 PATH에 없어 Edge Function 타입 체크와 로컬 serve 검증은 실행하지 못했다.
-- Google OAuth client, Android SHA-1/SHA-256, iOS URL scheme, AdMob live id, Play/App Store IAP, Supabase production secrets는 외부 콘솔에서 확인해야 한다.
+- Google OAuth Web/Android/iOS/Server client, Android release package/SHA-1/SHA-256, iOS reversed client ID 짝, iOS URL scheme, Supabase redirect allow list, AdMob live id, Play/App Store IAP, Supabase production secrets는 외부 콘솔에서 확인해야 한다. Android release package/SHA 형식은 `.env.production` preflight로도 검사한다.
 - 실제 결제 검증은 `verify_purchase`가 provider API를 호출하고 서버 소유 Google Play package name과 App Store Bundle ID secret만 사용하도록 보강했다. 남은 확인은 Play/App Store sandbox에서 실제 상품, 복원, 만료, 환불 케이스를 검증하는 것이다.
 - Android release build는 debug signing과 테스트 AdMob App ID를 사용하지 않으며, 출시 전 `android/key.properties`, 실제 upload keystore, production `ADMOB_ANDROID_APP_ID` 설정이 필요하다.
 - Android debug build는 통과하지만 `geolocator_linux -> package_info_plus 10.1.0` 경로의 upstream Android Gradle script가 Kotlin Gradle Plugin을 직접 적용해 Flutter의 Built-in Kotlin 전환 경고가 남아 있다.
@@ -89,10 +90,10 @@
 - `dart format`: 변경 파일 기준 통과.
 - `flutter analyze`: 통과, No issues found.
 - `dart run tool/validate_vehicle_catalog.dart`: 통과, 22 manufacturers / 164 models / 3098 years / 5079 variants.
-- `dart run tool/validate_edge_functions.dart`: 통과, 14 functions / 266 checks.
+- `dart run tool/validate_edge_functions.dart`: 통과, 14 functions / 281 checks.
 - `dart run tool/validate_supabase_schema.dart`: 통과, 297 checks.
-- `dart run tool/validate_product_invariants.dart`: 통과, 1613 checks.
-- `flutter test`: 통과, 191 tests passed.
+- `dart run tool/validate_product_invariants.dart`: 통과, 1819 checks.
+- `flutter test`: 통과, 195 tests passed.
 - `flutter build apk --debug`: 통과, `build/app/outputs/flutter-apk/app-debug.apk` 생성.
 - `flutter build apk --release`: keystore/production AdMob 미설정 상태에서 의도대로 실패, `android/key.properties`와 `ADMOB_ANDROID_APP_ID` 필요 메시지 확인.
 - `flutter build web`: 통과, `build/web` 생성.
@@ -100,18 +101,20 @@
 - `python tool/validate_release_environment.py`: valid/invalid sample env 기준 동작 확인.
 - `python tool/validate_store_submission_assets.py`: 통과, store submission assets valid.
 - `python tool/validate_store_privacy_disclosures.py`: 통과, store privacy disclosures valid.
+- `python tool/validate_secret_hygiene.py`: 통과, secret hygiene valid.
 - `python tool/run_local_release_gate.py --quick`: 통과, validator/format/analyze/test와 release env example placeholder 거부 빠른 릴리즈 게이트 확인.
 - `python tool/run_local_release_gate.py`: 통과, Android debug build, Web/Wasm build, Web smoke까지 로컬 릴리즈 게이트 확인.
 ## Production User Data Fallback
 - production에서는 Supabase 인증 또는 사용자 row 조회 실패 시 mock 프로필/통계가 표시되지 않는다. 사용자별 프로필/통계 fallback은 dev/staging에서만 허용한다.
 ## Latest Verification Snapshot
-- `dart run tool/validate_product_invariants.dart`: 1613 checks passed.
-- `flutter test`: 191 tests passed.
+- `dart run tool/validate_product_invariants.dart`: 1819 checks passed.
+- `flutter test`: 195 tests passed.
+- `python tool/run_local_release_gate.py`: passed with Android debug APK, Web Wasm compatibility build, Web build, and 11-route browser smoke.
 
 ## Web Host Viewport Guard
 - `web/index.html`에서 `html`, `body`, `flutter-view`, `flt-glass-pane`를 `100vw/100vh`와 `overflow: hidden`으로 고정해 Flutter Web 루트가 브라우저 viewport보다 넓게 잡히는 캡처/좁은 창 회귀를 방지한다.
 - `tool/validate_product_invariants.dart`는 viewport meta뿐 아니라 Flutter Web host CSS 토큰까지 검사한다.
-- `dart run tool/validate_product_invariants.dart`: 1613 checks passed.
+- `dart run tool/validate_product_invariants.dart`: 1819 checks passed.
 
 ## Staging Runtime Policy
-- staging/production은 Supabase URL과 anon key가 없으면 설정 오류로 막고, mock repository 실행은 dev mode에서만 허용한다.
+- staging/production은 Supabase URL과 anon key가 없으면 설정 오류로 막고, production은 Google OAuth client/callback 설정도 모두 유효해야 시작한다. mock repository 실행은 dev mode에서만 허용한다.

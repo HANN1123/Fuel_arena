@@ -407,7 +407,8 @@ class PermissionIntroScreen extends StatelessWidget {
               style: AppTypography.displayScore
                   .copyWith(color: AppColors.neonGreen)),
           const SizedBox(height: AppSpacing.sm),
-          Text('권한 요청은 실제 주행 시작 시점에 진행합니다. 개발 모드는 권한 없이 기록 흐름을 확인할 수 있어요.',
+          Text(
+              '권한 요청은 실제 주행 시작 시점에 진행합니다. 권한 없이도 둘러볼 수 있지만 공식 기록에는 위치 권한이 필요해요.',
               style: AppTypography.bodyMedium
                   .copyWith(color: AppColors.onSurfaceMuted)),
           const SizedBox(height: AppSpacing.xl),
