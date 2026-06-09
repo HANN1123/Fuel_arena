@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../design_system/app_colors.dart';
-import '../design_system/app_spacing.dart';
-import '../design_system/app_typography.dart';
-import '../shared/widgets/widgets.dart';
+import '../core/widgets/config_error_screen.dart';
 import 'bootstrap.dart';
 import 'router.dart';
 import 'theme.dart';
@@ -31,46 +28,10 @@ class FuelArenaApp extends StatelessWidget {
 }
 
 Widget configurationErrorScreen(BootstrapResult bootstrap) {
-  return AppScaffold(
-    scrollable: false,
-    child: Center(
-      child: AppCard(
-        borderColor: AppColors.error.withValues(alpha: 0.35),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const StatusChip(
-              label: '설정 오류',
-              color: AppColors.error,
-              icon: Icons.error_outline_rounded,
-            ),
-            const SizedBox(height: AppSpacing.lg),
-            Text('앱을 시작할 수 없어요', style: AppTypography.titleLarge),
-            const SizedBox(height: AppSpacing.sm),
-            Text(
-              bootstrap.configurationError ?? '환경 설정을 확인해 주세요.',
-              style: AppTypography.bodyMedium
-                  .copyWith(color: AppColors.onSurfaceMuted),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Text(
-              _configurationRecoveryHint(bootstrap),
-              style:
-                  AppTypography.dataUnit.copyWith(color: AppColors.neonGreen),
-            ),
-          ],
-        ),
-      ),
-    ),
+  return ConfigErrorScreen(
+    bootstrap: bootstrap,
+    recoveryHint: _configurationRecoveryHint(bootstrap),
   );
-}
-
-String _configurationRecoveryHint(BootstrapResult bootstrap) {
-  if (bootstrap.config.isDev) {
-    return '로컬 확인 환경은 Supabase 연결 없이도 기본 흐름을 볼 수 있습니다.';
-  }
-  return '운영/스테이징 빌드는 .env.production 또는 --dart-define 값과 Supabase/Google 콘솔 설정을 확인해야 합니다.';
 }
 
 GoRouter configurationErrorRouter(BootstrapResult bootstrap) {
@@ -83,4 +44,11 @@ GoRouter configurationErrorRouter(BootstrapResult bootstrap) {
       ),
     ],
   );
+}
+
+String _configurationRecoveryHint(BootstrapResult bootstrap) {
+  if (bootstrap.config.isDev) {
+    return '로컬 확인 환경은 Supabase 연결 없이도 기본 흐름을 볼 수 있습니다.';
+  }
+  return '운영/스테이징 빌드는 .env.production 또는 --dart-define 값과 Supabase/Google 콘솔 설정을 확인해야 합니다.';
 }

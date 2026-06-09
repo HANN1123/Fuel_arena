@@ -22,6 +22,7 @@ class UserProfile {
     this.isAdmin = false,
     this.createdAt,
     this.updatedAt,
+    this.lastLoginAt,
   });
 
   final String id;
@@ -46,6 +47,7 @@ class UserProfile {
   final bool isAdmin;
   final DateTime? createdAt;
   final DateTime? updatedAt;
+  final DateTime? lastLoginAt;
 
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
@@ -71,6 +73,7 @@ class UserProfile {
       isAdmin: json['is_admin'] == true,
       createdAt: DateTime.tryParse('${json['created_at'] ?? ''}'),
       updatedAt: DateTime.tryParse('${json['updated_at'] ?? ''}'),
+      lastLoginAt: DateTime.tryParse('${json['last_login_at'] ?? ''}'),
     );
   }
 
@@ -98,6 +101,7 @@ class UserProfile {
         'is_admin': isAdmin,
         'created_at': createdAt?.toIso8601String(),
         'updated_at': updatedAt?.toIso8601String(),
+        'last_login_at': lastLoginAt?.toIso8601String(),
       };
 
   UserProfile copyWith({
@@ -123,6 +127,7 @@ class UserProfile {
     bool? isAdmin,
     DateTime? createdAt,
     DateTime? updatedAt,
+    DateTime? lastLoginAt,
   }) {
     return UserProfile(
       id: id ?? this.id,
@@ -151,6 +156,7 @@ class UserProfile {
       isAdmin: isAdmin ?? this.isAdmin,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      lastLoginAt: lastLoginAt ?? this.lastLoginAt,
     );
   }
 }
@@ -617,7 +623,8 @@ class VehicleVariant {
 
   factory VehicleVariant.fromJson(Map<String, dynamic> json) {
     final isVerifiedVal = json['is_verified'] != false;
-    final defaultStatus = isVerifiedVal ? 'verified_official' : 'pending_review';
+    final defaultStatus =
+        isVerifiedVal ? 'verified_official' : 'pending_review';
     return VehicleVariant(
       id: '${json['id'] ?? ''}',
       modelYearId: '${json['model_year_id'] ?? ''}',
@@ -2029,4 +2036,3 @@ class HomeSnapshot {
   final int totalRank;
   final int overtakenToday;
 }
-

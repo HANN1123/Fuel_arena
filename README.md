@@ -26,23 +26,43 @@ Flutter, Dart, go_router, flutter_riverpod, Supabase Auth/Postgres/Realtime/Stor
 
 ## 환경변수
 
-`.env.example`을 복사해 `.env`를 만들고 필요한 값을 채웁니다. dev mode에서는 Supabase 키가 없어도 mock repository로 실행됩니다.
+`.env.example`을 복사해 `.env`를 만들고 필요한 값을 채웁니다. 런타임은 `APP_ENV`에 맞는 scoped key를 먼저 읽고, 기존 generic key를 fallback으로 읽습니다. dev mode에서는 Supabase 또는 Google OAuth 설정이 비어 있으면 mock repository/mock auth로 실행됩니다.
 
 ```bash
 APP_ENV=dev
-SUPABASE_URL=
-SUPABASE_ANON_KEY=
-GOOGLE_WEB_CLIENT_ID=
-GOOGLE_ANDROID_CLIENT_ID=
+SUPABASE_URL_DEV=
+SUPABASE_ANON_KEY_DEV=
+SUPABASE_URL_STAGING=
+SUPABASE_ANON_KEY_STAGING=
+SUPABASE_URL_PRODUCTION=
+SUPABASE_ANON_KEY_PRODUCTION=
+GOOGLE_WEB_CLIENT_ID_DEV=
+GOOGLE_ANDROID_CLIENT_ID_DEV=
+GOOGLE_IOS_CLIENT_ID_DEV=
+GOOGLE_SERVER_CLIENT_ID_DEV=
+GOOGLE_REVERSED_IOS_CLIENT_ID_DEV=
+GOOGLE_WEB_CLIENT_ID_STAGING=
+GOOGLE_ANDROID_CLIENT_ID_STAGING=
+GOOGLE_IOS_CLIENT_ID_STAGING=
+GOOGLE_SERVER_CLIENT_ID_STAGING=
+GOOGLE_REVERSED_IOS_CLIENT_ID_STAGING=
+GOOGLE_WEB_CLIENT_ID_PRODUCTION=
+GOOGLE_ANDROID_CLIENT_ID_PRODUCTION=
+GOOGLE_IOS_CLIENT_ID_PRODUCTION=
+GOOGLE_SERVER_CLIENT_ID_PRODUCTION=
+GOOGLE_REVERSED_IOS_CLIENT_ID_PRODUCTION=
+AUTH_REDIRECT_SCHEME=fuelarena
+AUTH_REDIRECT_HOST=login-callback
+SUPPORT_EMAIL=
+TERMS_OF_SERVICE_URL=
+PRIVACY_POLICY_URL=
+LOCATION_POLICY_URL=
 GOOGLE_ANDROID_RELEASE_PACKAGE_NAME=com.fuelarena.fuel_arena
 GOOGLE_ANDROID_RELEASE_SHA1=
 GOOGLE_ANDROID_RELEASE_SHA256=
-GOOGLE_IOS_CLIENT_ID=
-GOOGLE_SERVER_CLIENT_ID=
-GOOGLE_REVERSED_IOS_CLIENT_ID=
 ```
 
-production mode에서는 Supabase URL, anon key, Web/Android/iOS/Server Google OAuth client ID, iOS reversed client ID, `fuelarena://login-callback` callback 설정이 모두 필수입니다. service_role key는 Flutter 앱에 넣지 않습니다.
+staging/production mode에서는 Supabase URL, anon key, Web/Android/iOS/Server Google OAuth client ID, iOS reversed client ID, `fuelarena://login-callback` callback 설정, 공개 약관/개인정보/위치정보 URL이 모두 필수입니다. service_role key와 Google OAuth client secret은 Flutter 앱에 넣지 않습니다.
 
 ## 실행
 
@@ -179,7 +199,7 @@ Edge Function의 `SUPABASE_SERVICE_ROLE_KEY`는 `supabase secrets set`으로만 
 
 ## Google 로그인
 
-앱 로그인 화면은 Google 계정만 제공합니다. dev mode에서 Supabase 값이 없으면 Google client 값이 일부 남아 있어도 MockAuthRepository로 로그인 흐름을 통과하고, production mode에서 Web/Android/iOS/Server Google OAuth client와 callback 값 중 하나라도 빠지거나 형식이 맞지 않으면 설정 오류 화면을 표시합니다.
+앱 로그인 화면은 Google 계정만 제공합니다. dev mode에서 Supabase 또는 Google OAuth 설정이 없으면 MockAuthRepository로 로그인 흐름을 통과하고, staging/production mode에서 Web/Android/iOS/Server Google OAuth client와 callback 값 중 하나라도 빠지거나 형식이 맞지 않으면 설정 오류 화면을 표시합니다.
 
 Android/iOS는 `google_sign_in`에서 받은 Google ID token/access token을 Supabase `signInWithIdToken(OAuthProvider.google)`로 교환합니다. Web은 Google Sign-In SDK의 앱 버튼 인증을 쓰지 않고 Supabase OAuth redirect로 이동한 뒤, 앱 재진입 시 Splash가 Supabase 세션을 복구합니다. iOS의 `GOOGLE_REVERSED_IOS_CLIENT_ID`는 `GOOGLE_IOS_CLIENT_ID`의 앞부분을 `com.googleusercontent.apps.` 뒤에 붙인 값이어야 합니다.
 

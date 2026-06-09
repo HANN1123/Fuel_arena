@@ -71,7 +71,8 @@ void main() {
 
     expect(find.text('설정 오류'), findsOneWidget);
     expect(find.text('앱을 시작할 수 없어요'), findsOneWidget);
-    expect(find.textContaining('SUPABASE_URL'), findsOneWidget);
+    expect(find.textContaining('서버 설정에 문제가 있어요'), findsOneWidget);
+    expect(find.textContaining('SUPABASE_URL'), findsNothing);
     expect(find.textContaining('운영/스테이징 빌드'), findsOneWidget);
     expect(find.textContaining('로컬 확인 환경'), findsNothing);
   });
@@ -120,10 +121,12 @@ void main() {
       expect(find.text('설정 오류'), findsOneWidget);
       expect(find.text('앱을 시작할 수 없어요'), findsOneWidget);
       expect(
-        find.textContaining('Web/Android/iOS/Server Google OAuth'),
+        find.textContaining('서버 설정에 문제가 있어요'),
         findsOneWidget,
       );
-      expect(find.textContaining('iOS reversed client ID'), findsOneWidget);
+      expect(find.textContaining('Web/Android/iOS/Server Google OAuth'),
+          findsNothing);
+      expect(find.textContaining('iOS reversed client ID'), findsNothing);
       expect(find.textContaining('Supabase/Google 콘솔 설정'), findsOneWidget);
       expect(find.textContaining('로컬 확인 환경'), findsNothing);
     },

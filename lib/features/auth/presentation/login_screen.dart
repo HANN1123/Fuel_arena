@@ -102,6 +102,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     final authRepository = ref.watch(authRepositoryProvider);
     final needsGoogleConfig =
         !config.isDev && !authRepository.isGoogleAuthConfigured();
+    final usingDevMockLogin =
+        config.isDev && authRepository is MockAuthRepository;
 
     return AppScaffold(
       scrollable: true,
@@ -127,6 +129,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                 style: AppTypography.bodyMedium
                     .copyWith(color: AppColors.onSurfaceMuted),
               ),
+              if (usingDevMockLogin) ...[
+                const SizedBox(height: AppSpacing.md),
+                const StatusChip(
+                  label: 'dev mock 로그인',
+                  icon: Icons.science_rounded,
+                  color: AppColors.amber,
+                ),
+              ],
               const SizedBox(height: AppSpacing.xl),
               PrimaryButton(
                 label: 'Google로 시작하기',

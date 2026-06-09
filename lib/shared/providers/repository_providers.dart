@@ -15,6 +15,9 @@ final authRepositoryProvider = Provider<AuthRepository>((ref) {
   if (config.canUseMockRepositories) {
     return MockAuthRepository();
   }
+  if (config.canUseMockAuthRepository) {
+    return MockAuthRepository();
+  }
   if (config.hasSupabase) {
     return SupabaseGoogleAuthRepository(
       googleWebClientId: config.googleWebClientId,
@@ -57,9 +60,19 @@ final restoredSessionProvider = FutureProvider<RestoredSessionState>((ref) {
   return ref.watch(appSessionServiceProvider).restore();
 });
 
+final authStateProvider = StreamProvider<UserProfile?>((ref) {
+  return ref.watch(authRepositoryProvider).authStateChanges();
+});
+
+final currentUserProvider = FutureProvider<UserProfile?>((ref) {
+  return ref.watch(authRepositoryProvider).currentUser();
+});
+
 void invalidateUserScopedSessionProviders(WidgetRef ref) {
   ref
     ..invalidate(restoredSessionProvider)
+    ..invalidate(authStateProvider)
+    ..invalidate(currentUserProvider)
     ..invalidate(appConsentProvider)
     ..invalidate(offlineQueueItemsProvider)
     ..invalidate(homeSnapshotProvider)

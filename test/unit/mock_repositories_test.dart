@@ -20,7 +20,28 @@ void main() {
     final user = await repository.signInWithGoogle();
     expect(user.id, mockProfile.id);
     expect(user.authProvider, 'google');
+    expect(user.lastLoginAt, isNotNull);
     expect(repository.isGoogleAuthConfigured(), isTrue);
+  });
+
+  test('MockAuthRepository emits auth state changes', () async {
+    final repository = MockAuthRepository();
+    final states = repository.authStateChanges().take(2).toList();
+
+    await repository.signOut();
+
+    expect(await states, [isNotNull, isNull]);
+  });
+
+  test('AuthRepository deleteAccountRequest creates privacy queue item',
+      () async {
+    final repository = MockAuthRepository();
+
+    await repository.deleteAccountRequest();
+
+    final requests = MockPrivacyRequestRepository().debugRequests;
+    expect(requests, hasLength(1));
+    expect(requests.single.requestType, 'account_deletion');
   });
 
   test('AuthRepository deleteAccount requires privacy request queue', () async {
@@ -612,6 +633,28 @@ void main() {
             supabaseUrl: '',
             googleWebClientId: 'web-client.apps.googleusercontent.com',
             googleAndroidClientId: 'android-client.apps.googleusercontent.com',
+          ),
+        ),
+      ],
+    );
+    addTearDown(container.dispose);
+
+    expect(container.read(authRepositoryProvider), isA<MockAuthRepository>());
+  });
+
+  test('Dev auth provider uses mock when Supabase exists but Google is missing',
+      () {
+    final container = ProviderContainer(
+      overrides: [
+        appConfigProvider.overrideWithValue(
+          _testConfig(
+            environment: AppEnvironment.dev,
+            supabaseUrl: 'https://example.supabase.co',
+            googleWebClientId: '',
+            googleAndroidClientId: '',
+            googleIosClientId: '',
+            googleServerClientId: '',
+            googleReversedIosClientId: '',
           ),
         ),
       ],

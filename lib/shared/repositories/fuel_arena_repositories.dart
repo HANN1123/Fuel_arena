@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,8 @@ import '../services/app_logger.dart';
 
 const _uuid = Uuid();
 const _logger = AppLogger();
+const _createdAtColumn = 'created_at';
+final _mockAuthStateController = StreamController<UserProfile?>.broadcast();
 
 Map<String, dynamic> _functionResponseMap(Object? data) {
   if (data is Map) {
@@ -44,6 +47,8 @@ bool _boolFrom(Object? value, bool fallback) {
 }
 
 abstract class AuthRepository {
+  Stream<UserProfile?> authStateChanges();
+
   Future<UserProfile?> currentUser();
 
   Future<UserProfile> signInWithGoogle();
@@ -68,6 +73,8 @@ abstract class AuthRepository {
   Future<void> signOut();
 
   Future<void> deleteAccount();
+
+  Future<void> deleteAccountRequest();
 }
 
 StateError _accountDeletionRequiresPrivacyRequest() {
@@ -85,6 +92,12 @@ class MockAuthRepository implements AuthRepository {
   UserProfile? _currentUser = _mockSignedInProfile;
 
   @override
+  Stream<UserProfile?> authStateChanges() async* {
+    yield _currentUser;
+    yield* _mockAuthStateController.stream;
+  }
+
+  @override
   Future<UserProfile?> currentUser() async {
     await Future<void>.delayed(const Duration(milliseconds: 180));
     return _currentUser;
@@ -100,9 +113,11 @@ class MockAuthRepository implements AuthRepository {
     await Future<void>.delayed(const Duration(milliseconds: 450));
     _currentUser = _mockSignedInProfile.copyWith(
       authProvider: 'google',
+      lastLoginAt: DateTime.now(),
       updatedAt: DateTime.now(),
     );
     _mockSignedInProfile = _currentUser!;
+    _mockAuthStateController.add(_currentUser);
     return _currentUser!;
   }
 
@@ -119,6 +134,7 @@ class MockAuthRepository implements AuthRepository {
   void debugSetProfile(UserProfile profile) {
     _currentUser = profile;
     _mockSignedInProfile = profile;
+    _mockAuthStateController.add(profile);
   }
 
   @override
@@ -144,6 +160,7 @@ class MockAuthRepository implements AuthRepository {
       updatedAt: DateTime.now(),
     );
     _mockSignedInProfile = _currentUser!;
+    _mockAuthStateController.add(_currentUser);
     return _currentUser!;
   }
 
@@ -154,6 +171,7 @@ class MockAuthRepository implements AuthRepository {
   }) async {
     await Future<void>.delayed(const Duration(milliseconds: 650));
     _currentUser = _mockSignedInProfile;
+    _mockAuthStateController.add(_currentUser);
     return _mockSignedInProfile;
   }
 
@@ -161,11 +179,22 @@ class MockAuthRepository implements AuthRepository {
   Future<void> signOut() async {
     await Future<void>.delayed(const Duration(milliseconds: 150));
     _currentUser = null;
+    _mockAuthStateController.add(null);
   }
 
   @override
   Future<void> deleteAccount() async {
     throw _accountDeletionRequiresPrivacyRequest();
+  }
+
+  @override
+  Future<void> deleteAccountRequest() async {
+    await MockPrivacyRequestRepository().createRequest(
+      const PrivacyRequestSubmission(
+        requestType: 'account_deletion',
+        description: 'Fuel Arena 계정 삭제와 탈퇴 처리를 요청합니다.',
+      ),
+    );
   }
 }
 
@@ -174,6 +203,11 @@ class UnavailableAuthRepository implements AuthRepository {
 
   StateError _configurationError() {
     return StateError('인증 설정을 완료해야 합니다.');
+  }
+
+  @override
+  Stream<UserProfile?> authStateChanges() {
+    return Stream<UserProfile?>.error(_configurationError());
   }
 
   @override
@@ -219,6 +253,11 @@ class UnavailableAuthRepository implements AuthRepository {
 
   @override
   Future<void> deleteAccount() async {
+    throw _configurationError();
+  }
+
+  @override
+  Future<void> deleteAccountRequest() async {
     throw _configurationError();
   }
 }
@@ -296,6 +335,17 @@ class SupabaseGoogleAuthRepository implements AuthRepository {
         hasServerTokenClient && googleIosClientId.isNotEmpty,
       _ => hasServerTokenClient,
     };
+  }
+
+  @override
+  Stream<UserProfile?> authStateChanges() async* {
+    yield await currentUser();
+    yield* _client.auth.onAuthStateChange.asyncMap((state) async {
+      if (state.session?.user == null) {
+        return null;
+      }
+      return ensureProfileAfterGoogleLogin();
+    });
   }
 
   @override
@@ -379,12 +429,22 @@ class SupabaseGoogleAuthRepository implements AuthRepository {
       return _startSupabaseOAuthRedirect();
     }
 
-    final account = await _googleSignIn.authenticate(scopeHint: _googleScopes);
+    late final GoogleSignInAccount account;
+    try {
+      account = await _googleSignIn.authenticate(scopeHint: _googleScopes);
+    } on GoogleSignInException catch (error) {
+      throw _mapGoogleSignInException(error);
+    }
     final auth = account.authentication;
     final idToken = auth.idToken;
-    final authorization = await account.authorizationClient
-            .authorizationForScopes(_googleScopes) ??
-        await account.authorizationClient.authorizeScopes(_googleScopes);
+    late final GoogleSignInClientAuthorization authorization;
+    try {
+      authorization = await account.authorizationClient
+              .authorizationForScopes(_googleScopes) ??
+          await account.authorizationClient.authorizeScopes(_googleScopes);
+    } on GoogleSignInException catch (error) {
+      throw _mapGoogleSignInException(error);
+    }
     final accessToken = authorization.accessToken;
 
     if (idToken == null || idToken.isEmpty) {
@@ -394,13 +454,29 @@ class SupabaseGoogleAuthRepository implements AuthRepository {
       throw StateError('Google Access Token을 찾을 수 없습니다.');
     }
 
-    await _client.auth.signInWithIdToken(
+    final response = await _client.auth.signInWithIdToken(
       provider: OAuthProvider.google,
       idToken: idToken,
       accessToken: accessToken,
     );
+    if (response.session == null ||
+        response.user == null ||
+        _client.auth.currentSession == null) {
+      throw StateError('Supabase 세션을 만들지 못했습니다.');
+    }
 
     return ensureProfileAfterGoogleLogin();
+  }
+
+  StateError _mapGoogleSignInException(GoogleSignInException error) {
+    final message = switch (error.code) {
+      GoogleSignInExceptionCode.canceled => '로그인이 취소되었어요.',
+      GoogleSignInExceptionCode.interrupted => '로그인이 중단되었어요. 다시 시도해주세요.',
+      GoogleSignInExceptionCode.uiUnavailable =>
+        'Google 로그인 화면을 열 수 없습니다. 다시 시도해주세요.',
+      _ => 'Google 로그인에 실패했어요. 네트워크와 Google 설정을 확인해주세요.',
+    };
+    return StateError(message);
   }
 
   @override
@@ -427,6 +503,7 @@ class SupabaseGoogleAuthRepository implements AuthRepository {
         'nickname': nickname,
         if (avatarUrl.isNotEmpty) 'avatar_url': avatarUrl,
         'auth_provider': 'google',
+        'last_login_at': updatedAt,
         'updated_at': updatedAt,
       };
       final inserted = await _client
@@ -450,6 +527,7 @@ class SupabaseGoogleAuthRepository implements AuthRepository {
       'email': preservedEmail,
       'nickname': preservedNickname,
       'auth_provider': 'google',
+      'last_login_at': updatedAt,
       'updated_at': updatedAt,
     };
     if (preservedAvatarUrl.isNotEmpty) {
@@ -480,6 +558,44 @@ class SupabaseGoogleAuthRepository implements AuthRepository {
   @override
   Future<void> deleteAccount() async {
     throw _accountDeletionRequiresPrivacyRequest();
+  }
+
+  @override
+  Future<void> deleteAccountRequest() async {
+    final userId = _client.auth.currentUser?.id;
+    if (userId == null) {
+      throw StateError('로그인이 필요합니다.');
+    }
+    final existing = await _client
+        .from('privacy_requests')
+        .select()
+        .eq('user_id', userId)
+        .eq('request_type', 'account_deletion')
+        .inFilter('status', const ['open', 'review'])
+        .order('updated_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+    if (existing != null) {
+      throw ActivePrivacyRequestException(
+        PrivacyRequest(
+          id: '${existing['id'] ?? ''}',
+          userId: '${existing['user_id'] ?? userId}',
+          requestType: '${existing['request_type'] ?? 'account_deletion'}',
+          description: '${existing['description'] ?? ''}',
+          status: '${existing['status'] ?? 'open'}',
+          createdAt: DateTime.tryParse('${existing[_createdAtColumn] ?? ''}') ??
+              DateTime.now(),
+          updatedAt: DateTime.tryParse('${existing['updated_at'] ?? ''}') ??
+              DateTime.now(),
+        ),
+      );
+    }
+    await _client.from('privacy_requests').insert({
+      'user_id': userId,
+      'request_type': 'account_deletion',
+      'description': 'Fuel Arena 계정 삭제와 탈퇴 처리를 요청합니다.',
+      'status': 'open',
+    });
   }
 
   @override
@@ -2338,11 +2454,12 @@ class SupabaseHomeRepository implements HomeRepository {
     try {
       final rankingRepo = SupabaseRankingRepository(client: _client);
       final classRankings = await rankingRepo.getRankings('내 리그');
-      final myClass = classRankings.where((e) => e.userId == user.id).firstOrNull;
+      final myClass =
+          classRankings.where((e) => e.userId == user.id).firstOrNull;
       if (myClass != null) {
         classRank = myClass.rank;
       }
-      
+
       final allRankings = await rankingRepo.getRankings('');
       final myTotal = allRankings.where((e) => e.userId == user.id).firstOrNull;
       if (myTotal != null) {
@@ -6003,7 +6120,7 @@ bool _manufacturerCountryMatches(VehicleManufacturer item, String? country) {
 }
 
 const _catalogManufacturers = [
-          VehicleManufacturer(
+  VehicleManufacturer(
       id: 'm-hyundai',
       nameKo: '현대',
       nameEn: 'Hyundai',
@@ -6157,14 +6274,10 @@ const _catalogManufacturers = [
       country: 'SE',
       isPopular: false,
       sortOrder: 220)
-
-
-
-
 ];
 
 const _catalogModels = [
-          VehicleModel(
+  VehicleModel(
       id: 'model-hyundai-001-kr',
       manufacturerId: 'm-hyundai',
       nameKo: '아반떼',
@@ -6317,14 +6430,10 @@ const _catalogModels = [
       availableFuelTypes: ['하이브리드'],
       isPopular: false,
       sortOrder: 20)
-
-
-
-
 ];
 
 const _catalogYears = [
-          VehicleModelYear(
+  VehicleModelYear(
       id: 'year-hyundai-001-kr-2026',
       modelId: 'model-hyundai-001-kr',
       year: 2026),
@@ -6365,17 +6474,11 @@ const _catalogYears = [
       modelId: 'model-hyundai-010-6',
       year: 2026),
   VehicleModelYear(
-      id: 'year-kia-014-k5-2026',
-      modelId: 'model-kia-014-k5',
-      year: 2026),
+      id: 'year-kia-014-k5-2026', modelId: 'model-kia-014-k5', year: 2026),
   VehicleModelYear(
-      id: 'year-kia-021-kr-2026',
-      modelId: 'model-kia-021-kr',
-      year: 2026),
+      id: 'year-kia-021-kr-2026', modelId: 'model-kia-021-kr', year: 2026),
   VehicleModelYear(
-      id: 'year-kia-025-ev6-2026',
-      modelId: 'model-kia-025-ev6',
-      year: 2026),
+      id: 'year-kia-025-ev6-2026', modelId: 'model-kia-025-ev6', year: 2026),
   VehicleModelYear(
       id: 'year-tesla-120-model-3-2026',
       modelId: 'model-tesla-120-model-3',
@@ -6389,17 +6492,11 @@ const _catalogYears = [
       modelId: 'model-toyota-096-kr',
       year: 2026),
   VehicleModelYear(
-      id: 'year-toyota-097-kr-2026',
-      modelId: 'model-toyota-097-kr',
-      year: 2026)
-
-
-
-
+      id: 'year-toyota-097-kr-2026', modelId: 'model-toyota-097-kr', year: 2026)
 ];
 
 const _catalogVariants = [
-          VehicleVariant(
+  VehicleVariant(
       id: 'variant-hyundai-avante-2026-gasoline',
       modelYearId: 'year-hyundai-001-kr-2026',
       manufacturerName: '현대',
@@ -7083,10 +7180,6 @@ const _catalogVariants = [
       fuelLeague: 'hybrid',
       isVerified: true,
       sortOrder: 20)
-
-
-
-
 ];
 
 final mockProfile = UserProfile(

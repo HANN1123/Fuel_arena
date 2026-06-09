@@ -376,6 +376,25 @@ void main() {
     expect(find.text('개인정보 보기'), findsOneWidget);
     expect(find.text('위치정보 보기'), findsOneWidget);
     expect(find.textContaining('이메일'), findsNothing);
+    expect(find.textContaining('비밀번호'), findsNothing);
+  });
+
+  testWidgets('LoginScreen shows dev mock badge only for mock auth',
+      (tester) async {
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          appConfigProvider.overrideWithValue(const AppConfig.devMock()),
+          authRepositoryProvider.overrideWithValue(MockAuthRepository()),
+        ],
+        child: MaterialApp(
+          theme: ThemeData.dark(useMaterial3: true),
+          home: const Scaffold(body: LoginScreen()),
+        ),
+      ),
+    );
+
+    expect(find.text('dev mock 로그인'), findsOneWidget);
   });
 
   testWidgets('LoginScreen opens public legal documents before login',
