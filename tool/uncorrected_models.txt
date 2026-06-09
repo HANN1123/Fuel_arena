@@ -1,0 +1,115 @@
+=== Models still needing correction ===
+BMW | 4시리즈 | 디젤 | trim=2.0 디젤 | eff=None | disp=1999 | dt=FWD | trans=자동
+BMW | 7시리즈 | 플러그인 하이브리드 | trim=1.6 플러그인 하이브리드 | eff=None | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+KG모빌리티 | 렉스턴 | 디젤 | trim=2.2 디젤 AWD | eff=10.5 | disp=2157 | dt=AWD | trans=자동 8단
+KG모빌리티 | 렉스턴 스포츠 | 디젤 | trim=2.5 디젤 | eff=None | disp=2497 | dt=FWD | trans=자동
+KG모빌리티 | 코란도 | 디젤 | trim=1.6 디젤 AWD | eff=13.5 | disp=1597 | dt=AWD | trans=자동 6단
+MINI | 컨버터블 | 가솔린 | trim=1.6 가솔린 | eff=None | disp=1598 | dt=FWD | trans=자동
+MINI | 쿠퍼 SE | 전기차 | trim=전기차 | eff=None | disp=None | dt=전동 구동 | trans=감속기
+MINI | 클럽맨 | 가솔린 | trim=1.6 가솔린 | eff=None | disp=1598 | dt=FWD | trans=자동
+기아 | EV3 | 전기차 | trim=전기차 | eff=5.8 | disp=None | dt=전동 구동 | trans=감속기
+기아 | EV6 | 전기차 | trim=전기차 | eff=5.0 | disp=None | dt=전동 구동 | trans=감속기
+기아 | EV9 | 전기차 | trim=전기차 | eff=4.2 | disp=None | dt=전동 구동 | trans=감속기
+기아 | K3 | 가솔린 | trim=1.6 가솔린 | eff=15.2 | disp=1598 | dt=FWD | trans=IVT
+기아 | K3 | 디젤 | trim=1.6 디젤 | eff=19.1 | disp=1582 | dt=FWD | trans=7단 DCT ISG
+기아 | K3 GT | 가솔린 | trim=1.6T 가솔린 DCT | eff=12.1 | disp=1591 | dt=FWD | trans=7단 DCT
+기아 | K5 | LPG | trim=2.0 LPi | eff=9.0 | disp=1999 | dt=FWD | trans=자동
+기아 | K5 | 가솔린 | trim=2.0 가솔린 | eff=13.0 | disp=1999 | dt=FWD | trans=자동
+기아 | K5 | 하이브리드 | trim=1.6 하이브리드 | eff=19.5 | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+기아 | K8 | LPG | trim=2.5 LPi | eff=8.0 | disp=2497 | dt=FWD | trans=자동
+기아 | K8 | 가솔린 | trim=2.5 가솔린 | eff=10.8 | disp=2497 | dt=FWD | trans=자동
+기아 | K8 | 하이브리드 | trim=1.6 하이브리드 | eff=17.5 | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+기아 | K9 | 가솔린 | trim=2.5 가솔린 | eff=9.5 | disp=3342 | dt=FWD | trans=자동
+기아 | 니로 | 전기차 | trim=전기차 | eff=5.3 | disp=None | dt=전동 구동 | trans=감속기
+기아 | 니로 | 플러그인 하이브리드 | trim=1.6 플러그인 하이브리드 | eff=17.5 | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+기아 | 니로 | 하이브리드 | trim=1.6 하이브리드 | eff=20.8 | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+기아 | 레이 | 가솔린 | trim=1.0 가솔린 | eff=13.0 | disp=998 | dt=FWD | trans=자동 4단
+기아 | 레이 | 전기차 | trim=전기차 | eff=5.1 | disp=None | dt=전동 구동 | trans=감속기
+기아 | 모닝 | 가솔린 | trim=1.0 가솔린 | eff=15.1 | disp=998 | dt=FWD | trans=자동 4단
+기아 | 봉고 | LPG | trim=2.5 LPi | eff=7.5 | disp=2497 | dt=FWD | trans=자동
+기아 | 봉고 | 디젤 | trim=2.5 디젤 | eff=10.0 | disp=2497 | dt=FWD | trans=자동
+기아 | 봉고 | 전기차 | trim=전기차 | eff=3.0 | disp=None | dt=전동 구동 | trans=감속기
+기아 | 셀토스 | 가솔린 | trim=1.6T 가솔린 | eff=12.8 | disp=1598 | dt=FWD | trans=자동 8단
+기아 | 스포티지 | 가솔린 | trim=1.6T 가솔린 | eff=12.5 | disp=1598 | dt=FWD | trans=자동 8단
+기아 | 스포티지 | 디젤 | trim=2.0 디젤 | eff=14.6 | disp=1998 | dt=FWD | trans=자동 8단
+기아 | 스포티지 | 하이브리드 | trim=1.6T 하이브리드 | eff=16.7 | disp=1598 | dt=FWD | trans=자동 6단
+기아 | 쏘렌토 | 가솔린 | trim=2.5T 가솔린 | eff=11.0 | disp=2497 | dt=FWD | trans=8단 DCT
+기아 | 쏘렌토 | 디젤 | trim=2.2 디젤 | eff=14.3 | disp=2151 | dt=FWD | trans=8단 DCT
+기아 | 쏘렌토 | 하이브리드 | trim=1.6T 하이브리드 | eff=15.7 | disp=1598 | dt=FWD | trans=자동 6단
+기아 | 카니발 | 가솔린 | trim=2.5 가솔린 | eff=8.8 | disp=2497 | dt=FWD | trans=자동
+기아 | 카니발 | 디젤 | trim=2.5 디젤 | eff=11.5 | disp=2199 | dt=FWD | trans=자동
+기아 | 카니발 | 하이브리드 | trim=1.6 하이브리드 | eff=14.5 | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+닛산 | 로그 | 가솔린 | trim=2.0 가솔린 | eff=None | disp=1999 | dt=FWD | trans=자동
+닛산 | 아리야 | 전기차 | trim=전기차 | eff=None | disp=None | dt=전동 구동 | trans=감속기
+랜드로버 | 디펜더 | 플러그인 하이브리드 | trim=1.6 플러그인 하이브리드 | eff=None | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+랜드로버 | 레인지로버 이보크 | 가솔린 | trim=2.0 가솔린 | eff=None | disp=1999 | dt=FWD | trans=자동
+랜드로버 | 레인지로버 이보크 | 디젤 | trim=2.0 디젤 | eff=None | disp=1999 | dt=FWD | trans=자동
+르노코리아 | QM6 | LPG | trim=2.0 LPi | eff=8.5 | disp=1998 | dt=FWD | trans=CVT
+르노코리아 | QM6 | 가솔린 | trim=2.0 가솔린 | eff=11.5 | disp=1998 | dt=FWD | trans=CVT
+르노코리아 | SM6 | LPG | trim=2.0 LPi | eff=9.0 | disp=1998 | dt=FWD | trans=CVT
+르노코리아 | SM6 | 가솔린 | trim=2.0 가솔린 | eff=12.5 | disp=1998 | dt=FWD | trans=CVT
+르노코리아 | XM3 | 하이브리드 | trim=1.6 하이브리드 | eff=None | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+르노코리아 | 그랑 콜레오스 | 가솔린 | trim=2.0 가솔린 | eff=None | disp=1999 | dt=FWD | trans=자동
+르노코리아 | 그랑 콜레오스 | 하이브리드 | trim=1.6 하이브리드 | eff=None | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+메르세데스-벤츠 | GLA | 가솔린 | trim=1.6 가솔린 | eff=None | disp=1598 | dt=FWD | trans=자동
+볼보 | C40 | 전기차 | trim=전기차 | eff=None | disp=None | dt=전동 구동 | trans=감속기
+쉐보레 | 말리부 | 가솔린 | trim=2.0 가솔린 | eff=None | disp=1999 | dt=FWD | trans=자동
+쉐보레 | 스파크 | 가솔린 | trim=1.0 가솔린 | eff=None | disp=998 | dt=FWD | trans=자동
+쉐보레 | 트랙스 | 가솔린 | trim=1.6 가솔린 | eff=None | disp=1598 | dt=FWD | trans=자동
+아우디 | A5 | 디젤 | trim=2.0 디젤 | eff=None | disp=1999 | dt=FWD | trans=자동
+아우디 | A6 | 플러그인 하이브리드 | trim=1.6 플러그인 하이브리드 | eff=None | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+아우디 | A7 | 디젤 | trim=2.5 디젤 | eff=None | disp=2497 | dt=FWD | trans=자동
+아우디 | Q5 | 플러그인 하이브리드 | trim=1.6 플러그인 하이브리드 | eff=None | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+아우디 | Q8 | 디젤 | trim=2.5 디젤 | eff=None | disp=2497 | dt=FWD | trans=자동
+아우디 | e-tron | 전기차 | trim=전기차 | eff=None | disp=None | dt=전동 구동 | trans=감속기
+지프 | 체로키 | 가솔린 | trim=2.0 가솔린 | eff=None | disp=1999 | dt=FWD | trans=자동
+토요타 | 라브4 | 플러그인 하이브리드 | trim=1.6 플러그인 하이브리드 | eff=None | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+토요타 | 라브4 | 하이브리드 | trim=1.6 하이브리드 | eff=None | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+토요타 | 시에나 | 하이브리드 | trim=1.6 하이브리드 | eff=None | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+토요타 | 캠리 | 하이브리드 | trim=2.5 하이브리드 | eff=19.0 | disp=2487 | dt=FWD | trans=e-CVT
+토요타 | 크라운 | 하이브리드 | trim=1.6 하이브리드 | eff=None | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+토요타 | 프리우스 | 하이브리드 | trim=1.8 하이브리드 | eff=24.5 | disp=1798 | dt=FWD | trans=e-CVT
+토요타 | 하이랜더 | 하이브리드 | trim=2.5 하이브리드 AWD | eff=14.0 | disp=2487 | dt=AWD | trans=e-CVT
+포르쉐 | 박스터 | 가솔린 | trim=2.0 가솔린 | eff=None | disp=1998 | dt=FWD | trans=자동
+포르쉐 | 카이맨 | 가솔린 | trim=2.0 가솔린 | eff=None | disp=1998 | dt=FWD | trans=자동
+폭스바겐 | 아테온 | 디젤 | trim=2.5 디젤 | eff=None | disp=2497 | dt=FWD | trans=자동
+폭스바겐 | 제타 | 가솔린 | trim=1.6 가솔린 | eff=None | disp=1598 | dt=FWD | trans=자동
+폭스바겐 | 투아렉 | 디젤 | trim=2.5 디젤 | eff=None | disp=2497 | dt=FWD | trans=자동
+폭스바겐 | 파사트 | 가솔린 | trim=2.0 가솔린 | eff=None | disp=1999 | dt=FWD | trans=자동
+폭스바겐 | 파사트 | 디젤 | trim=2.0 디젤 | eff=None | disp=1999 | dt=FWD | trans=자동
+푸조 | 2008 | 가솔린 | trim=1.6 가솔린 | eff=None | disp=1598 | dt=FWD | trans=자동
+푸조 | 2008 | 전기차 | trim=전기차 | eff=None | disp=None | dt=전동 구동 | trans=감속기
+푸조 | 3008 | 디젤 | trim=2.0 디젤 | eff=None | disp=1999 | dt=FWD | trans=자동
+푸조 | 308 | 디젤 | trim=1.6 디젤 | eff=None | disp=1598 | dt=FWD | trans=자동
+푸조 | 5008 | 디젤 | trim=2.5 디젤 | eff=None | disp=2497 | dt=FWD | trans=자동
+현대 | 그랜저 | 가솔린 | trim=2.5 가솔린 | eff=11.7 | disp=2497 | dt=FWD | trans=자동 8단
+현대 | 그랜저 | 하이브리드 | trim=1.6T 하이브리드 | eff=18.0 | disp=1598 | dt=FWD | trans=자동 6단
+현대 | 스타리아 | LPG | trim=2.5 LPi | eff=7.0 | disp=2497 | dt=FWD | trans=자동
+현대 | 스타리아 | 가솔린 | trim=2.5 가솔린 | eff=9.0 | disp=2497 | dt=FWD | trans=자동
+현대 | 스타리아 | 디젤 | trim=2.5 디젤 | eff=11.5 | disp=2497 | dt=FWD | trans=자동
+현대 | 싼타페 | 가솔린 | trim=2.5T 가솔린 | eff=11.0 | disp=2497 | dt=FWD | trans=8단 DCT
+현대 | 싼타페 | 하이브리드 | trim=1.6T 하이브리드 | eff=15.5 | disp=1598 | dt=FWD | trans=자동 6단
+현대 | 쏘나타 | LPG | trim=2.0 LPi | eff=8.8 | disp=1999 | dt=FWD | trans=자동
+현대 | 쏘나타 | 가솔린 | trim=2.0 가솔린 | eff=12.6 | disp=1999 | dt=FWD | trans=자동 6단
+현대 | 쏘나타 | 하이브리드 | trim=2.0 하이브리드 | eff=19.4 | disp=1999 | dt=FWD | trans=자동 6단
+현대 | 아반떼 | LPG | trim=1.6 LPi | eff=10.5 | disp=1591 | dt=FWD | trans=자동 6단
+현대 | 아반떼 | 가솔린 | trim=1.6 가솔린 | eff=15.0 | disp=1598 | dt=FWD | trans=IVT
+현대 | 아반떼 | 하이브리드 | trim=1.6 하이브리드 | eff=21.1 | disp=1580 | dt=FWD | trans=6단 DCT
+현대 | 아반떼 N | 가솔린 | trim=2.0T 가솔린 | eff=10.6 | disp=1998 | dt=FWD | trans=6단 수동
+현대 | 아반떼 스포츠 | 가솔린 | trim=2.0 가솔린 | eff=None | disp=1998 | dt=FWD | trans=자동
+현대 | 아이오닉 5 | 전기차 | trim=전기차 | eff=5.2 | disp=None | dt=전동 구동 | trans=감속기
+현대 | 아이오닉 6 | 전기차 | trim=전기차 | eff=6.2 | disp=None | dt=전동 구동 | trans=감속기
+현대 | 캐스퍼 | 가솔린 | trim=1.0 가솔린 | eff=14.3 | disp=998 | dt=FWD | trans=자동 4단
+현대 | 코나 | 가솔린 | trim=1.6 가솔린 | eff=14.3 | disp=1598 | dt=FWD | trans=자동
+현대 | 코나 | 전기차 | trim=전기차 | eff=5.6 | disp=None | dt=전동 구동 | trans=감속기
+현대 | 코나 | 하이브리드 | trim=1.6 하이브리드 | eff=20.2 | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+현대 | 투싼 | 가솔린 | trim=2.0 가솔린 | eff=12.0 | disp=1999 | dt=FWD | trans=자동
+현대 | 투싼 | 디젤 | trim=2.0 디젤 | eff=15.2 | disp=1998 | dt=FWD | trans=자동
+현대 | 투싼 | 하이브리드 | trim=1.6 하이브리드 | eff=16.2 | disp=1598 | dt=FWD | trans=하이브리드 전용 변속기
+현대 | 팰리세이드 | 가솔린 | trim=2.5 가솔린 | eff=9.6 | disp=2497 | dt=FWD | trans=자동
+현대 | 팰리세이드 | 디젤 | trim=2.5 디젤 | eff=12.1 | disp=2199 | dt=FWD | trans=자동
+현대 | 포터 | 디젤 | trim=2.5 디젤 | eff=10.5 | disp=2497 | dt=FWD | trans=자동
+현대 | 포터 | 전기차 | trim=전기차 | eff=3.5 | disp=None | dt=전동 구동 | trans=감속기
+혼다 | HR-V | 가솔린 | trim=1.6 가솔린 | eff=None | disp=1598 | dt=FWD | trans=자동
+혼다 | 오딧세이 | 가솔린 | trim=2.5 가솔린 | eff=None | disp=2497 | dt=FWD | trans=자동
+혼다 | 파일럿 | 가솔린 | trim=2.5 가솔린 | eff=None | disp=2497 | dt=FWD | trans=자동

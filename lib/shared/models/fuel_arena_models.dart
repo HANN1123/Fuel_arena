@@ -586,6 +586,10 @@ class VehicleVariant {
     required this.fuelLeague,
     this.isVerified = true,
     this.sortOrder = 0,
+    this.sourceStatus = 'unknown',
+    this.sourceName,
+    this.sourceUrl,
+    this.confidenceScore,
   });
 
   final String id;
@@ -606,8 +610,14 @@ class VehicleVariant {
   final String fuelLeague;
   final bool isVerified;
   final int sortOrder;
+  final String sourceStatus;
+  final String? sourceName;
+  final String? sourceUrl;
+  final double? confidenceScore;
 
   factory VehicleVariant.fromJson(Map<String, dynamic> json) {
+    final isVerifiedVal = json['is_verified'] != false;
+    final defaultStatus = isVerifiedVal ? 'verified_official' : 'pending_review';
     return VehicleVariant(
       id: '${json['id'] ?? ''}',
       modelYearId: '${json['model_year_id'] ?? ''}',
@@ -627,8 +637,12 @@ class VehicleVariant {
       vehicleClass: '${json['vehicle_class'] ?? ''}',
       fuelLeague:
           '${json['fuel_league'] ?? FuelLeague.keyForFuelType('${json['fuel_type'] ?? ''}')}',
-      isVerified: json['is_verified'] != false,
+      isVerified: isVerifiedVal,
       sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
+      sourceStatus: '${json['source_status'] ?? defaultStatus}',
+      sourceName: json['source_name'] != null ? '${json['source_name']}' : null,
+      sourceUrl: json['source_url'] != null ? '${json['source_url']}' : null,
+      confidenceScore: (json['confidence_score'] as num?)?.toDouble(),
     );
   }
 
@@ -667,7 +681,7 @@ class VehicleVariant {
     final engine = engineName.trim();
     final drivetrain = engine.isEmpty ? gear : '$engine · $gear';
     final efficiency = officialEfficiency == null
-        ? '공식 효율 정보 미등록'
+        ? '공식 효율 정보 준비 중'
         : '${officialEfficiency!.toStringAsFixed(1)} $resolvedEfficiencyUnit';
     return '$power · $drivetrain · $efficiency';
   }
@@ -1998,6 +2012,9 @@ class HomeSnapshot {
     required this.rival,
     required this.latestDriveScore,
     required this.sponsorChallenge,
+    this.classRank = 0,
+    this.totalRank = 0,
+    this.overtakenToday = 0,
   });
 
   final UserProfile profile;
@@ -2008,4 +2025,8 @@ class HomeSnapshot {
   final Rival rival;
   final DriveScore latestDriveScore;
   final SponsorChallenge sponsorChallenge;
+  final int classRank;
+  final int totalRank;
+  final int overtakenToday;
 }
+

@@ -1,0 +1,6 @@
+manufacturer,model,year,trim_name,fuel_type,powertrain_type,displacement_cc,battery_kwh,drivetrain,transmission,motor_power_kw,electric_range_km,official_efficiency_combined,efficiency_unit,vehicle_class,source_url
+BMW,i4,2026,eDrive40,전기차,battery_electric,,84.0,RWD,감속기,250.0,429.0,4.6,km/kWh,중형,https://www.bmw.co.kr/i4-spec
+메르세데스-벤츠,EQE,2026,EQE 350+,전기차,battery_electric,,88.8,RWD,감속기,215.0,471.0,4.5,km/kWh,대형,https://www.mercedes-benz.co.kr/eqe-spec
+현대,아이오닉 5,2026,롱레인지 2WD,전기차,battery_electric,,84.0,RWD,감속기,168.0,485.0,5.2,km/kWh,SUV,https://www.hyundai.com/ioniq5-spec
+기아,EV6,2026,롱레인지 2WD,전기차,battery_electric,,84.0,RWD,감속기,168.0,494.0,5.0,km/kWh,SUV,https://www.kia.com/ev6-spec
+포르쉐,타이칸,2026,Base,전기차,battery_electric,,89.0,RWD,감속기,300.0,380.0,4.1,km/kWh,대형,https://www.porsche.com/taycan-spec

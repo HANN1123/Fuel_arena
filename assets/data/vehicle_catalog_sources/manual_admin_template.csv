@@ -1,0 +1,9 @@
+manufacturer,model,year,trim_name,fuel_type,displacement_cc,battery_kwh,drivetrain,transmission,official_efficiency,efficiency_unit,vehicle_class,source_note
+포르쉐,박스터,2026,2.0 Roadster,가솔린,1988,,RWD,자동 7단 PDK,9.0,km/L,스포츠,RWD 구동계 오류 보정 수동 리포트
+포르쉐,박스터,2025,2.0 Roadster,가솔린,1988,,RWD,자동 7단 PDK,9.0,km/L,스포츠,RWD 구동계 오류 보정 수동 리포트
+포르쉐,박스터,2024,2.0 Roadster,가솔린,1988,,RWD,자동 7단 PDK,9.0,km/L,스포츠,RWD 구동계 오류 보정 수동 리포트
+포르쉐,박스터,2023,2.0 Roadster,가솔린,1988,,RWD,자동 7단 PDK,9.0,km/L,스포츠,RWD 구동계 오류 보정 수동 리포트
+포르쉐,박스터,2022,2.0 Roadster,가솔린,1988,,RWD,자동 7단 PDK,9.0,km/L,스포츠,RWD 구동계 오류 보정 수동 리포트
+BMW,1시리즈,2026,118i,가솔린,1499,,FWD,자동 7단 DCT,14.3,km/L,준중형,FWD 구동계 공식 제원 매핑 보정
+BMW,1시리즈,2025,118i,가솔린,1499,,FWD,자동 7단 DCT,14.3,km/L,준중형,FWD 구동계 공식 제원 매핑 보정
+BMW,1시리즈,2024,118i,가솔린,1499,,FWD,자동 7단 DCT,14.3,km/L,준중형,FWD 구동계 공식 제원 매핑 보정

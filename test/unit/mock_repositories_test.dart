@@ -99,7 +99,7 @@ void main() {
     final hyundai = manufacturers.firstWhere((item) => item.id == 'm-hyundai');
 
     expect(hyundai.modelCount, greaterThan(0));
-    expect(hyundai.minYear, lessThanOrEqualTo(2008));
+    expect(hyundai.minYear, lessThanOrEqualTo(2015));
     expect(hyundai.maxYear, greaterThanOrEqualTo(2026));
 
     final models = await repository.listModels(hyundai.id, keyword: '아반떼');
@@ -135,7 +135,7 @@ void main() {
     expect(imported.map((item) => item.nameKo), contains('BMW'));
   });
 
-  test('Vehicle catalog exposes 2008+ powertrain choices without sales trims',
+  test('Vehicle catalog exposes 2015+ powertrain choices without sales trims',
       () async {
     final repository = const MockVehicleCatalogRepository();
 
@@ -146,7 +146,7 @@ void main() {
         models.firstWhere((item) => item.id == 'model-hyundai-001-kr');
     final years = await repository.listYears(avante.id);
 
-    expect(years.map((item) => item.year), containsAll([2026, 2008]));
+    expect(years.map((item) => item.year), containsAll([2026, 2015]));
 
     final year2026 = years.firstWhere((item) => item.year == 2026);
     final variants = await repository.listVariants(year2026.id);
@@ -172,8 +172,8 @@ void main() {
     final k3 = models.firstWhere((item) => item.nameKo == 'K3');
     expect(k3.availableFuelTypes, ['가솔린', '디젤']);
     final k3Years = await repository.listYears(k3.id);
-    expect(k3Years.map((item) => item.year), containsAll([2024, 2012]));
-    expect(k3Years.map((item) => item.year), isNot(contains(2008)));
+    expect(k3Years.map((item) => item.year), containsAll([2024, 2015]));
+    expect(k3Years.map((item) => item.year), isNot(contains(2014)));
     final k3Year2017 = k3Years.firstWhere((item) => item.year == 2017);
     final k3OldVariants = await repository.listVariants(k3Year2017.id);
     expect(

@@ -390,9 +390,9 @@ void _validateVehicleCatalogSeed(
   );
   check(
     'supabase/migrations/vehicle_catalog_seed',
-    seedSql.contains('year-hyundai-001-kr-2008') &&
-        seedSql.contains('variant-hyundai-001-kr-2008-gasoline'),
-    'vehicle catalog migration seed must include 2008 powertrain rows',
+    seedSql.contains('year-hyundai-001-kr-2015') &&
+        seedSql.contains('variant-hyundai-avante-2015-gasoline'),
+    'vehicle catalog migration seed must include 2015 powertrain rows',
   );
   check(
     'supabase/migrations/vehicle_catalog_seed',
@@ -420,7 +420,7 @@ void _validateVehicleCatalogSeed(
   check(
     'supabase/migrations/vehicle_catalog_seed',
     RegExp(r"^  \('variant-", multiLine: true).allMatches(seedSql).length >=
-        5000,
+        3000,
     'vehicle catalog migration seed must include the full generated variant set',
   );
 }

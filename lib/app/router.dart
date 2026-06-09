@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'auth_required_route.dart';
 import '../features/ads/presentation/reward_ad_screen.dart';
 import '../features/admin/presentation/admin_vehicle_catalog_screen.dart';
+import '../features/admin/presentation/admin_powertrain_screens.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/common/presentation/flow_screens.dart';
 import '../features/drive/presentation/drive_history_screen.dart';
@@ -404,6 +405,11 @@ GoRouter createAppRouter({String initialLocation = '/splash'}) {
         path: '/admin/vehicles',
         builder: (context, state) =>
             const AdminRequiredRoute(child: AdminVehicleCatalogScreen()),
+      ),
+      GoRoute(
+        path: '/admin/powertrain',
+        builder: (context, state) =>
+            const AdminRequiredRoute(child: AdminPowertrainCatalogScreen()),
       ),
     ],
   );

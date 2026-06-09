@@ -3006,6 +3006,12 @@ class _AdminContentState extends ConsumerState<_AdminContent> {
             icon: Icons.directions_car_rounded,
             onPressed: () => context.go('/admin/vehicles'),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          PrimaryButton(
+            label: '파워트레인 데이터 및 품질 관리 열기',
+            icon: Icons.verified_user_rounded,
+            onPressed: () => context.go('/admin/powertrain'),
+          ),
         ],
       ],
     );

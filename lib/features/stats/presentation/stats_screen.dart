@@ -8,6 +8,12 @@ import '../../../design_system/app_typography.dart';
 import '../../../shared/providers/repository_providers.dart';
 import '../../../shared/widgets/widgets.dart';
 
+/// StatsScreen displays detailed driving performance analytics for the user.
+///
+/// It fetches user performance metrics such as average fuel efficiency,
+/// verification run counts, and percentiles relative to their vehicle class.
+/// If no driving history is found, it renders an EmptyStateView to guide the
+/// user to start their first drive.
 class StatsScreen extends ConsumerWidget {
   const StatsScreen({super.key});
 

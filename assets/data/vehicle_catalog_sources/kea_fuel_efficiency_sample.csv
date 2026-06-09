@@ -1,0 +1,8 @@
+manufacturer,model,year,trim_name,fuel_type,displacement_cc,battery_kwh,drivetrain,transmission,official_efficiency,official_efficiency_city,official_efficiency_highway,efficiency_unit,vehicle_class,source_url
+현대,아반떼,2026,1.6 가솔린,가솔린,1598,,FWD,IVT,15.0,13.6,17.2,km/L,준중형,https://con.energy.or.kr/transport
+현대,아반떼,2026,1.6 하이브리드,하이브리드,1580,,FWD,6단 DCT,21.1,22.4,19.6,km/L,준중형,https://con.energy.or.kr/transport
+기아,K5,2026,2.0 가솔린,가솔린,1999,,FWD,자동 6단,13.0,11.5,15.2,km/L,중형,https://con.energy.or.kr/transport
+테슬라,Model 3,2026,RWD 전기,전기차,,60.0,RWD,감속기,5.7,6.1,5.2,km/kWh,중형,https://con.energy.or.kr/transport
+토요타,프리우스,2026,2.0 하이브리드,하이브리드,1987,,FWD,e-CVT,20.9,21.5,20.3,km/L,준중형,https://con.energy.or.kr/transport
+포르쉐,911,2026,3.0T Carrera,가솔린,2981,,RWD,자동 8단 PDK,8.2,7.3,9.7,km/L,스포츠,https://con.energy.or.kr/transport
+포르쉐,박스터,2026,2.0 Roadster,가솔린,1988,,RWD,자동 7단 PDK,9.0,8.1,10.5,km/L,스포츠,https://con.energy.or.kr/transport

@@ -9,6 +9,7 @@ import '../../../design_system/app_typography.dart';
 import '../../../shared/models/fuel_arena_models.dart';
 import '../../../shared/providers/repository_providers.dart';
 import '../../../shared/widgets/widgets.dart';
+import '../domain/vehicle_powertrain_taxonomy.dart' hide FuelLeague;
 
 Future<void> _refreshVehicleSetupState(
   WidgetRef ref, {
@@ -1603,6 +1604,111 @@ Future<VehicleModelRangeChoice?> showVehicleModelRangePicker(
   );
 }
 
+void _showSourceDetailBottomSheet(BuildContext context, VehicleVariant variant) {
+  final status = SourceStatus.fromKey(variant.sourceStatus);
+  showModalBottomSheet(
+    context: context,
+    backgroundColor: AppColors.surface,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) {
+      return SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '데이터 출처 정보',
+                    style: AppTypography.titleLarge,
+                  ),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const Divider(color: AppColors.surfaceHighest, height: AppSpacing.lg),
+              Text(
+                '${variant.manufacturerName} ${variant.modelName} ${variant.year}년식 ${variant.trimName}',
+                style: AppTypography.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _buildSourceDetailRow('검증 등급', status.displayName, textColor: status.color),
+              _buildSourceDetailRow('신뢰도 점수', variant.confidenceScore != null ? '${(variant.confidenceScore! * 100).toStringAsFixed(0)}%' : '정보 없음'),
+              _buildSourceDetailRow('출처 기관', variant.sourceName != null && variant.sourceName!.isNotEmpty ? variant.sourceName! : '공식 제원 정보'),
+              if (variant.sourceUrl != null && variant.sourceUrl!.isNotEmpty)
+                _buildSourceDetailRow('출처 링크', variant.sourceUrl!, isLink: true),
+              const SizedBox(height: AppSpacing.lg),
+              if (status == SourceStatus.conflict)
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  decoration: BoxDecoration(
+                    color: AppColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AppColors.error.withValues(alpha: 0.2)),
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.warning_amber_rounded, color: AppColors.error),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Text(
+                          '주의: 본 차량 정보는 출처 간의 충돌(연비/단위 등)이 발견되어 검토가 필요합니다.',
+                          style: AppTypography.bodyMedium.copyWith(color: AppColors.error),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
+Widget _buildSourceDetailRow(String label, String value, {Color? textColor, bool isLink = false}) {
+  return Padding(
+    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        SizedBox(
+          width: 90,
+          child: Text(
+            label,
+            style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+          ),
+        ),
+        Expanded(
+          child: isLink
+              ? Text(
+                  value,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: AppColors.electricBlue,
+                    decoration: TextDecoration.underline,
+                  ),
+                )
+              : Text(
+                  value,
+                  style: AppTypography.bodyMedium.copyWith(
+                    color: textColor ?? AppColors.onSurface,
+                    fontWeight: textColor != null ? FontWeight.bold : FontWeight.normal,
+                  ),
+                ),
+        ),
+      ],
+    ),
+  );
+}
+
 class VehicleVariantCard extends StatelessWidget {
   const VehicleVariantCard({
     super.key,
@@ -1615,6 +1721,7 @@ class VehicleVariantCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final status = SourceStatus.fromKey(variant.sourceStatus);
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
@@ -1626,8 +1733,23 @@ class VehicleVariantCard extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                    child: Text(variant.trimName,
-                        style: AppTypography.titleMedium)),
+                  child: Row(
+                    children: [
+                      Flexible(
+                        child: Text(variant.trimName,
+                            style: AppTypography.titleMedium),
+                      ),
+                      if (status == SourceStatus.conflict) ...[
+                        const SizedBox(width: AppSpacing.xs),
+                        const Icon(
+                          Icons.warning_amber_rounded,
+                          color: AppColors.error,
+                          size: 20,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
                 FuelLeagueBadge(fuelLeague: variant.fuelLeague),
               ],
             ),
@@ -1636,19 +1758,33 @@ class VehicleVariantCard extends StatelessWidget {
                 style: AppTypography.bodyMedium
                     .copyWith(color: AppColors.onSurfaceMuted)),
             const SizedBox(height: AppSpacing.md),
-            Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                VehicleClassBadge(vehicleClass: variant.vehicleClass),
-                StatusChip(
-                    label: variant.leagueDisplayName,
-                    color: AppColors.neonGreen),
-                StatusChip(
-                    label: variant.statusLabel,
-                    color: variant.isVerified
-                        ? AppColors.electricBlue
-                        : AppColors.amber),
+                Expanded(
+                  child: Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    children: [
+                      VehicleClassBadge(vehicleClass: variant.vehicleClass),
+                      StatusChip(
+                          label: variant.leagueDisplayName,
+                          color: AppColors.neonGreen),
+                      StatusChip(
+                          label: status.displayName,
+                          color: status.color),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: () => _showSourceDetailBottomSheet(context, variant),
+                  child: const Text('출처 보기', style: TextStyle(fontSize: 12, color: AppColors.electricBlue)),
+                ),
               ],
             ),
           ],
@@ -1741,12 +1877,32 @@ class VehicleSelectionSummaryCard extends StatelessWidget {
                   .copyWith(color: AppColors.onSurfaceMuted)),
           if (variant != null) ...[
             const SizedBox(height: AppSpacing.md),
-            Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                FuelLeagueBadge(fuelLeague: variant.fuelLeague),
-                VehicleClassBadge(vehicleClass: variant.vehicleClass),
+                Expanded(
+                  child: Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    children: [
+                      FuelLeagueBadge(fuelLeague: variant.fuelLeague),
+                      VehicleClassBadge(vehicleClass: variant.vehicleClass),
+                      StatusChip(
+                        label: SourceStatus.fromKey(variant.sourceStatus).displayName,
+                        color: SourceStatus.fromKey(variant.sourceStatus).color,
+                      ),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+                    minimumSize: Size.zero,
+                    tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                  ),
+                  onPressed: () => _showSourceDetailBottomSheet(context, variant),
+                  child: const Text('출처 보기', style: TextStyle(fontSize: 12, color: AppColors.electricBlue)),
+                ),
               ],
             ),
             if (expanded) ...[

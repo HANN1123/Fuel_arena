@@ -30,7 +30,8 @@ void main() {
         sortOrder += 10;
       }
 
-      for (var year = seed.lastYear; year >= seed.firstYear; year -= 1) {
+      final startYear = seed.firstYear < 2015 ? 2015 : seed.firstYear;
+      for (var year = seed.lastYear; year >= startYear; year -= 1) {
         final yearId = 'year-${modelId.substring(6)}-$year';
         years.add({'id': yearId, 'model_id': modelId, 'year': year});
         for (final fuelType in seed.fuelTypesForYear(year)) {
@@ -378,6 +379,381 @@ List<OfficialPowertrain> _officialOverrides(
     }
     return [dct];
   }
+
+  if (modelId == 'model-hyundai-001-kr') {
+    if (fuelLeague == 'gasoline') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-hyundai-avante-$year-gasoline',
+          trimName: '1.6 가솔린',
+          engineName: 'Smartstream G1.6',
+          displacementCc: 1598,
+          drivetrain: 'FWD',
+          transmission: 'IVT',
+          officialEfficiency: 15.0,
+          efficiencyUnit: 'km/L',
+          sortOrder: 10,
+        ),
+      ];
+    }
+    if (fuelLeague == 'hybrid') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-hyundai-avante-$year-hybrid',
+          trimName: '1.6 하이브리드',
+          engineName: 'Smartstream G1.6 Hybrid',
+          displacementCc: 1580,
+          drivetrain: 'FWD',
+          transmission: '6단 DCT',
+          officialEfficiency: 21.1,
+          efficiencyUnit: 'km/L',
+          sortOrder: 20,
+        ),
+      ];
+    }
+    if (fuelLeague == 'lpg') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-hyundai-avante-$year-lpi',
+          trimName: '1.6 LPi',
+          engineName: 'LPi 1.6',
+          displacementCc: 1591,
+          drivetrain: 'FWD',
+          transmission: '자동 6단',
+          officialEfficiency: 10.5,
+          efficiencyUnit: 'km/L',
+          sortOrder: 30,
+        ),
+      ];
+    }
+  }
+
+  if (modelId == 'model-hyundai-002-kr') {
+    if (fuelLeague == 'gasoline') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-hyundai-sonata-$year-20-gasoline',
+          trimName: '2.0 가솔린',
+          engineName: 'Smartstream G2.0',
+          displacementCc: 1999,
+          drivetrain: 'FWD',
+          transmission: '자동 6단',
+          officialEfficiency: year >= 2019 ? 12.6 : 11.6,
+          efficiencyUnit: 'km/L',
+          sortOrder: 10,
+        ),
+        OfficialPowertrain(
+          id: 'variant-hyundai-sonata-$year-16t-gasoline',
+          trimName: '1.6T 가솔린',
+          engineName: 'Smartstream G1.6T',
+          displacementCc: 1598,
+          drivetrain: 'FWD',
+          transmission: '자동 8단',
+          officialEfficiency: year >= 2019 ? 13.5 : 13.0,
+          efficiencyUnit: 'km/L',
+          sortOrder: 11,
+        ),
+      ];
+    }
+    if (fuelLeague == 'hybrid') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-hyundai-sonata-$year-20-hybrid',
+          trimName: '2.0 하이브리드',
+          engineName: 'Smartstream G2.0 Hybrid',
+          displacementCc: 1999,
+          drivetrain: 'FWD',
+          transmission: '자동 6단',
+          officialEfficiency: year >= 2019 ? 19.4 : 18.0,
+          efficiencyUnit: 'km/L',
+          sortOrder: 20,
+        ),
+      ];
+    }
+  }
+
+  if (modelId == 'model-hyundai-003-kr') {
+    if (fuelLeague == 'gasoline') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-hyundai-grandeur-$year-25-gasoline',
+          trimName: '2.5 가솔린',
+          engineName: 'Smartstream G2.5',
+          displacementCc: 2497,
+          drivetrain: 'FWD',
+          transmission: '자동 8단',
+          officialEfficiency: year >= 2020 ? 11.7 : 11.2,
+          efficiencyUnit: 'km/L',
+          sortOrder: 10,
+        ),
+        OfficialPowertrain(
+          id: 'variant-hyundai-grandeur-$year-35-gasoline',
+          trimName: '3.5 가솔린',
+          engineName: 'Smartstream G3.5',
+          displacementCc: 3470,
+          drivetrain: 'FWD',
+          transmission: '자동 8단',
+          officialEfficiency: year >= 2020 ? 10.4 : 9.7,
+          efficiencyUnit: 'km/L',
+          sortOrder: 11,
+        ),
+      ];
+    }
+    if (fuelLeague == 'hybrid') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-hyundai-grandeur-$year-16t-hybrid',
+          trimName: '1.6T 하이브리드',
+          engineName: 'Smartstream G1.6T Hybrid',
+          displacementCc: 1598,
+          drivetrain: 'FWD',
+          transmission: '자동 6단',
+          officialEfficiency: year >= 2023 ? 18.0 : 16.2,
+          efficiencyUnit: 'km/L',
+          sortOrder: 20,
+        ),
+      ];
+    }
+  }
+
+  if (modelId == 'model-hyundai-006-kr') {
+    if (fuelLeague == 'gasoline') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-hyundai-santafe-$year-25t-gasoline',
+          trimName: '2.5T 가솔린',
+          engineName: 'Smartstream G2.5T',
+          displacementCc: 2497,
+          drivetrain: 'FWD',
+          transmission: '8단 DCT',
+          officialEfficiency: 11.0,
+          efficiencyUnit: 'km/L',
+          sortOrder: 10,
+        ),
+      ];
+    }
+    if (fuelLeague == 'hybrid') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-hyundai-santafe-$year-16t-hybrid',
+          trimName: '1.6T 하이브리드',
+          engineName: 'Smartstream G1.6T Hybrid',
+          displacementCc: 1598,
+          drivetrain: 'FWD',
+          transmission: '자동 6단',
+          officialEfficiency: 15.5,
+          efficiencyUnit: 'km/L',
+          sortOrder: 20,
+        ),
+      ];
+    }
+  }
+
+  if (modelId == 'model-hyundai-008-kr') {
+    if (fuelLeague == 'gasoline') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-hyundai-casper-$year-10-gasoline',
+          trimName: '1.0 가솔린',
+          engineName: 'Smartstream G1.0',
+          displacementCc: 998,
+          drivetrain: 'FWD',
+          transmission: '자동 4단',
+          officialEfficiency: 14.3,
+          efficiencyUnit: 'km/L',
+          sortOrder: 10,
+        ),
+        OfficialPowertrain(
+          id: 'variant-hyundai-casper-$year-10t-gasoline',
+          trimName: '1.0T 가솔린',
+          engineName: 'Kappa 1.0 T-GDI',
+          displacementCc: 998,
+          drivetrain: 'FWD',
+          transmission: '자동 4단',
+          officialEfficiency: 12.8,
+          efficiencyUnit: 'km/L',
+          sortOrder: 11,
+        ),
+      ];
+    }
+  }
+
+  if (modelId == 'model-kia-017-kr') {
+    if (fuelLeague == 'gasoline') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-kia-morning-$year-10-gasoline',
+          trimName: '1.0 가솔린',
+          engineName: 'Smartstream G1.0',
+          displacementCc: 998,
+          drivetrain: 'FWD',
+          transmission: '자동 4단',
+          officialEfficiency: 15.1,
+          efficiencyUnit: 'km/L',
+          sortOrder: 10,
+        ),
+      ];
+    }
+  }
+
+  if (modelId == 'model-kia-018-kr') {
+    if (fuelLeague == 'gasoline') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-kia-ray-$year-10-gasoline',
+          trimName: '1.0 가솔린',
+          engineName: 'Smartstream G1.0',
+          displacementCc: 998,
+          drivetrain: 'FWD',
+          transmission: '자동 4단',
+          officialEfficiency: 13.0,
+          efficiencyUnit: 'km/L',
+          sortOrder: 10,
+        ),
+      ];
+    }
+    if (fuelLeague == 'electric') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-kia-ray-$year-electric',
+          trimName: '전기차',
+          engineName: 'Ray EV Motor',
+          batteryKwh: 35.2,
+          drivetrain: '전동 구동',
+          transmission: '감속기',
+          officialEfficiency: 5.1,
+          efficiencyUnit: 'km/kWh',
+          sortOrder: 50,
+        ),
+      ];
+    }
+  }
+
+  if (modelId == 'model-kia-019-kr') {
+    if (fuelLeague == 'gasoline') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-kia-seltos-$year-16t-gasoline',
+          trimName: '1.6T 가솔린',
+          engineName: 'Smartstream G1.6T',
+          displacementCc: 1598,
+          drivetrain: 'FWD',
+          transmission: '자동 8단',
+          officialEfficiency: 12.8,
+          efficiencyUnit: 'km/L',
+          sortOrder: 10,
+        ),
+        OfficialPowertrain(
+          id: 'variant-kia-seltos-$year-20-gasoline',
+          trimName: '2.0 가솔린',
+          engineName: 'Smartstream G2.0',
+          displacementCc: 1999,
+          drivetrain: 'FWD',
+          transmission: 'IVT',
+          officialEfficiency: 12.9,
+          efficiencyUnit: 'km/L',
+          sortOrder: 11,
+        ),
+      ];
+    }
+  }
+
+  if (modelId == 'model-kia-021-kr') {
+    if (fuelLeague == 'gasoline') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-kia-sportage-$year-16t-gasoline',
+          trimName: '1.6T 가솔린',
+          engineName: 'Smartstream G1.6T',
+          displacementCc: 1598,
+          drivetrain: 'FWD',
+          transmission: '자동 8단',
+          officialEfficiency: 12.5,
+          efficiencyUnit: 'km/L',
+          sortOrder: 10,
+        ),
+      ];
+    }
+    if (fuelLeague == 'diesel') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-kia-sportage-$year-20-diesel',
+          trimName: '2.0 디젤',
+          engineName: 'Smartstream D2.0',
+          displacementCc: 1998,
+          drivetrain: 'FWD',
+          transmission: '자동 8단',
+          officialEfficiency: 14.6,
+          efficiencyUnit: 'km/L',
+          sortOrder: 40,
+        ),
+      ];
+    }
+    if (fuelLeague == 'hybrid') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-kia-sportage-$year-16t-hybrid',
+          trimName: '1.6T 하이브리드',
+          engineName: 'Smartstream G1.6T Hybrid',
+          displacementCc: 1598,
+          drivetrain: 'FWD',
+          transmission: '자동 6단',
+          officialEfficiency: 16.7,
+          efficiencyUnit: 'km/L',
+          sortOrder: 20,
+        ),
+      ];
+    }
+  }
+
+  if (modelId == 'model-kia-022-kr') {
+    if (fuelLeague == 'gasoline') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-kia-sorento-$year-25t-gasoline',
+          trimName: '2.5T 가솔린',
+          engineName: 'Smartstream G2.5T',
+          displacementCc: 2497,
+          drivetrain: 'FWD',
+          transmission: '8단 DCT',
+          officialEfficiency: 11.0,
+          efficiencyUnit: 'km/L',
+          sortOrder: 10,
+        ),
+      ];
+    }
+    if (fuelLeague == 'diesel') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-kia-sorento-$year-22-diesel',
+          trimName: '2.2 디젤',
+          engineName: 'Smartstream D2.2',
+          displacementCc: 2151,
+          drivetrain: 'FWD',
+          transmission: '8단 DCT',
+          officialEfficiency: 14.3,
+          efficiencyUnit: 'km/L',
+          sortOrder: 40,
+        ),
+      ];
+    }
+    if (fuelLeague == 'hybrid') {
+      return [
+        OfficialPowertrain(
+          id: 'variant-kia-sorento-$year-16t-hybrid',
+          trimName: '1.6T 하이브리드',
+          engineName: 'Smartstream G1.6T Hybrid',
+          displacementCc: 1598,
+          drivetrain: 'FWD',
+          transmission: '자동 6단',
+          officialEfficiency: 15.7,
+          efficiencyUnit: 'km/L',
+          sortOrder: 20,
+        ),
+      ];
+    }
+  }
+
   return const [];
 }
 
@@ -842,7 +1218,7 @@ ModelSeed m(
   String? id,
   int? sortOrder,
   bool popular = false,
-  int firstYear = 2008,
+  int firstYear = 2015,
   int lastYear = 2026,
   Map<String, FuelTypeYearRange> fuelTypeYearRanges = const {},
 }) {
@@ -871,7 +1247,7 @@ class ModelSeed {
     required this.vehicleClass,
     this.sortOrder,
     this.isPopular = false,
-    this.firstYear = 2008,
+    this.firstYear = 2015,
     this.lastYear = 2026,
     this.fuelTypeYearRanges = const {},
   });

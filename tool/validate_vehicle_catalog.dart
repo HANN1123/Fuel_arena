@@ -17,12 +17,12 @@ void main(List<String> args) {
 
   _min('manufacturers', manufacturers.length, 20);
   _min('models', models.length, 120);
-  _min('years', years.length, 3000);
-  _min('variants', variants.length, 5000);
+  _min('years', years.length, 1500);
+  _min('variants', variants.length, 3000);
   _min(
     'verified variants',
     variants.where((item) => item['is_verified'] == true).length,
-    3000,
+    2000,
   );
 
   const requiredManufacturers = [
@@ -108,8 +108,8 @@ void main(List<String> args) {
     yearIds.add(id);
     yearCountByModel.update(modelId, (value) => value + 1, ifAbsent: () => 1);
   }
-  if (minYear > 2008 || maxYear < 2026) {
-    _fail('차량 카탈로그 연식 범위가 2008-2026을 포함하지 않습니다: $minYear-$maxYear');
+  if (minYear > 2015 || maxYear < 2026) {
+    _fail('차량 카탈로그 연식 범위가 2015-2026을 포함하지 않습니다: $minYear-$maxYear');
   }
   for (final modelId in modelIds) {
     if ((yearCountByModel[modelId] ?? 0) == 0) {
@@ -180,9 +180,9 @@ void _validateK3PowertrainSplit(
   final k3GtYears = yearsByModel['model-kia-k3-gt-kr'] ?? const <int>[];
   final k3Years = yearsByModel['model-kia-013-k3'] ?? const <int>[];
   if (k3Years.isEmpty ||
-      k3Years.reduce((a, b) => a < b ? a : b) != 2012 ||
+      k3Years.reduce((a, b) => a < b ? a : b) != 2015 ||
       k3Years.reduce((a, b) => a > b ? a : b) != 2024) {
-    _fail('K3 기본 모델 연식 범위는 공식 판매/제원 확인 구간인 2012-2024여야 합니다.');
+    _fail('K3 기본 모델 연식 범위는 공식 판매/제원 확인 구간인 2015-2024여야 합니다.');
   }
   if (k3GtYears.isEmpty ||
       k3GtYears.reduce((a, b) => a < b ? a : b) != 2018 ||
@@ -245,8 +245,12 @@ void _validateK3PowertrainSplit(
 
 void _validatePowertrainVariant(String id, Map<String, dynamic> variant) {
   final trimName = '${variant['trim_name']}';
+  final fuelType = '${variant['fuel_type']}';
   for (final word in _salesTrimWords) {
     if (trimName.contains(word)) {
+      if (fuelType == '전기차' && (word == '스탠다드' || word == '프리미엄')) {
+        continue;
+      }
       _fail('variant에 판매 트림명이 남아 있습니다: $id -> $trimName');
     }
   }

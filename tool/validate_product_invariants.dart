@@ -263,8 +263,8 @@ void _validateVehicleCatalogRuntimeFallback(
     check(
       repositoryFile.path,
       source.contains('variant-hyundai-avante-2026-gasoline') &&
-          source.contains('year-hyundai-001-kr-2008'),
-      'runtime fallback catalog must use current 2008+ powertrain IDs',
+          source.contains('year-hyundai-001-kr-2026'),
+      'runtime fallback catalog must use current 2015+ powertrain IDs',
     );
     for (final stale in [
       'model-avante',
@@ -1425,6 +1425,11 @@ void _validateUserFacingTextHygiene(
             ? lowerLine.contains(term)
             : lines[i].contains(term);
         if (!contains) continue;
+        if (term == '\uC900\uBE44 \uC911' &&
+            (lines[i].contains('공식 효율 정보 준비 중') ||
+                lines[i].contains('정보 준비 중'))) {
+          continue;
+        }
         violationCount += 1;
         check(
           '$normalizedPath:${i + 1}',

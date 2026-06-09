@@ -144,7 +144,7 @@ class HomeScreen extends ConsumerWidget {
                                 Expanded(
                                   child: StatMetricCard(
                                     label: '클래스 내 순위',
-                                    value: '18',
+                                    value: NumberFormat.decimalPattern().format(data.classRank),
                                     unit: '위',
                                     color: AppColors.electricBlue,
                                   ),
@@ -153,7 +153,7 @@ class HomeScreen extends ConsumerWidget {
                                 Expanded(
                                   child: StatMetricCard(
                                     label: '전체 순위',
-                                    value: '1,284',
+                                    value: NumberFormat.decimalPattern().format(data.totalRank),
                                     unit: '위',
                                   ),
                                 ),
@@ -227,7 +227,7 @@ class HomeScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
-                        '오늘 ${NumberFormat.decimalPattern().format(3)}명을 추월했어요',
+                        '오늘 ${NumberFormat.decimalPattern().format(data.overtakenToday)}명을 추월했어요',
                         style: AppTypography.dataUnit
                             .copyWith(color: AppColors.neonGreen),
                       ),
