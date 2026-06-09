@@ -8,6 +8,7 @@ ROOT = Path(__file__).resolve().parents[1]
 ALLOWED_ENV_EXAMPLES = {
     ".env.example",
     ".env.production.example",
+    ".env.staging.example",
     ".env.edge.production.example",
 }
 
@@ -31,6 +32,7 @@ REQUIRED_GITIGNORE_TOKENS = {
         ".env.*",
         "!.env.example",
         "!.env.production.example",
+        "!.env.staging.example",
         "!.env.edge.production.example",
         "*.p8",
         "*.mobileprovision",

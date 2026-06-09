@@ -982,9 +982,12 @@ void _validateRuntimeConfigSafety(
     check(
       configFile.path,
       source.contains(
-              'bool get requiresSupabase => isStaging || isProduction') &&
+                  'bool get requiresSupabase => isStaging || isProduction') &&
+              source.contains(
+                'bool get canUseMockRepositories =>\n      (isDev || (isStaging && stagingAllowMockAuth)) && !hasSupabase',
+              ) ||
           source.contains(
-            'bool get canUseMockRepositories => isDev && !hasSupabase',
+            'bool get canUseMockRepositories => (isDev || (isStaging && stagingAllowMockAuth)) && !hasSupabase',
           ),
       'AppConfig must restrict mock repositories to dev without Supabase',
     );

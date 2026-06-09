@@ -5,6 +5,7 @@ import '../features/ads/presentation/reward_ad_screen.dart';
 import '../features/admin/presentation/admin_vehicle_catalog_screen.dart';
 import '../features/admin/presentation/admin_powertrain_screens.dart';
 import '../features/auth/presentation/login_screen.dart';
+import '../features/auth/presentation/auth_diagnostics_screen.dart';
 import '../features/common/presentation/flow_screens.dart';
 import '../features/drive/presentation/drive_history_screen.dart';
 import '../features/drive/presentation/drive_result_screen.dart';
@@ -45,6 +46,10 @@ GoRouter createAppRouter({String initialLocation = '/splash'}) {
       GoRoute(
         path: '/auth/login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/auth/diagnostics',
+        builder: (context, state) => const AuthDiagnosticsScreen(),
       ),
       GoRoute(
         path: '/auth/signup',

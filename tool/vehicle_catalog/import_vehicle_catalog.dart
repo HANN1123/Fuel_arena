@@ -49,8 +49,8 @@ class VehicleCatalogManager {
       final existing = variants[existingIndex] as Map<String, dynamic>;
 
       // 제원 비교를 통한 Conflict 체크
-      final bool hasDiff = 
-          existing['displacement_cc'] != newVariant['displacement_cc'] ||
+      final bool hasDiff = existing['displacement_cc'] !=
+              newVariant['displacement_cc'] ||
           existing['battery_kwh'] != newVariant['battery_kwh'] ||
           existing['drivetrain'] != newVariant['drivetrain'] ||
           existing['transmission'] != newVariant['transmission'] ||
@@ -68,7 +68,8 @@ class VehicleCatalogManager {
         } else {
           // 충돌 경고 및 unverified/conflict 상태 지정
           existing['source_status'] = 'conflict';
-          stdout.writeln('[CONFLICT] Variant $variantId 제원 불일치 감지. 관리자 해결이 필요합니다.');
+          stdout.writeln(
+              '[CONFLICT] Variant $variantId 제원 불일치 감지. 관리자 해결이 필요합니다.');
         }
       } else {
         // 제원 일치 시 출처 업데이트 및 등급 상향
@@ -80,7 +81,8 @@ class VehicleCatalogManager {
       }
     } else {
       // 신규 등록
-      newVariant['source_status'] = confidence >= 0.8 ? 'verified_official' : 'pending_review';
+      newVariant['source_status'] =
+          confidence >= 0.8 ? 'verified_official' : 'pending_review';
       newVariant['confidence_score'] = confidence;
       newVariant['source_name'] = sourceName;
       newVariant['source_url'] = sourceUrl;

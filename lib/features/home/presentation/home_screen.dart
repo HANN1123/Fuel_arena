@@ -144,7 +144,8 @@ class HomeScreen extends ConsumerWidget {
                                 Expanded(
                                   child: StatMetricCard(
                                     label: '클래스 내 순위',
-                                    value: NumberFormat.decimalPattern().format(data.classRank),
+                                    value: NumberFormat.decimalPattern()
+                                        .format(data.classRank),
                                     unit: '위',
                                     color: AppColors.electricBlue,
                                   ),
@@ -153,7 +154,8 @@ class HomeScreen extends ConsumerWidget {
                                 Expanded(
                                   child: StatMetricCard(
                                     label: '전체 순위',
-                                    value: NumberFormat.decimalPattern().format(data.totalRank),
+                                    value: NumberFormat.decimalPattern()
+                                        .format(data.totalRank),
                                     unit: '위',
                                   ),
                                 ),

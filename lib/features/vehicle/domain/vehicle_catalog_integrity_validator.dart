@@ -34,7 +34,7 @@ class VehicleCatalogIntegrityValidator {
           '제조사 ID(${model.manufacturerId}) 참조가 존재하지 않습니다.',
         ));
       }
-      
+
       // 연식 존재 여부 카운트용 임시 확인
       final hasYear = years.any((y) => y.modelId == model.id);
       if (hasYear) {

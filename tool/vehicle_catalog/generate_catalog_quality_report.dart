@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 void main(List<String> args) {
-  final path = args.isEmpty ? 'assets/data/vehicle_catalog_kr_seed.json' : args.first;
+  final path =
+      args.isEmpty ? 'assets/data/vehicle_catalog_kr_seed.json' : args.first;
   final file = File(path);
   if (!file.existsSync()) {
     stderr.writeln('파일을 찾을 수 없습니다: $path');
@@ -20,7 +21,7 @@ void main(List<String> args) {
   var conflictCount = 0;
   var pendingCount = 0;
   var unverifiedCount = 0;
-  
+
   var efficiencyMissingCount = 0;
   var sourceMissingCount = 0;
 
@@ -54,7 +55,8 @@ void main(List<String> args) {
   stdout.writeln('   - 파워트레인 변체 수: ${variants.length}');
   stdout.writeln('--------------------------------------------------');
   stdout.writeln('2. 신뢰성 통계:');
-  stdout.writeln('   - 공식/관리자 검증(Verified): $verifiedCount (${(verifiedCount / variants.length * 100).toStringAsFixed(1)}%)');
+  stdout.writeln(
+      '   - 공식/관리자 검증(Verified): $verifiedCount (${(verifiedCount / variants.length * 100).toStringAsFixed(1)}%)');
   stdout.writeln('   - 출처 충돌(Conflict): $conflictCount');
   stdout.writeln('   - 검토 대기(Pending Review): $pendingCount');
   stdout.writeln('   - 미검증(Unverified): $unverifiedCount');

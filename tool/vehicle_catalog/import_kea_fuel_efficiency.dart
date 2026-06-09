@@ -43,8 +43,11 @@ void main(List<String> args) {
     final sourceUrl = row[14];
 
     // ID 규칙 생성 (slug 체계 반영)
-    final modelSlug = model.toLowerCase().replaceAll(' ', '-').replaceAll('.', '-');
-    final league = fuelType == '전기차' ? 'electric' : (fuelType == '하이브리드' ? 'hybrid' : 'gasoline');
+    final modelSlug =
+        model.toLowerCase().replaceAll(' ', '-').replaceAll('.', '-');
+    final league = fuelType == '전기차'
+        ? 'electric'
+        : (fuelType == '하이브리드' ? 'hybrid' : 'gasoline');
     final variantId = 'variant-$manufacturer-$modelSlug-$year-$league';
 
     final newVariant = {
@@ -80,5 +83,6 @@ void main(List<String> args) {
   }
 
   VehicleCatalogManager.saveCatalog(catalog);
-  stdout.writeln('Successfully imported $importedCount variants from KEA Fuel Efficiency.');
+  stdout.writeln(
+      'Successfully imported $importedCount variants from KEA Fuel Efficiency.');
 }

@@ -30,6 +30,7 @@ class AppConfig {
     required this.iapPremiumBundleId,
     required this.kakaoMapKey,
     required this.googleMapsApiKey,
+    this.stagingAllowMockAuth = false,
     this.supportEmail = '',
     this.termsOfServiceUrl = '',
     this.privacyPolicyUrl = '',
@@ -72,6 +73,7 @@ class AppConfig {
       supabaseAnonKey: readScoped('SUPABASE_ANON_KEY'),
       googleWebClientId: readScoped('GOOGLE_WEB_CLIENT_ID'),
       googleAndroidClientId: readScoped('GOOGLE_ANDROID_CLIENT_ID'),
+      stagingAllowMockAuth: readRaw('STAGING_ALLOW_MOCK_AUTH') == 'true',
       googleIosClientId: readScoped('GOOGLE_IOS_CLIENT_ID'),
       googleServerClientId: readScoped('GOOGLE_SERVER_CLIENT_ID'),
       googleReversedIosClientId: readScoped('GOOGLE_REVERSED_IOS_CLIENT_ID'),
@@ -222,6 +224,8 @@ class AppConfig {
         const String.fromEnvironment('PUBLIC_PRIVACY_POLICY_URL'),
       'PUBLIC_LOCATION_NOTICE_URL' =>
         const String.fromEnvironment('PUBLIC_LOCATION_NOTICE_URL'),
+      'STAGING_ALLOW_MOCK_AUTH' =>
+        const String.fromEnvironment('STAGING_ALLOW_MOCK_AUTH'),
       _ => '',
     };
   }
@@ -306,6 +310,8 @@ class AppConfig {
         : 'com.googleusercontent.apps.$clientPrefix';
   }
 
+  final bool stagingAllowMockAuth;
+
   bool get hasMatchingGoogleIosReversedClientId =>
       expectedGoogleReversedIosClientId.isNotEmpty &&
       googleReversedIosClientId == expectedGoogleReversedIosClientId;
@@ -315,13 +321,17 @@ class AppConfig {
       hasMatchingGoogleIosReversedClientId &&
       authRedirectScheme == 'fuelarena' &&
       authRedirectHost == 'login-callback';
-  bool get isGoogleAuthConfigured => isDev
-      ? hasGoogleOAuthClient ||
-          canUseMockRepositories ||
-          canUseMockAuthRepository
-      : hasProductionGoogleOAuthConfig;
-  bool get canUseMockRepositories => isDev && !hasSupabase;
-  bool get canUseMockAuthRepository => isDev && !hasProductionGoogleOAuthConfig;
+  bool get isGoogleAuthConfigured =>
+      (isDev || (isStaging && stagingAllowMockAuth))
+          ? hasGoogleOAuthClient ||
+              canUseMockRepositories ||
+              canUseMockAuthRepository
+          : hasProductionGoogleOAuthConfig;
+  bool get canUseMockRepositories =>
+      (isDev || (isStaging && stagingAllowMockAuth)) && !hasSupabase;
+  bool get canUseMockAuthRepository =>
+      (isDev || (isStaging && stagingAllowMockAuth)) &&
+      !hasProductionGoogleOAuthConfig;
   String get authRedirectUri => '$authRedirectScheme://$authRedirectHost';
   String get repositoryMode {
     if (canUseMockRepositories || canUseMockAuthRepository) {
@@ -373,6 +383,7 @@ class _DevMock extends AppConfig {
           iapPremiumBundleId: 'fuel_arena_premium_bundle',
           kakaoMapKey: '',
           googleMapsApiKey: '',
+          stagingAllowMockAuth: false,
           supportEmail: '',
           termsOfServiceUrl: '',
           privacyPolicyUrl: '',

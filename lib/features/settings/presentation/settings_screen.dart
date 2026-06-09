@@ -44,6 +44,9 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final config = ref.watch(appConfigProvider);
+    final showDiagnostics = config.isDev || config.isStaging;
+
     return AppScaffold(
       appBar: const FuelArenaAppBar(title: '설정', showBack: true),
       child: Column(
@@ -114,6 +117,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       : null,
                   onTap: _signingOut ? null : _signOut,
                 ),
+                if (showDiagnostics) ...[
+                  const Divider(),
+                  _SettingsTile(
+                    icon: Icons.developer_mode_rounded,
+                    title: '개발자 인증 진단',
+                    subtitle: '인증 상태 확인 및 디버그 진단 정보',
+                    onTap: () => context.push('/auth/diagnostics'),
+                  ),
+                ],
               ],
             ),
           ),

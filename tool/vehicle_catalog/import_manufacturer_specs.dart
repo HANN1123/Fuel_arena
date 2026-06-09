@@ -45,7 +45,8 @@ void main(List<String> args) {
     final vehicleClass = row[14];
     final sourceUrl = row[15];
 
-    final modelSlug = model.toLowerCase().replaceAll(' ', '-').replaceAll('.', '-');
+    final modelSlug =
+        model.toLowerCase().replaceAll(' ', '-').replaceAll('.', '-');
     final league = fuelType == '전기차' ? 'electric' : 'gasoline';
     final variantId = 'variant-$manufacturer-$modelSlug-$year-$league';
 
@@ -82,5 +83,6 @@ void main(List<String> args) {
   }
 
   VehicleCatalogManager.saveCatalog(catalog);
-  stdout.writeln('Successfully imported $importedCount variants from Manufacturer Specs.');
+  stdout.writeln(
+      'Successfully imported $importedCount variants from Manufacturer Specs.');
 }

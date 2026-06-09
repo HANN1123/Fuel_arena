@@ -11,17 +11,22 @@ void main() {
       expect(FuelTypeNormalizer.normalizeFuelType('디젤'), FuelType.diesel);
       expect(FuelTypeNormalizer.normalizeFuelType('하이브리드'), FuelType.hybrid);
       expect(FuelTypeNormalizer.normalizeFuelType('전기'), FuelType.electric);
-      expect(FuelTypeNormalizer.normalizeFuelType('electric'), FuelType.electric);
+      expect(
+          FuelTypeNormalizer.normalizeFuelType('electric'), FuelType.electric);
       expect(FuelTypeNormalizer.normalizeFuelType('LPG'), FuelType.lpg);
       expect(FuelTypeNormalizer.normalizeFuelType('수소차'), FuelType.hydrogen);
       expect(FuelTypeNormalizer.normalizeFuelType('invalid'), FuelType.unknown);
     });
 
     test('Should determine fuel leagues properly', () {
-      expect(FuelTypeNormalizer.determineFuelLeague(FuelType.gasoline), FuelLeague.gasoline);
-      expect(FuelTypeNormalizer.determineFuelLeague(FuelType.electric), FuelLeague.electric);
-      expect(FuelTypeNormalizer.determineFuelLeague(FuelType.hybrid), FuelLeague.hybrid);
-      expect(FuelTypeNormalizer.determineFuelLeague(FuelType.unknown), FuelLeague.other);
+      expect(FuelTypeNormalizer.determineFuelLeague(FuelType.gasoline),
+          FuelLeague.gasoline);
+      expect(FuelTypeNormalizer.determineFuelLeague(FuelType.electric),
+          FuelLeague.electric);
+      expect(FuelTypeNormalizer.determineFuelLeague(FuelType.hybrid),
+          FuelLeague.hybrid);
+      expect(FuelTypeNormalizer.determineFuelLeague(FuelType.unknown),
+          FuelLeague.other);
     });
   });
 
@@ -98,7 +103,8 @@ void main() {
   group('FuelEfficiencyFormatter Tests', () {
     test('Should format correct efficiency values with units', () {
       expect(
-        FuelEfficiencyFormatter.format(efficiency: 15.6, unitRaw: 'km_per_liter'),
+        FuelEfficiencyFormatter.format(
+            efficiency: 15.6, unitRaw: 'km_per_liter'),
         '15.6 km/L',
       );
       expect(
@@ -109,11 +115,13 @@ void main() {
 
     test('Should render fallback text for missing/null efficiency', () {
       expect(
-        FuelEfficiencyFormatter.format(efficiency: null, unitRaw: 'km_per_liter'),
+        FuelEfficiencyFormatter.format(
+            efficiency: null, unitRaw: 'km_per_liter'),
         '공식 효율 정보 준비 중',
       );
       expect(
-        FuelEfficiencyFormatter.format(efficiency: 0.0, unitRaw: 'km_per_liter'),
+        FuelEfficiencyFormatter.format(
+            efficiency: 0.0, unitRaw: 'km_per_liter'),
         '공식 효율 정보 준비 중',
       );
     });

@@ -9,7 +9,13 @@ void main() {
     exit(1);
   }
 
-  final List<String> placeholders = ['TODO', '준비 중', 'lorem ipsum', '임시', 'placeholder'];
+  final List<String> placeholders = [
+    'TODO',
+    '준비 중',
+    'lorem ipsum',
+    '임시',
+    'placeholder'
+  ];
   int totalFiles = 0;
   int filesWithPlaceholders = 0;
   int totalFindings = 0;
@@ -32,7 +38,8 @@ void main() {
         for (final keyword in placeholders) {
           if (line.contains(keyword)) {
             // Exclude valid production fallback texts for missing official data
-            if (keyword == '준비 중' && (line.contains('공식 효율 정보 준비 중') || line.contains('정보 준비 중'))) {
+            if (keyword == '준비 중' &&
+                (line.contains('공식 효율 정보 준비 중') || line.contains('정보 준비 중'))) {
               continue;
             }
             // Confirm it's likely a UI string or hardcoding, not a comment
@@ -59,11 +66,13 @@ void main() {
   print('Total findings: $totalFindings');
 
   if (totalFindings > 0) {
-    print('\n[WARNING] Please resolve the placeholders before releasing to production.');
+    print(
+        '\n[WARNING] Please resolve the placeholders before releasing to production.');
     // We do not fail the build here, just exit 0 to show it's a scan report.
     exit(0);
   } else {
-    print('\n[SUCCESS] No UI placeholder strings found in presentation widgets.');
+    print(
+        '\n[SUCCESS] No UI placeholder strings found in presentation widgets.');
     exit(0);
   }
 }

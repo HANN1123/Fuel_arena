@@ -34,7 +34,8 @@ void main() {
 
     if (end != -1) {
       final block = content.substring(index, end + 1);
-      final pathMatch = RegExp(r'''path:\s*['"]([^'"]*)['"]''').firstMatch(block);
+      final pathMatch =
+          RegExp(r'''path:\s*['"]([^'"]*)['"]''').firstMatch(block);
       if (pathMatch != null && !block.contains('redirect:')) {
         final path = pathMatch.group(1)!;
         final screenMatch = RegExp(r'''(\w+Screen)\b''').firstMatch(block);
@@ -60,13 +61,14 @@ void main() {
     // Find the file defining the class name
     final file = _findFileForClass('lib', className);
     if (file == null) {
-      issues.add('Route "$path" maps to "$className", but its definition file could not be found.');
+      issues.add(
+          'Route "$path" maps to "$className", but its definition file could not be found.');
       emptyRoutes++;
       continue;
     }
 
     final fileContent = file.readAsStringSync();
-    
+
     // Check if the file content looks like an empty mock template or placeholder
     bool isEmptyTemplate = false;
     final lines = fileContent.split('\n');
@@ -80,22 +82,25 @@ void main() {
     }
 
     if (isEmptyTemplate) {
-      issues.add('Route "$path" maps to "$className" at ${file.path}, which appears to be an empty or unimplemented template.');
+      issues.add(
+          'Route "$path" maps to "$className" at ${file.path}, which appears to be an empty or unimplemented template.');
       emptyRoutes++;
     }
   }
 
   print('Total routes checked: $totalRoutes');
   if (issues.isNotEmpty) {
-    print('\n[WARNING] Found $emptyRoutes empty or unimplemented route target screens:');
+    print(
+        '\n[WARNING] Found $emptyRoutes empty or unimplemented route target screens:');
     for (final issue in issues) {
       print(' - $issue');
     }
-    // We exit with 0 to warn, or 1 to block build. 
+    // We exit with 0 to warn, or 1 to block build.
     // Since this is a warning report, we print warning but allow build for local dev.
     print('\nAudit finished with warnings.');
   } else {
-    print('\n[SUCCESS] All $totalRoutes routes are successfully mapped to implemented screen files.');
+    print(
+        '\n[SUCCESS] All $totalRoutes routes are successfully mapped to implemented screen files.');
   }
 }
 

@@ -9,7 +9,8 @@ import '../../lib/features/vehicle/domain/vehicle_catalog_integrity_validator.da
 import '../../lib/shared/models/fuel_arena_models.dart';
 
 void main(List<String> args) {
-  final path = args.isEmpty ? 'assets/data/vehicle_catalog_kr_seed.json' : args.first;
+  final path =
+      args.isEmpty ? 'assets/data/vehicle_catalog_kr_seed.json' : args.first;
   try {
     runValidation(path);
   } catch (e) {
@@ -32,10 +33,18 @@ void runValidation(String path) {
   final yearsRaw = data['years'] as List<dynamic>;
   final variantsRaw = data['variants'] as List<dynamic>;
 
-  final manufacturers = manufacturersRaw.map((m) => VehicleManufacturer.fromJson(m as Map<String, dynamic>)).toList();
-  final models = modelsRaw.map((m) => VehicleModel.fromJson(m as Map<String, dynamic>)).toList();
-  final years = yearsRaw.map((y) => VehicleModelYear.fromJson(y as Map<String, dynamic>)).toList();
-  final variants = variantsRaw.map((v) => VehicleVariant.fromJson(v as Map<String, dynamic>)).toList();
+  final manufacturers = manufacturersRaw
+      .map((m) => VehicleManufacturer.fromJson(m as Map<String, dynamic>))
+      .toList();
+  final models = modelsRaw
+      .map((m) => VehicleModel.fromJson(m as Map<String, dynamic>))
+      .toList();
+  final years = yearsRaw
+      .map((y) => VehicleModelYear.fromJson(y as Map<String, dynamic>))
+      .toList();
+  final variants = variantsRaw
+      .map((v) => VehicleVariant.fromJson(v as Map<String, dynamic>))
+      .toList();
 
   var p0Failures = 0;
   final List<String> errorMessages = [];
@@ -65,14 +74,20 @@ void runValidation(String path) {
       fuelTypeRaw: vMap['fuel_type'] as String,
       powertrainTypeRaw: vMap['powertrain_type'] as String?,
       displacementCc: vMap['displacement_cc'] as int?,
-      batteryKwh: vMap['battery_kwh'] != null ? (vMap['battery_kwh'] as num).toDouble() : null,
-      officialEfficiency: vMap['official_efficiency'] != null ? (vMap['official_efficiency'] as num).toDouble() : null,
+      batteryKwh: vMap['battery_kwh'] != null
+          ? (vMap['battery_kwh'] as num).toDouble()
+          : null,
+      officialEfficiency: vMap['official_efficiency'] != null
+          ? (vMap['official_efficiency'] as num).toDouble()
+          : null,
       efficiencyUnitRaw: vMap['efficiency_unit'] as String? ?? 'km/L',
       fuelLeagueRaw: vMap['fuel_league'] as String,
       vehicleClass: vMap['vehicle_class'] as String,
       sourceStatusRaw: vMap['source_status'] as String?,
       sourceName: vMap['source_name'] as String?,
-      confidenceScore: vMap['confidence_score'] != null ? (vMap['confidence_score'] as num).toDouble() : null,
+      confidenceScore: vMap['confidence_score'] != null
+          ? (vMap['confidence_score'] as num).toDouble()
+          : null,
     );
 
     if (errors.isNotEmpty) {
@@ -87,15 +102,19 @@ void runValidation(String path) {
     final manufacturerName = vMap['manufacturer_name'] as String? ?? '';
     final modelName = vMap['model_name'] as String? ?? '';
     final drivetrain = vMap['drivetrain'] as String? ?? '';
-    if (manufacturerName == '포르쉐' && modelName == '박스터' && drivetrain == 'FWD') {
+    if (manufacturerName == '포르쉐' &&
+        modelName == '박스터' &&
+        drivetrain == 'FWD') {
       errorMessages.add('[P0 DATA ERROR] 포르쉐 박스터는 FWD 일 수 없습니다: $id');
       p0Failures++;
     }
   }
 
   if (p0Failures > 0) {
-    throw Exception('Validation FAILED: $p0Failures개의 P0 결함이 감지되었습니다.\n${errorMessages.join('\n')}');
+    throw Exception(
+        'Validation FAILED: $p0Failures개의 P0 결함이 감지되었습니다.\n${errorMessages.join('\n')}');
   }
 
-  stdout.writeln('Validation SUCCESS: ${manufacturers.length} manufacturers, ${models.length} models, ${years.length} years, ${variants.length} variants.');
+  stdout.writeln(
+      'Validation SUCCESS: ${manufacturers.length} manufacturers, ${models.length} models, ${years.length} years, ${variants.length} variants.');
 }

@@ -138,7 +138,8 @@ class AdminConflictsNotifier extends Notifier<List<VehicleCatalogConflict>> {
   }
 }
 
-final adminConflictsProvider = NotifierProvider.autoDispose<AdminConflictsNotifier, List<VehicleCatalogConflict>>(() {
+final adminConflictsProvider = NotifierProvider.autoDispose<
+    AdminConflictsNotifier, List<VehicleCatalogConflict>>(() {
   return AdminConflictsNotifier();
 });
 
@@ -174,7 +175,8 @@ class AdminImportJobsNotifier extends Notifier<List<VehicleCatalogImportJob>> {
   }
 }
 
-final adminImportJobsProvider = NotifierProvider.autoDispose<AdminImportJobsNotifier, List<VehicleCatalogImportJob>>(() {
+final adminImportJobsProvider = NotifierProvider.autoDispose<
+    AdminImportJobsNotifier, List<VehicleCatalogImportJob>>(() {
   return AdminImportJobsNotifier();
 });
 
@@ -212,7 +214,8 @@ class _AdminPowertrainDashboard extends StatefulWidget {
   const _AdminPowertrainDashboard();
 
   @override
-  State<_AdminPowertrainDashboard> createState() => _AdminPowertrainDashboardState();
+  State<_AdminPowertrainDashboard> createState() =>
+      _AdminPowertrainDashboardState();
 }
 
 class _AdminPowertrainDashboardState extends State<_AdminPowertrainDashboard>
@@ -293,7 +296,8 @@ class _CatalogTabState extends ConsumerState<_CatalogTab> {
           children: [
             Expanded(
               child: TextField(
-                onChanged: (value) => setState(() => _keyword = value.trim().toLowerCase()),
+                onChanged: (value) =>
+                    setState(() => _keyword = value.trim().toLowerCase()),
                 decoration: const InputDecoration(
                   labelText: '제조사/모델/트림 검색',
                   prefixIcon: Icon(Icons.search_rounded),
@@ -306,10 +310,20 @@ class _CatalogTabState extends ConsumerState<_CatalogTab> {
               dropdownColor: AppColors.surface,
               style: AppTypography.bodyMedium,
               underline: const SizedBox(),
-              items: ['전체', 'gasoline', 'diesel', 'hybrid', 'electric', 'lpg', 'plug_in_hybrid']
+              items: [
+                '전체',
+                'gasoline',
+                'diesel',
+                'hybrid',
+                'electric',
+                'lpg',
+                'plug_in_hybrid'
+              ]
                   .map((val) => DropdownMenuItem(
                         value: val,
-                        child: Text(val == '전체' ? '리그 필터' : FuelLeague.fromKey(val).displayName),
+                        child: Text(val == '전체'
+                            ? '리그 필터'
+                            : FuelLeague.fromKey(val).displayName),
                       ))
                   .toList(),
               onChanged: (val) => setState(() => _selectedLeague = val ?? '전체'),
@@ -320,7 +334,10 @@ class _CatalogTabState extends ConsumerState<_CatalogTab> {
         Expanded(
           child: manufacturers.when(
             loading: () => const LoadingSkeletonView(lines: 5),
-            error: (err, st) => ErrorStateView(message: '데이터를 불러오지 못했어요.', onRetry: () => ref.invalidate(vehicleManufacturersProvider(query))),
+            error: (err, st) => ErrorStateView(
+                message: '데이터를 불러오지 못했어요.',
+                onRetry: () =>
+                    ref.invalidate(vehicleManufacturersProvider(query))),
             data: (mfs) {
               // Mock/Fallback or listed variants
               return ListView.builder(
@@ -331,12 +348,15 @@ class _CatalogTabState extends ConsumerState<_CatalogTab> {
 
                   // Apply filter
                   if (_keyword.isNotEmpty &&
-                      !variant.manufacturerName.toLowerCase().contains(_keyword) &&
+                      !variant.manufacturerName
+                          .toLowerCase()
+                          .contains(_keyword) &&
                       !variant.modelName.toLowerCase().contains(_keyword) &&
                       !variant.trimName.toLowerCase().contains(_keyword)) {
                     return const SizedBox.shrink();
                   }
-                  if (_selectedLeague != '전체' && variant.fuelLeague != _selectedLeague) {
+                  if (_selectedLeague != '전체' &&
+                      variant.fuelLeague != _selectedLeague) {
                     return const SizedBox.shrink();
                   }
 
@@ -344,23 +364,31 @@ class _CatalogTabState extends ConsumerState<_CatalogTab> {
                     color: AppColors.surfaceLow,
                     margin: const EdgeInsets.only(bottom: AppSpacing.sm),
                     child: ListTile(
-                      title: Text('${variant.manufacturerName} ${variant.modelName}', style: AppTypography.titleMedium),
+                      title: Text(
+                          '${variant.manufacturerName} ${variant.modelName}',
+                          style: AppTypography.titleMedium),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('${variant.year}년식 · ${variant.trimName}', style: AppTypography.bodyMedium),
+                          Text('${variant.year}년식 · ${variant.trimName}',
+                              style: AppTypography.bodyMedium),
                           const SizedBox(height: AppSpacing.xs),
-                          Text(variant.specSummary, style: AppTypography.dataUnit.copyWith(color: AppColors.onSurfaceMuted)),
+                          Text(variant.specSummary,
+                              style: AppTypography.dataUnit
+                                  .copyWith(color: AppColors.onSurfaceMuted)),
                         ],
                       ),
                       trailing: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          StatusChip(label: status.displayName, color: status.color),
+                          StatusChip(
+                              label: status.displayName, color: status.color),
                           const SizedBox(height: 4),
                           Text(
-                            variant.confidenceScore != null ? '신뢰도 ${(variant.confidenceScore! * 100).toStringAsFixed(0)}%' : 'N/A',
+                            variant.confidenceScore != null
+                                ? '신뢰도 ${(variant.confidenceScore! * 100).toStringAsFixed(0)}%'
+                                : 'N/A',
                             style: AppTypography.dataUnit,
                           ),
                         ],
@@ -384,7 +412,8 @@ class _CatalogTabState extends ConsumerState<_CatalogTab> {
         final status = SourceStatus.fromKey(variant.sourceStatus);
         return AlertDialog(
           backgroundColor: AppColors.surface,
-          title: Text('${variant.manufacturerName} ${variant.modelName} 제원 정보', style: AppTypography.titleLarge),
+          title: Text('${variant.manufacturerName} ${variant.modelName} 제원 정보',
+              style: AppTypography.titleLarge),
           content: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -392,16 +421,39 @@ class _CatalogTabState extends ConsumerState<_CatalogTab> {
               children: [
                 _buildInfoRow('트림명', variant.trimName),
                 _buildInfoRow('연료 타입', variant.fuelType),
-                _buildInfoRow('리그 배정', FuelLeague.fromKey(variant.fuelLeague).displayName),
+                _buildInfoRow('리그 배정',
+                    FuelLeague.fromKey(variant.fuelLeague).displayName),
                 _buildInfoRow('차급', variant.vehicleClass),
-                _buildInfoRow('배기량(cc)', variant.displacementCc != null ? '${variant.displacementCc} cc' : '-'),
-                _buildInfoRow('배터리 용량', variant.batteryKwh != null ? '${variant.batteryKwh} kWh' : '-'),
-                _buildInfoRow('구동 방식', variant.drivetrain.isNotEmpty ? variant.drivetrain : '-'),
-                _buildInfoRow('변속기', variant.transmission.isNotEmpty ? variant.transmission : '-'),
-                _buildInfoRow('공인 효율', variant.officialEfficiency != null ? '${variant.officialEfficiency} ${variant.resolvedEfficiencyUnit}' : '정보 준비 중'),
+                _buildInfoRow(
+                    '배기량(cc)',
+                    variant.displacementCc != null
+                        ? '${variant.displacementCc} cc'
+                        : '-'),
+                _buildInfoRow(
+                    '배터리 용량',
+                    variant.batteryKwh != null
+                        ? '${variant.batteryKwh} kWh'
+                        : '-'),
+                _buildInfoRow('구동 방식',
+                    variant.drivetrain.isNotEmpty ? variant.drivetrain : '-'),
+                _buildInfoRow(
+                    '변속기',
+                    variant.transmission.isNotEmpty
+                        ? variant.transmission
+                        : '-'),
+                _buildInfoRow(
+                    '공인 효율',
+                    variant.officialEfficiency != null
+                        ? '${variant.officialEfficiency} ${variant.resolvedEfficiencyUnit}'
+                        : '정보 준비 중'),
                 const Divider(color: AppColors.outline, height: AppSpacing.lg),
-                _buildInfoRow('출처 등급', status.displayName, valueColor: status.color),
-                _buildInfoRow('신뢰도 점수', variant.confidenceScore != null ? '${(variant.confidenceScore! * 100).toStringAsFixed(0)}%' : 'N/A'),
+                _buildInfoRow('출처 등급', status.displayName,
+                    valueColor: status.color),
+                _buildInfoRow(
+                    '신뢰도 점수',
+                    variant.confidenceScore != null
+                        ? '${(variant.confidenceScore! * 100).toStringAsFixed(0)}%'
+                        : 'N/A'),
                 _buildInfoRow('출처 기관', variant.sourceName ?? '공식 카탈로그'),
                 _buildInfoRow('출처 링크', variant.sourceUrl ?? '-'),
               ],
@@ -424,8 +476,18 @@ class _CatalogTabState extends ConsumerState<_CatalogTab> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          SizedBox(width: 100, child: Text(label, style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted))),
-          Expanded(child: Text(value, style: AppTypography.bodyMedium.copyWith(color: valueColor, fontWeight: valueColor != null ? FontWeight.bold : FontWeight.normal))),
+          SizedBox(
+              width: 100,
+              child: Text(label,
+                  style: AppTypography.bodyMedium
+                      .copyWith(color: AppColors.onSurfaceMuted))),
+          Expanded(
+              child: Text(value,
+                  style: AppTypography.bodyMedium.copyWith(
+                      color: valueColor,
+                      fontWeight: valueColor != null
+                          ? FontWeight.bold
+                          : FontWeight.normal))),
         ],
       ),
     );
@@ -455,7 +517,8 @@ class AdminPowertrainConflictScreen extends ConsumerWidget {
           padding: const EdgeInsets.all(AppSpacing.sm),
           child: Text(
             '신규 임포트 데이터와 기존 데이터 간의 불일치 이슈입니다. 승인 결정을 내려 병합해 주세요.',
-            style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+            style: AppTypography.bodyMedium
+                .copyWith(color: AppColors.onSurfaceMuted),
           ),
         ),
         Expanded(
@@ -478,35 +541,43 @@ class AdminPowertrainConflictScreen extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           StatusChip(
-                            label: conflict.conflictType == 'specification_mismatch' ? '제원 사양 불일치' : '연비 단위 불일치',
+                            label: conflict.conflictType ==
+                                    'specification_mismatch'
+                                ? '제원 사양 불일치'
+                                : '연비 단위 불일치',
                             color: AppColors.amber,
                           ),
                           Text(
                             '발생일시: ${conflict.createdAt.toString().substring(0, 16)}',
-                            style: AppTypography.dataUnit.copyWith(color: AppColors.onSurfaceMuted),
+                            style: AppTypography.dataUnit
+                                .copyWith(color: AppColors.onSurfaceMuted),
                           ),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.sm),
-                      Text('대상 차량 ID: ${conflict.entityId}', style: AppTypography.titleMedium),
+                      Text('대상 차량 ID: ${conflict.entityId}',
+                          style: AppTypography.titleMedium),
                       const SizedBox(height: AppSpacing.md),
                       Row(
                         children: [
                           Expanded(
                             child: _buildConflictColumn(
                               title: '기존 데이터 사양',
-                              source: conflict.existingValue['source_name'] ?? '공식 DB',
+                              source: conflict.existingValue['source_name'] ??
+                                  '공식 DB',
                               value: conflict.existingValue,
                               color: AppColors.electricBlue,
                             ),
                           ),
                           const SizedBox(width: AppSpacing.md),
-                          const Icon(Icons.compare_arrows_rounded, color: AppColors.onSurfaceMuted),
+                          const Icon(Icons.compare_arrows_rounded,
+                              color: AppColors.onSurfaceMuted),
                           const SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: _buildConflictColumn(
                               title: '신규 임포트 데이터',
-                              source: conflict.incomingValue['source_name'] ?? '새 파일',
+                              source: conflict.incomingValue['source_name'] ??
+                                  '새 파일',
                               value: conflict.incomingValue,
                               color: AppColors.neonGreen,
                             ),
@@ -518,13 +589,17 @@ class AdminPowertrainConflictScreen extends ConsumerWidget {
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           OutlinedButton(
-                            onPressed: () => _resolveConflict(context, ref, conflict.id, 'resolved_keep_existing'),
+                            onPressed: () => _resolveConflict(context, ref,
+                                conflict.id, 'resolved_keep_existing'),
                             child: const Text('기존 데이터 유지'),
                           ),
                           const SizedBox(width: AppSpacing.sm),
                           FilledButton(
-                            style: FilledButton.styleFrom(backgroundColor: AppColors.neonGreen, foregroundColor: Colors.black),
-                            onPressed: () => _resolveConflict(context, ref, conflict.id, 'resolved_overwrite'),
+                            style: FilledButton.styleFrom(
+                                backgroundColor: AppColors.neonGreen,
+                                foregroundColor: Colors.black),
+                            onPressed: () => _resolveConflict(context, ref,
+                                conflict.id, 'resolved_overwrite'),
                             child: const Text('새 데이터로 덮어쓰기'),
                           ),
                         ],
@@ -556,13 +631,22 @@ class AdminPowertrainConflictScreen extends ConsumerWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: AppTypography.dataUnit.copyWith(color: color, fontWeight: FontWeight.bold)),
-          Text('출처: $source', style: AppTypography.dataUnit.copyWith(color: AppColors.onSurfaceMuted)),
+          Text(title,
+              style: AppTypography.dataUnit
+                  .copyWith(color: color, fontWeight: FontWeight.bold)),
+          Text('출처: $source',
+              style: AppTypography.dataUnit
+                  .copyWith(color: AppColors.onSurfaceMuted)),
           const Divider(height: AppSpacing.sm),
           _buildTextLine('트림', '${value['trim_name'] ?? ''}'),
           _buildTextLine('구동', '${value['drivetrain'] ?? ''}'),
-          _buildTextLine('배기량', value['displacement_cc'] != null ? '${value['displacement_cc']}cc' : '-'),
-          _buildTextLine('효율', '${value['official_efficiency'] ?? '-'} ${value['efficiency_unit'] ?? ''}'),
+          _buildTextLine(
+              '배기량',
+              value['displacement_cc'] != null
+                  ? '${value['displacement_cc']}cc'
+                  : '-'),
+          _buildTextLine('효율',
+              '${value['official_efficiency'] ?? '-'} ${value['efficiency_unit'] ?? ''}'),
         ],
       ),
     );
@@ -574,14 +658,17 @@ class AdminPowertrainConflictScreen extends ConsumerWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: AppTypography.dataUnit.copyWith(color: AppColors.onSurfaceMuted)),
+          Text(label,
+              style: AppTypography.dataUnit
+                  .copyWith(color: AppColors.onSurfaceMuted)),
           Text(val, style: AppTypography.dataUnit),
         ],
       ),
     );
   }
 
-  void _resolveConflict(BuildContext context, WidgetRef ref, String id, String status) async {
+  void _resolveConflict(
+      BuildContext context, WidgetRef ref, String id, String status) async {
     final list = ref.read(adminConflictsProvider);
     final newList = list.map((item) {
       if (item.id == id) {
@@ -591,7 +678,8 @@ class AdminPowertrainConflictScreen extends ConsumerWidget {
     }).toList();
     ref.read(adminConflictsProvider.notifier).update(newList);
 
-    final actionLabel = status == 'resolved_overwrite' ? '신규 데이터로 덮어쓰기' : '기존 데이터 유지';
+    final actionLabel =
+        status == 'resolved_overwrite' ? '신규 데이터로 덮어쓰기' : '기존 데이터 유지';
     await ref.read(adminRepositoryProvider).recordAction(
           AdminActionRequest(
             section: 'Vehicles Catalog',
@@ -633,13 +721,16 @@ class AdminPowertrainImportScreen extends ConsumerWidget {
               padding: const EdgeInsets.all(AppSpacing.sm),
               child: Text(
                 '차량 카탈로그 공식 연비 데이터 임포트 실행 및 이력 관리 화면입니다.',
-                style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+                style: AppTypography.bodyMedium
+                    .copyWith(color: AppColors.onSurfaceMuted),
               ),
             ),
             FilledButton.icon(
               icon: const Icon(Icons.sync_rounded),
               label: const Text('공공 연비 동기화 실행'),
-              style: FilledButton.styleFrom(backgroundColor: AppColors.electricBlue, foregroundColor: Colors.white),
+              style: FilledButton.styleFrom(
+                  backgroundColor: AppColors.electricBlue,
+                  foregroundColor: Colors.white),
               onPressed: () => _triggerMockImport(context, ref),
             ),
           ],
@@ -661,14 +752,16 @@ class AdminPowertrainImportScreen extends ConsumerWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(job.importType, style: AppTypography.titleMedium),
+                          Text(job.importType,
+                              style: AppTypography.titleMedium),
                           StatusChip(label: '완료됨', color: AppColors.neonGreen),
                         ],
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
                         '종료 시각: ${job.finishedAt.toString().substring(0, 19)}',
-                        style: AppTypography.dataUnit.copyWith(color: AppColors.onSurfaceMuted),
+                        style: AppTypography.dataUnit
+                            .copyWith(color: AppColors.onSurfaceMuted),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       Row(
@@ -677,7 +770,10 @@ class AdminPowertrainImportScreen extends ConsumerWidget {
                           _buildStatItem('총 행 수', '${job.totalRows}'),
                           _buildStatItem('추가 건수', '${job.insertedRows}'),
                           _buildStatItem('업데이트', '${job.updatedRows}'),
-                          _buildStatItem('충돌 발생', '${job.conflictRows}', color: job.conflictRows > 0 ? AppColors.amber : null),
+                          _buildStatItem('충돌 발생', '${job.conflictRows}',
+                              color: job.conflictRows > 0
+                                  ? AppColors.amber
+                                  : null),
                         ],
                       ),
                     ],
@@ -694,9 +790,13 @@ class AdminPowertrainImportScreen extends ConsumerWidget {
   Widget _buildStatItem(String label, String value, {Color? color}) {
     return Column(
       children: [
-        Text(label, style: AppTypography.dataUnit.copyWith(color: AppColors.onSurfaceMuted)),
+        Text(label,
+            style: AppTypography.dataUnit
+                .copyWith(color: AppColors.onSurfaceMuted)),
         const SizedBox(height: 4),
-        Text(value, style: AppTypography.titleMedium.copyWith(color: color, fontWeight: FontWeight.bold)),
+        Text(value,
+            style: AppTypography.titleMedium
+                .copyWith(color: color, fontWeight: FontWeight.bold)),
       ],
     );
   }
@@ -718,7 +818,9 @@ class AdminPowertrainImportScreen extends ConsumerWidget {
     ref.read(adminImportJobsProvider.notifier).update([newJob, ...list]);
 
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('동기화 파이프라인(Fuzzy Match)이 구동되어 420개의 제원을 대조 및 갱신 완료했습니다!')),
+      const SnackBar(
+          content:
+              Text('동기화 파이프라인(Fuzzy Match)이 구동되어 420개의 제원을 대조 및 갱신 완료했습니다!')),
     );
   }
 }
@@ -738,7 +840,8 @@ class AdminCatalogQualityReportScreen extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
             child: Text(
               '차량 카탈로그 데이터 품질 현황 리포트입니다. P0 비정상 수치 및 오류 조합은 0건으로 제어됩니다.',
-              style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.onSurfaceMuted),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -768,8 +871,10 @@ class AdminCatalogQualityReportScreen extends StatelessWidget {
           AppCard(
             child: Column(
               children: [
-                _buildReportLine('공식 인증 검증 데이터(verified_official)', '3,450개 (66.9%)'),
-                _buildReportLine('관리자 검수 데이터(verified_admin)', '1,200개 (23.3%)'),
+                _buildReportLine(
+                    '공식 인증 검증 데이터(verified_official)', '3,450개 (66.9%)'),
+                _buildReportLine(
+                    '관리자 검수 데이터(verified_admin)', '1,200개 (23.3%)'),
                 _buildReportLine('공공기관 연비 데이터(imported_public)', '485개 (9.4%)'),
                 _buildReportLine('검토 대기 데이터(pending_review)', '20개 (0.4%)'),
               ],
@@ -780,11 +885,16 @@ class AdminCatalogQualityReportScreen extends StatelessWidget {
           AppCard(
             child: Column(
               children: [
-                _buildRuleStatusLine('전기차의 배기량 CC 보유 모순 검사 (P0)', '이상 없음 (0건)', true),
-                _buildRuleStatusLine('가솔린/디젤 차량의 배터리 보유 모순 검사 (P0)', '이상 없음 (0건)', true),
-                _buildRuleStatusLine('비현실적 연비/전비 오인 스캔 (P0)', '이상 없음 (0건)', true),
-                _buildRuleStatusLine('한국에너지공단 연비/전비 단위 교차 불일치 검증 (P0)', '이상 없음 (0건)', true),
-                _buildRuleStatusLine('공식 검증 데이터의 상세 출처 유효성 검사 (P0)', '이상 없음 (0건)', true),
+                _buildRuleStatusLine(
+                    '전기차의 배기량 CC 보유 모순 검사 (P0)', '이상 없음 (0건)', true),
+                _buildRuleStatusLine(
+                    '가솔린/디젤 차량의 배터리 보유 모순 검사 (P0)', '이상 없음 (0건)', true),
+                _buildRuleStatusLine(
+                    '비현실적 연비/전비 오인 스캔 (P0)', '이상 없음 (0건)', true),
+                _buildRuleStatusLine(
+                    '한국에너지공단 연비/전비 단위 교차 불일치 검증 (P0)', '이상 없음 (0건)', true),
+                _buildRuleStatusLine(
+                    '공식 검증 데이터의 상세 출처 유효성 검사 (P0)', '이상 없음 (0건)', true),
                 _buildRuleStatusLine('연비 정보 누락율 점검', '0.1% 미만 (5건 대기)', false),
               ],
             ),
@@ -801,7 +911,9 @@ class AdminCatalogQualityReportScreen extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: AppTypography.bodyMedium),
-          Text(value, style: AppTypography.titleMedium.copyWith(color: AppColors.neonGreen, fontWeight: FontWeight.bold)),
+          Text(value,
+              style: AppTypography.titleMedium.copyWith(
+                  color: AppColors.neonGreen, fontWeight: FontWeight.bold)),
         ],
       ),
     );
@@ -837,10 +949,12 @@ class AdminCustomVehicleReviewScreen extends ConsumerStatefulWidget {
   const AdminCustomVehicleReviewScreen({super.key});
 
   @override
-  ConsumerState<AdminCustomVehicleReviewScreen> createState() => _AdminCustomVehicleReviewScreenState();
+  ConsumerState<AdminCustomVehicleReviewScreen> createState() =>
+      _AdminCustomVehicleReviewScreenState();
 }
 
-class _AdminCustomVehicleReviewScreenState extends ConsumerState<AdminCustomVehicleReviewScreen> {
+class _AdminCustomVehicleReviewScreenState
+    extends ConsumerState<AdminCustomVehicleReviewScreen> {
   var _reviewingRequestId = '';
 
   Future<void> _reviewRequest(
@@ -909,12 +1023,14 @@ class _AdminCustomVehicleReviewScreenState extends ConsumerState<AdminCustomVehi
 
   @override
   Widget build(BuildContext context) {
-    final requests = ref.watch(customVehicleReviewRequestsProvider('pending_review'));
+    final requests =
+        ref.watch(customVehicleReviewRequestsProvider('pending_review'));
     return requests.when(
       loading: () => const LoadingSkeletonView(lines: 3),
       error: (error, stackTrace) => ErrorStateView(
         message: '직접 입력 차량 검수 큐를 불러오지 못했어요.',
-        onRetry: () => ref.invalidate(customVehicleReviewRequestsProvider('pending_review')),
+        onRetry: () => ref
+            .invalidate(customVehicleReviewRequestsProvider('pending_review')),
       ),
       data: (items) {
         if (items.isEmpty) {
@@ -951,8 +1067,12 @@ class _AdminCustomVehicleReviewScreenState extends ConsumerState<AdminCustomVehi
                           icon: Icons.fact_check_rounded,
                         ),
                         StatusChip(
-                          label: item.userVehicleId.isEmpty ? '연결 확인 필요' : '차량 연결됨',
-                          color: item.userVehicleId.isEmpty ? AppColors.danger : AppColors.electricBlue,
+                          label: item.userVehicleId.isEmpty
+                              ? '연결 확인 필요'
+                              : '차량 연결됨',
+                          color: item.userVehicleId.isEmpty
+                              ? AppColors.danger
+                              : AppColors.electricBlue,
                         ),
                       ],
                     ),
@@ -961,12 +1081,14 @@ class _AdminCustomVehicleReviewScreenState extends ConsumerState<AdminCustomVehi
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       detail,
-                      style: AppTypography.bodyMedium.copyWith(color: AppColors.onSurfaceMuted),
+                      style: AppTypography.bodyMedium
+                          .copyWith(color: AppColors.onSurfaceMuted),
                     ),
                     const SizedBox(height: AppSpacing.sm),
                     Text(
                       '요청 ${item.id} · 차량 ${item.userVehicleId.isEmpty ? '미연결' : item.userVehicleId}',
-                      style: AppTypography.dataUnit.copyWith(color: AppColors.onSurfaceMuted),
+                      style: AppTypography.dataUnit
+                          .copyWith(color: AppColors.onSurfaceMuted),
                     ),
                     const SizedBox(height: AppSpacing.md),
                     Row(
@@ -976,7 +1098,9 @@ class _AdminCustomVehicleReviewScreenState extends ConsumerState<AdminCustomVehi
                             label: '승인',
                             icon: Icons.verified_rounded,
                             isLoading: _reviewingRequestId == item.id,
-                            onPressed: item.userVehicleId.isEmpty ? null : () => _reviewRequest(item, 'approve'),
+                            onPressed: item.userVehicleId.isEmpty
+                                ? null
+                                : () => _reviewRequest(item, 'approve'),
                           ),
                         ),
                         const SizedBox(width: AppSpacing.sm),
@@ -984,7 +1108,10 @@ class _AdminCustomVehicleReviewScreenState extends ConsumerState<AdminCustomVehi
                           child: SecondaryButton(
                             label: '반려',
                             icon: Icons.block_rounded,
-                            onPressed: _reviewingRequestId == item.id || item.userVehicleId.isEmpty ? null : () => _reviewRequest(item, 'reject'),
+                            onPressed: _reviewingRequestId == item.id ||
+                                    item.userVehicleId.isEmpty
+                                ? null
+                                : () => _reviewRequest(item, 'reject'),
                           ),
                         ),
                       ],
