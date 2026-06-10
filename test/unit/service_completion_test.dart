@@ -1568,6 +1568,17 @@ void main() {
     expect(sql, contains('account_deletion'));
   });
 
+  test('Supabase privacy requests use dedicated hardening RPCs first', () {
+    final source = File(
+      'lib/shared/repositories/fuel_arena_repositories.dart',
+    ).readAsStringSync(encoding: utf8).replaceAll('\r\n', '\n');
+
+    expect(source, contains("'request_account_deletion'"));
+    expect(source, contains("'request_data_export'"));
+    expect(source, contains('_privacyRequestFromDedicatedQueueJson'));
+    expect(source, contains('_createLegacyPrivacyRequest(userId, request)'));
+  });
+
   test('Consent audit migration indexes current operations', () {
     final sql = File(
       'supabase/migrations/202606060018_consent_audit_indexes.sql',

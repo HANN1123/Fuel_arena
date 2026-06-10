@@ -68,6 +68,8 @@ drop policy if exists "custom_vehicle_requests_admin_delete" on public.custom_ve
 create policy "custom_vehicle_requests_admin_delete" on public.custom_vehicle_requests
   for delete using (public.is_admin_user());
 
+drop view if exists public.vehicle_catalog_view;
+
 create or replace view public.vehicle_catalog_view as
 select
   vv.id,

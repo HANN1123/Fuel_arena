@@ -310,6 +310,8 @@ create table if not exists public.report_items (
   created_at timestamptz not null default now()
 );
 
+drop view if exists public.public_rankings;
+
 create or replace view public.public_rankings as
 select
   r.id,
@@ -347,63 +349,85 @@ alter table public.user_subscriptions enable row level security;
 alter table public.fraud_reviews enable row level security;
 alter table public.report_items enable row level security;
 
+drop policy if exists "profiles_select_self" on public.profiles;
 create policy "profiles_select_self" on public.profiles
   for select using (auth.uid() = id);
+drop policy if exists "profiles_update_self" on public.profiles;
 create policy "profiles_update_self" on public.profiles
   for update using (auth.uid() = id) with check (auth.uid() = id);
 
+drop policy if exists "consents_self" on public.app_consents;
 create policy "consents_self" on public.app_consents
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "vehicles_self" on public.vehicles;
 create policy "vehicles_self" on public.vehicles
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "drive_sessions_self" on public.drive_sessions;
 create policy "drive_sessions_self" on public.drive_sessions
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "drive_points_private_self" on public.drive_points;
 create policy "drive_points_private_self" on public.drive_points
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "drive_scores_self" on public.drive_scores;
 create policy "drive_scores_self" on public.drive_scores
   for select using (auth.uid() = user_id);
 
+drop policy if exists "rankings_read_all" on public.rankings;
 create policy "rankings_read_all" on public.rankings
   for select using (true);
 
+drop policy if exists "battles_read_all" on public.battles;
 create policy "battles_read_all" on public.battles
   for select using (true);
+drop policy if exists "battles_create_auth" on public.battles;
 create policy "battles_create_auth" on public.battles
   for insert with check (auth.uid() = created_by);
 
+drop policy if exists "battle_participants_member" on public.battle_participants;
 create policy "battle_participants_member" on public.battle_participants
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "seasons_read_all" on public.seasons;
 create policy "seasons_read_all" on public.seasons
   for select using (true);
+drop policy if exists "season_missions_read_all" on public.season_missions;
 create policy "season_missions_read_all" on public.season_missions
   for select using (true);
 
+drop policy if exists "mission_progress_self" on public.mission_progress;
 create policy "mission_progress_self" on public.mission_progress
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "user_badges_self" on public.user_badges;
 create policy "user_badges_self" on public.user_badges
   for select using (auth.uid() = user_id);
+drop policy if exists "user_achievements_self" on public.user_achievements;
 create policy "user_achievements_self" on public.user_achievements
   for select using (auth.uid() = user_id);
 
+drop policy if exists "notifications_self" on public.notifications;
 create policy "notifications_self" on public.notifications
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "user_coupons_self" on public.user_coupons;
 create policy "user_coupons_self" on public.user_coupons
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
+drop policy if exists "subscriptions_self" on public.user_subscriptions;
 create policy "subscriptions_self" on public.user_subscriptions
   for select using (auth.uid() = user_id);
 
+drop policy if exists "fraud_reviews_self" on public.fraud_reviews;
 create policy "fraud_reviews_self" on public.fraud_reviews
   for select using (auth.uid() = user_id);
 
+drop policy if exists "reports_create_self" on public.report_items;
 create policy "reports_create_self" on public.report_items
   for insert with check (auth.uid() = reporter_id);
+drop policy if exists "reports_read_self" on public.report_items;
 create policy "reports_read_self" on public.report_items
   for select using (auth.uid() = reporter_id);

@@ -40,6 +40,30 @@ create table if not exists public.fuel_leagues (
   sort_order integer not null default 0
 );
 
+insert into public.fuel_leagues (
+  key,
+  name_ko,
+  description,
+  fuel_type,
+  is_active,
+  sort_order
+)
+values
+  ('gasoline', '가솔린', '가솔린 차량 리그', 'gasoline', true, 10),
+  ('diesel', '디젤', '디젤 차량 리그', 'diesel', true, 20),
+  ('hybrid', '하이브리드', '하이브리드 차량 리그', 'hybrid', true, 30),
+  ('plug_in_hybrid', '플러그인 하이브리드', 'PHEV 차량 리그', 'plug_in_hybrid', true, 40),
+  ('electric', '전기차', '전기차 리그', 'electric', true, 50),
+  ('lpg', 'LPG', 'LPG/LPI 차량 리그', 'lpg', true, 60),
+  ('hydrogen', '수소전기', '수소전기차 리그', 'hydrogen', true, 70),
+  ('other', '기타', '기타 연료 리그', 'other', true, 90)
+on conflict (key) do update
+  set name_ko = excluded.name_ko,
+      description = excluded.description,
+      fuel_type = excluded.fuel_type,
+      is_active = excluded.is_active,
+      sort_order = excluded.sort_order;
+
 create table if not exists public.vehicle_manufacturers (
   id text primary key,
   name_ko text not null,
@@ -134,6 +158,8 @@ alter table public.battles
   add column if not exists required_vehicle_class text,
   add column if not exists is_friendly_cross_league boolean not null default false;
 
+drop view if exists public.vehicle_catalog_view;
+
 create or replace view public.vehicle_catalog_view as
 select
   vv.id,
@@ -157,6 +183,8 @@ from public.vehicle_variants vv
 join public.vehicle_model_years vmy on vmy.id = vv.model_year_id
 join public.vehicle_models vm on vm.id = vmy.model_id
 join public.vehicle_manufacturers vmf on vmf.id = vm.manufacturer_id;
+
+drop view if exists public.public_rankings;
 
 create or replace view public.public_rankings as
 select

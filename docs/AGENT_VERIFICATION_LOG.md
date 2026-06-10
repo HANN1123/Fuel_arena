@@ -11,9 +11,13 @@ This log documents all tests and static analysis commands run during implementat
 | 2026-06-11 (DB/RLS) | `flutter pub get` | PASS | Dependencies resolved. |
 | 2026-06-11 (DB/RLS) | `dart format .` | PASS | Dart formatter completed. |
 | 2026-06-11 (DB/RLS) | `flutter analyze` | PASS | No issues found. |
-| 2026-06-11 (DB/RLS) | `flutter test` | PASS | All 216 tests passed. |
+| 2026-06-11 (DB/RLS) | `flutter test` | PASS | All 217 tests passed after adding the dedicated privacy RPC regression check. |
 | 2026-06-11 (DB/RLS) | `dart run tool/validate_google_auth_database.dart` | PASS | Google auth database valid: 93 checks. |
-| 2026-06-11 (DB/RLS) | `dart run tool/validate_supabase_schema.dart` | PASS | Supabase schema valid: 373 checks. |
+| 2026-06-11 (DB/RLS) | `dart run tool/validate_supabase_schema.dart` | PASS | Supabase schema valid: 377 checks. |
 | 2026-06-11 (DB/RLS) | `dart run tool/security/check_auth_rls_policies.dart` | PASS | Auth RLS policies valid: 73 checks. |
 | 2026-06-11 (DB/RLS) | `python tool/validate_secret_hygiene.py` | PASS | Secret hygiene valid. |
+| 2026-06-11 (DB/RLS) | `dart run tool/validate_product_invariants.dart` | PASS | Product invariants valid: 1896 checks. |
+| 2026-06-11 (DB/RLS) | `git diff --check` | PASS | No whitespace errors; CRLF normalization warnings only. |
 | 2026-06-11 (DB/RLS) | `Get-Command supabase` | NOT RUN | Supabase CLI not found on PATH; local DB reset/push/migration list not run in this environment. |
+| 2026-06-11 (Dashboard SQL) | `build/supabase_resume_after_vehicle_seed.sql` via Supabase SQL Editor | PASS | Resume SQL completed with `Success. No rows returned`. |
+| 2026-06-11 (Dashboard SQL) | Live schema smoke query | PASS | profiles trigger/RLS, protected profile trigger, consent/deletion/export/auth audit tables, public views, vehicle quality columns exist; `public_tables_without_rls = 0`. |

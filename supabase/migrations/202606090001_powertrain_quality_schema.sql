@@ -218,6 +218,39 @@ join public.vehicle_model_years vmy on vmy.id = vv.model_year_id
 join public.vehicle_models vm on vm.id = vmy.model_id
 join public.vehicle_manufacturers vmf on vmf.id = vm.manufacturer_id;
 
+drop view if exists public.public_user_primary_vehicle_view;
+drop view if exists public.user_primary_vehicle_view;
+drop view if exists public.vehicle_catalog_view;
+
+create or replace view public.vehicle_catalog_view as
+select
+  vv.id,
+  vv.model_year_id,
+  vmf.name_ko as manufacturer_name,
+  vm.name_ko as model_name,
+  vmy.year,
+  vv.trim_name,
+  vv.engine_name,
+  vv.fuel_type,
+  vv.displacement_cc,
+  vv.battery_kwh,
+  vv.drivetrain,
+  vv.transmission,
+  vv.official_efficiency,
+  vv.efficiency_unit,
+  vv.vehicle_class,
+  vv.fuel_league,
+  vv.is_verified,
+  vv.source_status,
+  vv.confidence_score,
+  vv.is_selectable,
+  vv.is_deprecated,
+  lower(vmf.name_ko || ' ' || vmf.name_en || ' ' || vm.name_ko || ' ' || vm.name_en || ' ' || vmy.year || ' ' || vv.trim_name || ' ' || vv.fuel_type || ' ' || vv.vehicle_class) as search_text
+from public.vehicle_variants vv
+join public.vehicle_model_years vmy on vmy.id = vv.model_year_id
+join public.vehicle_models vm on vm.id = vmy.model_id
+join public.vehicle_manufacturers vmf on vmf.id = vm.manufacturer_id;
+
 -- view 4: vehicle_catalog_conflict_view (출처 충돌 분석용 뷰)
 create or replace view public.vehicle_catalog_conflict_view as
 select

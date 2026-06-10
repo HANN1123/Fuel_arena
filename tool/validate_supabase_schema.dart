@@ -116,6 +116,11 @@ void _validateViews(
   }
 
   final publicRankings = _viewSql(sql, 'public_rankings').toLowerCase();
+  check(
+    'supabase/migrations/public_rankings',
+    sql.contains('drop view if exists public.public_rankings'),
+    'public_rankings must be dropped before repeated view definitions',
+  );
   for (final forbidden in [
     'drive_points',
     'latitude',
@@ -429,6 +434,12 @@ void _validateVehicleCatalogSeed(
   final schemaSql = File(
     'supabase/migrations/202606060001_google_vehicle_leagues.sql',
   ).readAsStringSync();
+  final completionSql = File(
+    'supabase/migrations/202606060004_vehicle_catalog_completion.sql',
+  ).readAsStringSync();
+  final qualitySql = File(
+    'supabase/migrations/202606090001_powertrain_quality_schema.sql',
+  ).readAsStringSync();
   final seedFile = File(
     'supabase/migrations/202606060002_vehicle_catalog_seed.sql',
   );
@@ -438,6 +449,36 @@ void _validateVehicleCatalogSeed(
     'supabase/migrations/vehicle_variants',
     schemaSql.contains('efficiency_unit text not null default'),
     'vehicle_variants must define efficiency_unit before catalog seed runs',
+  );
+  check(
+    'supabase/migrations/fuel_leagues',
+    schemaSql.contains('insert into public.fuel_leagues') &&
+        schemaSql.contains("'gasoline'") &&
+        schemaSql.contains("'electric'") &&
+        schemaSql.contains("'other'"),
+    'fuel_leagues defaults must be seeded before vehicle_variants catalog seed runs',
+  );
+  check(
+    'supabase/migrations/vehicle_catalog_view',
+    completionSql.contains('drop view if exists public.vehicle_catalog_view') &&
+        completionSql.indexOf(
+              'drop view if exists public.vehicle_catalog_view',
+            ) <
+            completionSql.indexOf(
+              'create or replace view public.vehicle_catalog_view',
+            ),
+    'vehicle_catalog_view must be dropped before replacing with changed columns',
+  );
+  check(
+    'supabase/migrations/vehicle_catalog_view',
+    qualitySql.contains('drop view if exists public.vehicle_catalog_view') &&
+        qualitySql
+            .contains('create or replace view public.vehicle_catalog_view') &&
+        qualitySql.contains('vv.source_status') &&
+        qualitySql.contains('vv.confidence_score') &&
+        qualitySql.contains('vv.is_selectable') &&
+        qualitySql.contains('vv.is_deprecated'),
+    'vehicle_catalog_view must expose vehicle quality columns after powertrain quality migration',
   );
   check(
     'supabase/migrations/vehicle_catalog_seed',

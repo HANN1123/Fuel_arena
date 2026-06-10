@@ -19,10 +19,16 @@ Map<String, dynamic> _functionResponseMap(Object? data) {
   if (data is Map) {
     return Map<String, dynamic>.from(data);
   }
+  if (data is List && data.isNotEmpty) {
+    return _functionResponseMap(data.first);
+  }
   if (data is String && data.isNotEmpty) {
     final decoded = jsonDecode(data);
     if (decoded is Map) {
       return Map<String, dynamic>.from(decoded);
+    }
+    if (decoded is List && decoded.isNotEmpty) {
+      return _functionResponseMap(decoded.first);
     }
   }
   return const <String, dynamic>{};
@@ -4984,7 +4990,10 @@ PrivacyRequest? _activePrivacyRequestForType(
 
 bool _isActivePrivacyRequestStatus(String status) {
   final normalized = status.toLowerCase();
-  return normalized == 'open' || normalized == 'review';
+  return normalized == 'open' ||
+      normalized == 'review' ||
+      normalized == 'pending' ||
+      normalized == 'processing';
 }
 
 class SupabaseSupportRepository implements SupportRepository {
@@ -5321,6 +5330,14 @@ class SupabasePrivacyRequestRepository implements PrivacyRequestRepository {
         throw ActivePrivacyRequestException(existingRequest);
       }
 
+      if (request.requestType == 'account_deletion') {
+        return await _createAccountDeletionRequest(userId, request);
+      }
+      if (request.requestType == 'data_download' ||
+          request.requestType == 'data_export') {
+        return await _createDataExportRequest(userId, request);
+      }
+
       final row = await _client
           .from('privacy_requests')
           .insert({
@@ -5340,6 +5357,109 @@ class SupabasePrivacyRequestRepository implements PrivacyRequestRepository {
       }
       return _fallback.createRequest(request);
     }
+  }
+
+  Future<PrivacyRequest> _createAccountDeletionRequest(
+    String userId,
+    PrivacyRequestSubmission request,
+  ) async {
+    try {
+      final row = await _client.rpc(
+        'request_account_deletion',
+        params: {'p_reason': request.description},
+      );
+      final data = _functionResponseMap(row);
+      if (data.isEmpty) {
+        throw StateError('Invalid request_account_deletion response.');
+      }
+      return _privacyRequestFromDedicatedQueueJson(
+        data,
+        userId: userId,
+        requestType: request.requestType,
+        description: request.description,
+      );
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _createLegacyPrivacyRequest(userId, request);
+    }
+  }
+
+  Future<PrivacyRequest> _createDataExportRequest(
+    String userId,
+    PrivacyRequestSubmission request,
+  ) async {
+    try {
+      final row = await _client.rpc('request_data_export');
+      final data = _functionResponseMap(row);
+      if (data.isEmpty) {
+        throw StateError('Invalid request_data_export response.');
+      }
+      return _privacyRequestFromDedicatedQueueJson(
+        data,
+        userId: userId,
+        requestType: request.requestType == 'data_export'
+            ? 'data_download'
+            : request.requestType,
+        description: request.description,
+      );
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _createLegacyPrivacyRequest(userId, request);
+    }
+  }
+
+  Future<PrivacyRequest> _createLegacyPrivacyRequest(
+    String userId,
+    PrivacyRequestSubmission request,
+  ) async {
+    final row = await _client
+        .from('privacy_requests')
+        .insert({
+          'user_id': userId,
+          'request_type': request.requestType,
+          'description': request.description,
+          'status': 'open',
+        })
+        .select()
+        .single();
+    return _privacyRequestFromJson(Map<String, dynamic>.from(row));
+  }
+
+  PrivacyRequest _privacyRequestFromDedicatedQueueJson(
+    Map<String, dynamic> json, {
+    required String userId,
+    required String requestType,
+    required String description,
+  }) {
+    final requestedAt = DateTime.tryParse(
+          '${json['requested_at'] ?? json[_createdAtColumn] ?? ''}',
+        ) ??
+        DateTime.now();
+    final updatedAt =
+        DateTime.tryParse('${json['updated_at'] ?? ''}') ?? requestedAt;
+    final reason = '${json['reason'] ?? ''}'.trim();
+    return PrivacyRequest(
+      id: '${json['id'] ?? ''}',
+      userId: '${json['user_id'] ?? userId}',
+      requestType: requestType,
+      description: reason.isEmpty ? description : reason,
+      status:
+          _privacyRequestStatusFromDedicatedQueue('${json['status'] ?? ''}'),
+      createdAt: requestedAt,
+      updatedAt: updatedAt,
+    );
+  }
+
+  String _privacyRequestStatusFromDedicatedQueue(String status) {
+    return switch (status.toLowerCase()) {
+      'pending' => 'open',
+      'processing' => 'review',
+      _ => status.isEmpty ? 'open' : status,
+    };
   }
 
   @override

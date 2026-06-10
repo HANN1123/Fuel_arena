@@ -1861,7 +1861,10 @@ PrivacyRequest? _activePrivacyRequestForType(
 
 bool _isActivePrivacyRequestStatus(String status) {
   final normalized = status.toLowerCase();
-  return normalized == 'open' || normalized == 'review';
+  return normalized == 'open' ||
+      normalized == 'review' ||
+      normalized == 'pending' ||
+      normalized == 'processing';
 }
 
 const _privacyRequestConfirmationPhrase = '계정 삭제';
@@ -1902,9 +1905,12 @@ String _privacyRequestDefaultBody(String type) {
 String _privacyRequestStatusLabel(String status) {
   return switch (status.toLowerCase()) {
     'open' => '접수',
+    'pending' => '접수',
     'review' => '검토 중',
+    'processing' => '검토 중',
     'completed' => '처리 완료',
     'rejected' => '보류',
+    'canceled' => '취소',
     _ => status,
   };
 }
@@ -1912,9 +1918,12 @@ String _privacyRequestStatusLabel(String status) {
 Color _privacyRequestStatusColor(String status) {
   return switch (status.toLowerCase()) {
     'open' => AppColors.amber,
+    'pending' => AppColors.amber,
     'review' => AppColors.electricBlue,
+    'processing' => AppColors.electricBlue,
     'completed' => AppColors.neonGreen,
     'rejected' => AppColors.danger,
+    'canceled' => AppColors.outline,
     _ => AppColors.outline,
   };
 }
