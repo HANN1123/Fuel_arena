@@ -49,7 +49,31 @@ Google OAuth client secret은 Supabase Dashboard에만 입력한다. Flutter 앱
 
 ## Profile bootstrap
 
-`202606090002_google_auth_profile_bootstrap.sql`은 `auth.users`에 Google 사용자가 생성되면 `public.profiles` row를 자동 생성하는 trigger를 추가한다. 클라이언트도 로그인 직후 profile을 조회하고 누락 시 안전한 identity/setup 컬럼만 복구한다. `tier`, `total_score`, `season_score`, `current_streak`, `best_streak`, `is_premium`, `is_admin`, `created_at`은 클라이언트가 쓰지 못한다.
+`202606090002_google_auth_profile_bootstrap.sql`은 `auth.users`에 Google 사용자가 생성되면 `public.profiles` row를 자동 생성하는 trigger를 추가한다. `202606110001_google_auth_database_hardening.sql`은 이 흐름을 `handle_new_auth_user()`, `handle_auth_user_login_update()`, `ensure_my_profile()`로 보강해 기존 auth user의 누락 profile도 복구하고 `last_login_at`을 갱신한다.
+
+클라이언트는 `update_my_profile()`, `record_my_consent()`, `set_my_profile_vehicle()`, `request_account_deletion()`, `request_data_export()` RPC를 우선 사용한다. `prevent_profile_protected_field_update()` trigger는 `tier`, `total_score`, `season_score`, `current_streak`, `best_streak`, `is_premium`, `is_admin`, `status`, `deleted_at`, Google subject, 대표 차량/리그 선택 같은 보호 필드의 직접 변경을 차단한다.
+
+## Google Auth DB hardening 확인 SQL
+
+```sql
+select tgname from pg_trigger
+where tgname in ('on_auth_user_created', 'on_auth_user_login_updated');
+
+select id, email, nickname, auth_provider, last_login_at
+from public.profiles
+order by created_at desc
+limit 5;
+
+select policyname, tablename
+from pg_policies
+where schemaname = 'public'
+  and tablename in ('profiles', 'consent_logs', 'account_deletion_requests', 'data_export_requests', 'auth_audit_logs');
+
+select column_name
+from information_schema.columns
+where table_schema = 'public'
+  and table_name = 'public_rankings_view';
+```
 
 ## 차량 카탈로그와 리그
 

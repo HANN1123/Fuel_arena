@@ -67,7 +67,9 @@ class FuelTypeNormalizer {
     if (value == 'hybrid' || value.contains('하이브리드')) {
       return PowertrainType.hybrid;
     }
-    if (value == 'plug_in_hybrid' || value == 'phev' || value.contains('플러그인')) {
+    if (value == 'plug_in_hybrid' ||
+        value == 'phev' ||
+        value.contains('플러그인')) {
       return PowertrainType.plugInHybrid;
     }
     if (value == 'battery_electric' ||

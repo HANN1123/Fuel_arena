@@ -79,6 +79,8 @@ flutter run
 dart run tool/validate_vehicle_catalog.dart
 dart run tool/validate_edge_functions.dart
 dart run tool/validate_supabase_schema.dart
+dart run tool/validate_google_auth_database.dart
+dart run tool/security/check_auth_rls_policies.dart
 dart run tool/validate_product_invariants.dart
 python -m pip install -r requirements-dev.txt
 python tool/validate_store_submission_assets.py
@@ -190,6 +192,13 @@ supabase functions deploy verify_purchase
 ```
 
 Edge Function의 `SUPABASE_SERVICE_ROLE_KEY`는 `supabase secrets set`으로만 설정하고 Flutter 앱 `.env`에는 넣지 않습니다.
+
+Google 로그인 이후 DB 보안은 `202606110001_google_auth_database_hardening.sql`이 담당합니다. 이 migration은 `auth.users` → `profiles` 자동 생성/복구 trigger, `last_login_at` 갱신, 보호 필드 방어 trigger, 동의 로그 RPC, 계정 삭제/데이터 export 전용 queue, 인증/관리자 감사 로그, 안전한 공개 profile/ranking view를 추가합니다. 적용 후 아래 검증을 함께 실행합니다.
+
+```bash
+dart run tool/validate_google_auth_database.dart
+dart run tool/security/check_auth_rls_policies.dart
+```
 
 ## 개발 모드와 프로덕션 모드
 

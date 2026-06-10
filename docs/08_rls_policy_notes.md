@@ -43,10 +43,37 @@ fields, and `updated_at`.
 `best_streak`, `is_premium`, `is_admin`, and `created_at` are server-controlled.
 New profile inserts must keep score, premium, and admin fields at safe defaults.
 
+`202606110001_google_auth_database_hardening.sql` tightens this by adding
+`prevent_profile_protected_field_update()`. Authenticated clients may directly
+change only `nickname` and `avatar_url`; protected updates for consent, vehicle
+selection, status, `last_login_at`, score, premium, admin, and Google identity
+must go through secure RPCs or Edge Functions. The supported client RPCs are
+`ensure_my_profile()`, `update_my_profile()`, `record_my_consent()`,
+`revoke_my_consent()`, `set_my_profile_vehicle()`,
+`request_account_deletion()`, and `request_data_export()`.
+
+## Auth audit and privacy request queues
+`auth_audit_logs` stores authentication and privacy events through
+`record_auth_event()`. The RPC strips token, ID token, access token, refresh
+token, authorization, OAuth client secret, and full email metadata keys before
+insert.
+
+`account_deletion_requests` and `data_export_requests` are dedicated user
+request queues. Users can create/select only their own pending requests;
+admins can select/update all rows. The legacy `privacy_requests` table remains
+the app-facing operations queue and is mirrored by the request RPCs.
+
+## Public/private views
+`public_profiles_view`, `public_rankings_view`, and
+`public_user_primary_vehicle_view` are safe public projections. They do not
+expose email, Google subject, admin flag, status/deleted markers,
+`last_login_at`, exact location, raw `drive_points`, IP, user agent, or full
+private profile rows.
+
 ## service_role
 service_role key는 Flutter 앱에 포함하지 않는다. 서버 권한 작업은 Edge Function에서 처리한다.
 `recompute_rankings(text)`와 `claim_mission_reward(uuid, uuid)`는 앱 사용자가 직접 호출할 수 없도록 public, anon, authenticated execute 권한을 회수하고 service_role에만 execute 권한을 부여한다.
 
 ## 정적 검증
-`dart run tool/validate_supabase_schema.dart`는 필수 table 생성, RLS 활성화, self/admin/public policy, public view privacy, RPC security definer/search_path, Edge 전용 RPC grant/revoke, 중복 방지 index를 검사한다.
+`dart run tool/validate_supabase_schema.dart`는 필수 table 생성, RLS 활성화, self/admin/public policy, public view privacy, RPC security definer/search_path, Edge 전용 RPC grant/revoke, 중복 방지 index를 검사한다. Google auth DB 보강은 `dart run tool/validate_google_auth_database.dart`와 `dart run tool/security/check_auth_rls_policies.dart`가 추가로 검사한다.
 

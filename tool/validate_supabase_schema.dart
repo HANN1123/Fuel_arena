@@ -102,6 +102,9 @@ void _validateViews(
 ) {
   for (final view in [
     'public_rankings',
+    'public_profiles_view',
+    'public_rankings_view',
+    'public_user_primary_vehicle_view',
     'vehicle_catalog_view',
     'vehicle_manufacturer_catalog_view',
   ]) {
@@ -124,6 +127,32 @@ void _validateViews(
       'supabase/migrations/public_rankings',
       !publicRankings.contains(forbidden),
       'public_rankings must not expose $forbidden',
+    );
+  }
+
+  final publicProfilesView =
+      _viewSql(sql, 'public_profiles_view').toLowerCase();
+  final publicRankingsView =
+      _viewSql(sql, 'public_rankings_view').toLowerCase();
+  for (final forbidden in [
+    ' email',
+    '.email',
+    'google_subject',
+    'last_login_at',
+    'deleted_at',
+    'drive_points',
+    'latitude',
+    'longitude',
+  ]) {
+    check(
+      'supabase/migrations/public_profiles_view',
+      !publicProfilesView.contains(forbidden),
+      'public_profiles_view must not expose $forbidden',
+    );
+    check(
+      'supabase/migrations/public_rankings_view',
+      !publicRankingsView.contains(forbidden),
+      'public_rankings_view must not expose $forbidden',
     );
   }
 
@@ -158,6 +187,17 @@ void _validateRpcFunctions(
     'get_my_crew_summary',
     'get_my_crew_members',
     'get_admin_dashboard_metrics',
+    'handle_new_auth_user',
+    'handle_auth_user_login_update',
+    'ensure_my_profile',
+    'update_my_profile',
+    'record_my_consent',
+    'revoke_my_consent',
+    'request_account_deletion',
+    'request_data_export',
+    'record_auth_event',
+    'get_my_auth_state',
+    'is_admin',
   ]) {
     check(
       'supabase/migrations/$functionName',
@@ -174,6 +214,17 @@ void _validateRpcFunctions(
     'get_my_crew_summary',
     'get_my_crew_members',
     'get_admin_dashboard_metrics',
+    'handle_new_auth_user',
+    'handle_auth_user_login_update',
+    'ensure_my_profile',
+    'update_my_profile',
+    'record_my_consent',
+    'revoke_my_consent',
+    'request_account_deletion',
+    'request_data_export',
+    'record_auth_event',
+    'get_my_auth_state',
+    'is_admin',
   ]) {
     final functionSql = _functionSql(sql, functionName).toLowerCase();
     check(
@@ -566,7 +617,11 @@ const _requiredTables = [
   'user_local_sync_logs',
   'vehicle_catalog_change_logs',
   'admin_action_logs',
+  'admin_audit_logs',
   'privacy_requests',
+  'account_deletion_requests',
+  'data_export_requests',
+  'auth_audit_logs',
   'edge_function_idempotency_keys',
 ];
 
@@ -676,10 +731,30 @@ const _requiredPolicies = {
     'admin_action_logs_admin_select',
     'admin_action_logs_admin_insert',
   ],
+  'admin_audit_logs': [
+    'admin_audit_logs_admin_select',
+    'admin_audit_logs_admin_insert',
+  ],
   'privacy_requests': [
     'privacy_requests_self_select_or_admin',
     'privacy_requests_self_insert',
     'privacy_requests_admin_update',
+  ],
+  'account_deletion_requests': [
+    'account_deletion_requests_self_select',
+    'account_deletion_requests_self_insert',
+    'account_deletion_requests_admin_select',
+    'account_deletion_requests_admin_update',
+  ],
+  'data_export_requests': [
+    'data_export_requests_self_select',
+    'data_export_requests_self_insert',
+    'data_export_requests_admin_select',
+    'data_export_requests_admin_update',
+  ],
+  'auth_audit_logs': [
+    'auth_audit_logs_self_select',
+    'auth_audit_logs_admin_select',
   ],
   'edge_function_idempotency_keys': [
     'edge_function_idempotency_self_select',

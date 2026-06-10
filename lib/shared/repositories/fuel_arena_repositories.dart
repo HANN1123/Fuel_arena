@@ -486,6 +486,17 @@ class SupabaseGoogleAuthRepository implements AuthRepository {
       throw StateError('로그인된 사용자를 찾을 수 없습니다.');
     }
 
+    try {
+      final repaired = await _client.rpc('ensure_my_profile');
+      final repairedMap = _functionResponseMap(repaired);
+      if (repairedMap.isNotEmpty) {
+        return UserProfile.fromJson(repairedMap);
+      }
+    } catch (_) {
+      // Older development databases may not have the hardened auth RPC yet.
+      // Fall back to the legacy safe insert/update path below.
+    }
+
     final metadata = user.userMetadata ?? const <String, dynamic>{};
     final email = user.email ?? '${metadata['email'] ?? ''}';
     final nickname = _nicknameFromGoogleMetadata(metadata, email);
@@ -565,6 +576,17 @@ class SupabaseGoogleAuthRepository implements AuthRepository {
     final userId = _client.auth.currentUser?.id;
     if (userId == null) {
       throw StateError('로그인이 필요합니다.');
+    }
+    try {
+      await _client.rpc(
+        'request_account_deletion',
+        params: {
+          'p_reason': 'Fuel Arena 계정 삭제와 탈퇴 처리를 요청합니다.',
+        },
+      );
+      return;
+    } catch (_) {
+      // Older development databases only have privacy_requests.
     }
     final existing = await _client
         .from('privacy_requests')
@@ -769,6 +791,27 @@ class SupabaseConsentRepository implements ConsentRepository {
       updatedAt: DateTime.now(),
     );
     try {
+      final rpcRow = await _client.rpc(
+        'record_my_consent',
+        params: {
+          'p_payload': {
+            'terms_accepted': termsAccepted,
+            'privacy_accepted': privacyAccepted,
+            'location_accepted': locationAccepted,
+            'personalized_ads_accepted': personalizedAdsAccepted,
+            'marketing_accepted': marketingAccepted,
+          },
+        },
+      );
+      final rpcMap = _functionResponseMap(rpcRow);
+      if (rpcMap.isNotEmpty) {
+        return AppConsent.fromJson(rpcMap);
+      }
+    } catch (_) {
+      // Keep compatibility with local databases before the auth hardening
+      // migration; the hardened schema uses record_my_consent above.
+    }
+    try {
       final row = await _client
           .from('app_consents')
           .upsert(consent.toJson(), onConflict: 'user_id')
@@ -969,6 +1012,18 @@ class SupabaseVehicleRepository implements VehicleRepository {
     return row == null ? null : Vehicle.fromJson(row);
   }
 
+  Future<bool> _setProfileVehicleViaRpc(String? vehicleId) async {
+    try {
+      await _client.rpc(
+        'set_my_profile_vehicle',
+        params: {'p_vehicle_id': vehicleId},
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   @override
   Future<Vehicle> saveVehicle({
     required String manufacturer,
@@ -998,6 +1053,9 @@ class SupabaseVehicleRepository implements VehicleRepository {
         .select()
         .single();
     final vehicle = Vehicle.fromJson(row);
+    if (await _setProfileVehicleViaRpc(vehicle.id)) {
+      return vehicle;
+    }
     await _client.from('profiles').update({
       'representative_vehicle_id': vehicle.id,
       'representative_vehicle_name': vehicle.displayName,
@@ -1053,6 +1111,9 @@ class SupabaseVehicleRepository implements VehicleRepository {
         .limit(1)
         .maybeSingle();
     if (next == null) {
+      if (await _setProfileVehicleViaRpc(null)) {
+        return;
+      }
       await _client.from('profiles').update({
         'representative_vehicle_id': null,
         'representative_vehicle_name': '',
@@ -1077,6 +1138,9 @@ class SupabaseVehicleRepository implements VehicleRepository {
         .select()
         .single();
     final vehicle = Vehicle.fromJson(row);
+    if (await _setProfileVehicleViaRpc(vehicle.id)) {
+      return;
+    }
     await _client.from('profiles').update({
       'representative_vehicle_id': vehicle.id,
       'representative_vehicle_name': vehicle.displayName,
@@ -1103,6 +1167,9 @@ class SupabaseVehicleRepository implements VehicleRepository {
         .select()
         .single();
     final vehicle = Vehicle.fromJson(row);
+    if (await _setProfileVehicleViaRpc(vehicle.id)) {
+      return;
+    }
     await _client.from('profiles').update({
       'representative_vehicle_id': vehicle.id,
       'representative_vehicle_name': vehicle.displayName,
@@ -1932,8 +1999,23 @@ class SupabaseUserVehicleRepository implements UserVehicleRepository {
     });
   }
 
+  Future<bool> _setProfileVehicleViaRpc(String? vehicleId) async {
+    try {
+      await _client.rpc(
+        'set_my_profile_vehicle',
+        params: {'p_vehicle_id': vehicleId},
+      );
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+
   Future<void> _updateProfileForPrimary(UserVehicle userVehicle) async {
     final vehicle = userVehicle.toVehicle();
+    if (await _setProfileVehicleViaRpc(vehicle.id)) {
+      return;
+    }
     await _client.from('profiles').update({
       'representative_vehicle_id': vehicle.id,
       'representative_vehicle_name': vehicle.displayName,

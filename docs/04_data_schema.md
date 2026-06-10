@@ -3,14 +3,16 @@
 Supabase schema는 `supabase/migrations/202606050001_initial_schema.sql`을 기반으로 하고, Google/차량 리그 확장은 `202606060001_google_vehicle_leagues.sql`, 2008-2026 제조사/모델/연식/파워트레인 catalog seed는 `202606060002_vehicle_catalog_seed.sql`에 정의되어 있다.
 
 ## 주요 테이블
-profiles, app_consents, consent_logs, vehicles, fuel_leagues, vehicle_manufacturers, vehicle_models, vehicle_model_years, vehicle_variants, user_vehicles, league_memberships, custom_vehicle_requests, drive_sessions, drive_points, drive_scores, rankings, ranking_update_jobs, battles, battle_participants, seasons, season_missions, mission_progress, badges, user_badges, achievements, user_achievements, crews, crew_members, notifications, sponsors, sponsor_challenges, advertisements, ad_rewards, coupons, user_coupons, subscription_plans, user_subscriptions, purchase_verifications, fraud_reviews, report_items, support_tickets, support_ticket_messages, app_settings, app_release_notes, analytics_events, user_local_sync_logs, vehicle_catalog_change_logs, admin_action_logs, privacy_requests, edge_function_idempotency_keys.
+profiles, app_consents, consent_logs, vehicles, fuel_leagues, vehicle_manufacturers, vehicle_models, vehicle_model_years, vehicle_variants, user_vehicles, league_memberships, custom_vehicle_requests, drive_sessions, drive_points, drive_scores, rankings, ranking_update_jobs, battles, battle_participants, seasons, season_missions, mission_progress, badges, user_badges, achievements, user_achievements, crews, crew_members, notifications, sponsors, sponsor_challenges, advertisements, ad_rewards, coupons, user_coupons, subscription_plans, user_subscriptions, purchase_verifications, fraud_reviews, report_items, support_tickets, support_ticket_messages, app_settings, app_release_notes, analytics_events, user_local_sync_logs, vehicle_catalog_change_logs, admin_action_logs, admin_audit_logs, privacy_requests, account_deletion_requests, data_export_requests, auth_audit_logs, edge_function_idempotency_keys.
 
 ## 인증/온보딩
-profiles는 `auth_provider`, `onboarding_completed`, `consent_completed`, `additional_setup_completed`, `vehicle_setup_completed`, `selected_fuel_league`, `selected_vehicle_class`를 가진다. Flutter 앱에는 Supabase anon key만 들어가며 service_role key는 Edge Function에서만 사용한다.
+profiles는 `auth_provider`, `google_subject`, `onboarding_completed`, `consent_completed`, `additional_setup_completed`, `vehicle_setup_completed`, `selected_fuel_league`, `selected_vehicle_class`, `status`, `last_login_at`, `deleted_at`을 가진다. Flutter 앱에는 Supabase anon key만 들어가며 service_role key는 Edge Function에서만 사용한다.
 
-`profiles.tier`, `total_score`, `season_score`, `current_streak`, `best_streak`, `is_premium`, `is_admin`, `created_at`은 서버 제어 컬럼이다. authenticated client는 Google 로그인 복구와 설정 흐름에 필요한 identity/setup 컬럼만 insert/update할 수 있다.
+`202606110001_google_auth_database_hardening.sql`은 `auth.users` insert/update trigger(`handle_new_auth_user`, `handle_auth_user_login_update`)로 profile row를 자동 생성하고 `last_login_at`을 갱신한다. `ensure_my_profile()`은 기존 auth user의 누락 profile을 보정한다.
 
-`app_consents`는 사용자별 현재 약관, 개인정보, 위치, 맞춤형 광고, 마케팅 동의 상태를 저장한다. 최초 필수 동의 화면과 설정의 광고 동의 화면은 같은 repository를 사용해 `app_consents`를 갱신하고, 모든 변경은 `consent_logs`에 별도 감사 로그로 남긴다.
+`profiles.tier`, `total_score`, `season_score`, `current_streak`, `best_streak`, `is_premium`, `is_admin`, `email`, `auth_provider`, `google_subject`, 대표 차량/리그 선택, `status`, `deleted_at`, `last_login_at`, `created_at`은 보호 컬럼이다. authenticated client는 `update_my_profile(nickname, avatar_url)` 또는 `set_my_profile_vehicle(vehicle_id)` RPC를 사용하고, `prevent_profile_protected_field_update()` trigger가 직접 변경을 차단한다.
+
+`app_consents`는 사용자별 현재 약관, 개인정보, 위치, 맞춤형 광고, 마케팅 동의 상태를 저장한다. 최초 필수 동의 화면과 설정의 광고 동의 화면은 `record_my_consent(jsonb)` RPC를 사용해 `app_consents`를 갱신하고, 각 consent type/version은 `consent_logs`에 append-only 감사 로그로 남긴다. 철회는 `revoke_my_consent(consent_type)` RPC로 기록한다.
 
 ## 차량 카탈로그
 vehicle_manufacturers → vehicle_models → vehicle_model_years → vehicle_variants 순서로 차량을 선택한다. variant는 판매 트림/휠 인치가 아니라 차종, 연식, 파워트레인 단위이며 user_vehicles는 사용자가 선택한 variant와 닉네임, 대표 차량 여부, 검증 상태, 연료 리그, 차급을 저장한다. 제조사 선택 카드는 `vehicle_manufacturer_catalog_view`의 `model_count`, `min_year`, `max_year`로 모델 수와 지원 연식 범위를 표시하고, variant 선택은 `vehicle_catalog_view`를 사용한다. 직접 입력 차량은 `custom_vehicle_requests.user_vehicle_id`로 검수 대상 `user_vehicles` row와 연결한다. `custom_vehicle_requests_self_insert` RLS는 `user_vehicle_id`를 필수로 요구하고 요청 사용자와 차량 소유자가 일치할 때만 연결 요청을 허용한다.
@@ -19,7 +21,7 @@ vehicle_manufacturers → vehicle_models → vehicle_model_years → vehicle_var
 fuel_leagues는 gasoline, diesel, hybrid, electric, lpg, plug_in_hybrid, other를 가진다. league_memberships는 대표 user_vehicle 기준의 활성 리그를 저장하며, rankings와 battles에도 fuel_league 조건을 보존한다.
 
 ## 민감 데이터
-drive_points는 private table이며 사용자 본인만 접근한다. `is_mocked`는 모의 위치 신호 검증용 private field로만 사용한다. 공개 랭킹은 public_rankings view를 통해 제한 정보만 제공한다.
+drive_points는 private table이며 사용자 본인만 접근한다. `is_mocked`는 모의 위치 신호 검증용 private field로만 사용한다. 공개 랭킹은 `public_rankings`와 더 엄격한 `public_rankings_view`를 통해 제한 정보만 제공한다. 공개 profile은 `public_profiles_view`, 공개 대표 차량은 `public_user_primary_vehicle_view`를 사용한다.
 
 사용자 주행 기록/분석 화면은 `drive_sessions`와 `drive_scores`의 요약 row만 읽는다. 경로 재현에 필요한 `drive_points`의 좌표, 속도 샘플, 정확도 값은 분석 화면에 직접 노출하지 않는다.
 
@@ -51,9 +53,11 @@ finish_drive_session, calculate_drive_score, verify_drive_session, update_rankin
 
 `support_tickets`는 사용자 문의 제목, 분류, 설명, 상태를 저장하고 `support_ticket_messages`는 사용자 추가 메시지와 관리자 답변을 저장한다. 관리자 답변은 `is_admin_reply = true`로 구분하며, 사용자 앱의 문의 상세 화면에서 같은 대화 타임라인으로 표시한다.
 
-`privacy_requests`는 데이터 다운로드, 데이터 삭제, 계정 삭제, 동의 철회 요청을 별도 운영 큐로 저장한다. 사용자는 본인 요청만 생성/조회하고, 관리자는 Privacy Requests 섹션에서 `open`, `review`, `completed`, `rejected` 상태로 처리한다. 진행 중인 같은 유형의 개인정보 요청은 하나만 허용하며 `privacy_requests_active_type_uidx`가 `open`, `review` 중복을 막는다.
+`privacy_requests`는 기존 앱 운영 큐로 유지한다. Google auth hardening migration은 전용 `account_deletion_requests`와 `data_export_requests`를 추가하고, `request_account_deletion(reason)`, `request_data_export()` RPC가 전용 큐와 기존 `privacy_requests`를 함께 보정한다. 계정 삭제 요청 시 `profiles.status = 'deletion_requested'`로 바뀌며 실제 삭제/익명화는 Edge Function에서 처리한다.
+
+`auth_audit_logs`는 로그인 성공/실패, profile bootstrap, session restore, sign out, 계정 삭제 요청, 데이터 export 요청, 동의 완료/철회를 저장한다. `record_auth_event(event_type, metadata)`는 token, idToken, accessToken, refreshToken, authorization, OAuth client secret, email 키를 metadata에서 제거한다. `admin_audit_logs`는 관리자 전용 감사 로그이며 기존 `admin_action_logs`와 함께 운영 증적을 남긴다.
 
 `app_settings`의 공개 seed는 `AppRemoteConfig`가 읽는 운영 설정이다. 광고 보상 일일 한도, 신규 유저 광고 보호 기간, 공식 주행 최소 거리/시간, 이상 속도 기준, 친선 배틀, 쿠폰 기능 플래그는 migration과 schema validator가 함께 누락을 검사한다.
 
 ## 스키마 검증
-`dart run tool/validate_supabase_schema.dart`는 migration 묶음에서 필수 테이블, 생성된 모든 public table의 RLS 활성화, 핵심 정책, public view privacy, RPC 보안 속성, Edge 전용 RPC 권한, 중복 방지 index를 정적으로 검사한다.
+`dart run tool/validate_supabase_schema.dart`는 migration 묶음에서 필수 테이블, 생성된 모든 public table의 RLS 활성화, 핵심 정책, public view privacy, RPC 보안 속성, Edge 전용 RPC 권한, 중복 방지 index를 정적으로 검사한다. Google auth DB 전용 검증은 `dart run tool/validate_google_auth_database.dart`, RLS 정책/테스트 SQL 검증은 `dart run tool/security/check_auth_rls_policies.dart`를 사용한다.
