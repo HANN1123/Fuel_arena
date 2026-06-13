@@ -339,7 +339,6 @@
 - Replace local staging legal URL placeholders with real HTTPS legal document URLs before release.
 - Create production Android OAuth credentials from release signing fingerprints.
 - Use a separate staging Supabase project/branch before broader release-grade testing; the connected project is still labeled `main PRODUCTION`.
-
 ## 2026-06-13 Genesis/Renault/KGM Official Lineup Continued
 
 ### Completed

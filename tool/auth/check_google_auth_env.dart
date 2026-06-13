@@ -9,41 +9,23 @@ void main(List<String> args) {
     }
   }
 
-  print('Checking .env file validation for mode: $envMode');
+  print('Checking auth environment validation for mode: $envMode');
 
-  final envFile = File('.env');
-  if (!envFile.existsSync()) {
-    print('[ERROR] .env file does not exist in the root directory.');
+  final envMap = _loadEnvFiles(envMode);
+  if (envMap.isEmpty) {
+    print('[ERROR] No environment values found in .env or .env.$envMode.');
     exit(1);
   }
 
-  final lines = envFile.readAsLinesSync();
-  final Map<String, String> envMap = {};
-
-  for (final line in lines) {
-    final trimmed = line.trim();
-    if (trimmed.isEmpty || trimmed.startsWith('#')) {
-      continue;
-    }
-    final parts = trimmed.split('=');
-    if (parts.length >= 2) {
-      final key = parts[0].trim();
-      final value = parts.sublist(1).join('=').trim();
-      envMap[key] = value;
-    }
-  }
-
-  // Security Hygiene Scans:
-  // 1. Client Secret
   for (final key in envMap.keys) {
     final lowerKey = key.toLowerCase();
     if (lowerKey.contains('secret') || lowerKey.contains('private_key')) {
       print(
-          '[ERROR] Sensitive Client Secret or Private Key found in .env: $key');
+          '[ERROR] Sensitive Client Secret or Private Key found in env key: $key');
       exit(1);
     }
     if (lowerKey.contains('service_role') || lowerKey.contains('service_key')) {
-      print('[ERROR] Sensitive service_role key found in .env: $key');
+      print('[ERROR] Sensitive service_role key found in env key: $key');
       exit(1);
     }
   }
@@ -60,7 +42,12 @@ void main(List<String> args) {
   final bool allowStagingMock = envMap['STAGING_ALLOW_MOCK_AUTH'] == 'true';
 
   if (envMode == 'production') {
+    if (envMap['STAGING_ALLOW_MOCK_AUTH'] == 'true') {
+      print('[ERROR] STAGING_ALLOW_MOCK_AUTH must not be true for production.');
+      exit(1);
+    }
     final prodKeys = [
+      'APP_ENV',
       'SUPABASE_URL_PRODUCTION',
       'SUPABASE_ANON_KEY_PRODUCTION',
       'GOOGLE_WEB_CLIENT_ID_PRODUCTION',
@@ -68,18 +55,28 @@ void main(List<String> args) {
       'GOOGLE_IOS_CLIENT_ID_PRODUCTION',
       'GOOGLE_SERVER_CLIENT_ID_PRODUCTION',
       'GOOGLE_REVERSED_IOS_CLIENT_ID_PRODUCTION',
+      'AUTH_REDIRECT_SCHEME',
+      'AUTH_REDIRECT_HOST',
+      'TERMS_OF_SERVICE_URL',
+      'PRIVACY_POLICY_URL',
+      'LOCATION_POLICY_URL',
     ];
     for (final key in prodKeys) {
       final val = envMap[key];
       if (val == null || val.isEmpty) {
-        print('[ERROR] Missing required production key in .env: $key');
+        print('[ERROR] Missing required production key in env files: $key');
         exit(1);
       }
     }
+    _validateEnvironmentName(envMap, 'production');
+    _validateSupabaseUrl(envMap, 'PRODUCTION');
+    _validateRedirect(envMap);
     _validateClientIds(envMap, 'PRODUCTION');
   } else if (envMode == 'staging') {
     if (!allowStagingMock) {
       final stagingKeys = [
+        'APP_ENV',
+        'STAGING_ALLOW_MOCK_AUTH',
         'SUPABASE_URL_STAGING',
         'SUPABASE_ANON_KEY_STAGING',
         'GOOGLE_WEB_CLIENT_ID_STAGING',
@@ -87,14 +84,22 @@ void main(List<String> args) {
         'GOOGLE_IOS_CLIENT_ID_STAGING',
         'GOOGLE_SERVER_CLIENT_ID_STAGING',
         'GOOGLE_REVERSED_IOS_CLIENT_ID_STAGING',
+        'AUTH_REDIRECT_SCHEME',
+        'AUTH_REDIRECT_HOST',
+        'TERMS_OF_SERVICE_URL',
+        'PRIVACY_POLICY_URL',
+        'LOCATION_POLICY_URL',
       ];
       for (final key in stagingKeys) {
         final val = envMap[key];
         if (val == null || val.isEmpty) {
-          print('[ERROR] Missing required staging key in .env: $key');
+          print('[ERROR] Missing required staging key in env files: $key');
           exit(1);
         }
       }
+      _validateEnvironmentName(envMap, 'staging');
+      _validateSupabaseUrl(envMap, 'STAGING');
+      _validateRedirect(envMap);
       _validateClientIds(envMap, 'STAGING');
     } else {
       print(
@@ -108,6 +113,64 @@ void main(List<String> args) {
   }
 
   print('[SUCCESS] Environment variables validation check passed.');
+}
+
+Map<String, String> _loadEnvFiles(String envMode) {
+  final values = <String, String>{};
+  void readFile(String path) {
+    final envFile = File(path);
+    if (!envFile.existsSync()) {
+      return;
+    }
+    for (final line in envFile.readAsLinesSync()) {
+      final trimmed = line.trim();
+      if (trimmed.isEmpty || trimmed.startsWith('#')) {
+        continue;
+      }
+      final parts = trimmed.split('=');
+      if (parts.length >= 2) {
+        final key = parts[0].trim();
+        final value = parts.sublist(1).join('=').trim();
+        values[key] = value;
+      }
+    }
+  }
+
+  readFile('.env');
+  if (envMode == 'staging' || envMode == 'production') {
+    readFile('.env.$envMode');
+  }
+  return values;
+}
+
+void _validateEnvironmentName(Map<String, String> envMap, String expected) {
+  if ((envMap['APP_ENV'] ?? '').trim().toLowerCase() != expected) {
+    print('[ERROR] APP_ENV must be $expected.');
+    exit(1);
+  }
+}
+
+void _validateSupabaseUrl(Map<String, String> envMap, String suffix) {
+  final key = 'SUPABASE_URL_$suffix';
+  final url = envMap[key] ?? '';
+  final uri = Uri.tryParse(url);
+  if (uri == null || uri.scheme != 'https' || uri.host.isEmpty) {
+    print('[ERROR] $key must be a valid https Supabase URL.');
+    exit(1);
+  }
+  if (!uri.host.endsWith('.supabase.co')) {
+    print('[ERROR] $key must point to a supabase.co project host.');
+    exit(1);
+  }
+}
+
+void _validateRedirect(Map<String, String> envMap) {
+  if (envMap['AUTH_REDIRECT_SCHEME'] != 'fuelarena' ||
+      envMap['AUTH_REDIRECT_HOST'] != 'login-callback') {
+    print(
+        '[ERROR] AUTH_REDIRECT_SCHEME/HOST must resolve to fuelarena://login-callback.');
+    exit(1);
+  }
 }
 
 void _validateClientIds(Map<String, String> envMap, String suffix,
