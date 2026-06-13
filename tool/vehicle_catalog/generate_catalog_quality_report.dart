@@ -485,7 +485,7 @@ class CatalogQualityReport {
       ..writeln(
           '- BMW Korea 가격표/제원표, 한국에너지공단/환경부 공개 데이터, 또는 운영자 검수 파일이 붙은 row만 verified로 승격한다.')
       ..writeln(
-          '- 1시리즈 F20/F40/F70, 2시리즈 쿠페 F22/G42, 3시리즈 F30/G20, 4시리즈 F32/G22 계열, 5시리즈 G30/G60, 7시리즈 G11/G70, X1/X3/X5/X7, i4/i5/iX/iX3 세대는 연결되어 있으며, 세부 파워트레인은 공식 출처별로 재수집한 뒤 verified로 승격한다.');
+          '- 1시리즈 F20/F40/F70, 2시리즈 쿠페 F22/G42, 3시리즈 F30/G20, 4시리즈 F32/G22 계열, 5시리즈 F10/G30/G60, 7시리즈 G11/G70, X1/X3/X5/X7, i4/i5/iX/iX3 세대는 연결되어 있으며, 세부 파워트레인은 공식 출처별로 재수집한 뒤 verified로 승격한다.');
 
     return buffer.toString();
   }

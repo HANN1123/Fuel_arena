@@ -3375,6 +3375,38 @@
   ],
   "generations": [
     {
+      "id": "generation-hyundai-avante-ad",
+      "model_id": "model-hyundai-001-kr",
+      "generation_order": 6,
+      "generation_name_ko": "6세대",
+      "generation_name_en": "Sixth generation",
+      "generation_code": "AD",
+      "platform_code": "AD",
+      "start_year": 2015,
+      "start_month": null,
+      "end_year": 2020,
+      "end_month": 4,
+      "display_period": "2015~2020.4",
+      "is_current": false,
+      "is_upcoming": false,
+      "market_region": "KR",
+      "source_status": "verified_admin",
+      "confidence_score": 0.68,
+      "source_name": "Hyundai Motor official Avante history and software version list",
+      "source_url": "https://update.hyundai.com/KR/KO/updateNoticeView/software-version",
+      "source_file_name": null,
+      "last_verified_at": "2026-06-13",
+      "is_selectable": true,
+      "is_deprecated": false,
+      "model_year_ids": [
+        "year-hyundai-001-kr-2015",
+        "year-hyundai-001-kr-2016",
+        "year-hyundai-001-kr-2017",
+        "year-hyundai-001-kr-2018",
+        "year-hyundai-001-kr-2019"
+      ]
+    },
+    {
       "id": "generation-hyundai-avante-cn7",
       "model_id": "model-hyundai-001-kr",
       "generation_order": 7,
@@ -12879,6 +12911,35 @@
       ]
     },
     {
+      "id": "generation-bmw-5series-f10",
+      "model_id": "model-bmw-055-5",
+      "generation_order": 6,
+      "generation_name_ko": "6세대",
+      "generation_name_en": "Sixth generation",
+      "generation_code": "F10 LCI",
+      "platform_code": "F10",
+      "start_year": 2015,
+      "start_month": null,
+      "end_year": 2016,
+      "end_month": null,
+      "display_period": "2015~2016",
+      "is_current": false,
+      "is_upcoming": false,
+      "market_region": "KR",
+      "source_status": "verified_admin",
+      "confidence_score": 0.66,
+      "source_name": "BMW Korea PressClub F10 LCI 5 Series release",
+      "source_url": "https://www.press.bmwgroup.com/korea/article/detail/T0233602KO/bmw-%EC%BD%94%EB%A6%AC%EC%95%84-520d-m-%EC%97%90%EC%96%B4%EB%A1%9C%EB%8B%A4%EC%9D%B4%EB%82%B4%EB%AF%B9-%EC%8A%A4%ED%8E%98%EC%85%9C-%EC%97%90%EB%94%94%EC%85%98-%EC%B6%9C%EC%8B%9C?language=ko",
+      "source_file_name": null,
+      "last_verified_at": "2026-06-13",
+      "is_selectable": true,
+      "is_deprecated": false,
+      "model_year_ids": [
+        "year-bmw-055-5-2015",
+        "year-bmw-055-5-2016"
+      ]
+    },
+    {
       "id": "generation-bmw-5series-g30",
       "model_id": "model-bmw-055-5",
       "generation_order": 7,
@@ -13390,6 +13451,36 @@
       ]
     },
     {
+      "id": "generation-kia-k3-yd",
+      "model_id": "model-kia-013-k3",
+      "generation_order": 1,
+      "generation_name_ko": "1세대",
+      "generation_name_en": "First generation",
+      "generation_code": "YD",
+      "platform_code": "YD",
+      "start_year": 2015,
+      "start_month": null,
+      "end_year": 2018,
+      "end_month": 2,
+      "display_period": "2015~2018.2",
+      "is_current": false,
+      "is_upcoming": false,
+      "market_region": "KR",
+      "source_status": "verified_admin",
+      "confidence_score": 0.66,
+      "source_name": "Kia official software version list",
+      "source_url": "https://update.kia.com/KR/KO/updateNoticeView/software-version",
+      "source_file_name": null,
+      "last_verified_at": "2026-06-13",
+      "is_selectable": true,
+      "is_deprecated": false,
+      "model_year_ids": [
+        "year-kia-013-k3-2015",
+        "year-kia-013-k3-2016",
+        "year-kia-013-k3-2017"
+      ]
+    },
+    {
       "id": "generation-kia-k3-bd",
       "model_id": "model-kia-013-k3",
       "generation_order": 2,
@@ -13477,27 +13568,37 @@
     {
       "id": "year-hyundai-001-kr-2019",
       "model_id": "model-hyundai-001-kr",
-      "year": 2019
+      "year": 2019,
+      "generation_id": "generation-hyundai-avante-ad",
+      "production_year_label": "2015~2020.4"
     },
     {
       "id": "year-hyundai-001-kr-2018",
       "model_id": "model-hyundai-001-kr",
-      "year": 2018
+      "year": 2018,
+      "generation_id": "generation-hyundai-avante-ad",
+      "production_year_label": "2015~2020.4"
     },
     {
       "id": "year-hyundai-001-kr-2017",
       "model_id": "model-hyundai-001-kr",
-      "year": 2017
+      "year": 2017,
+      "generation_id": "generation-hyundai-avante-ad",
+      "production_year_label": "2015~2020.4"
     },
     {
       "id": "year-hyundai-001-kr-2016",
       "model_id": "model-hyundai-001-kr",
-      "year": 2016
+      "year": 2016,
+      "generation_id": "generation-hyundai-avante-ad",
+      "production_year_label": "2015~2020.4"
     },
     {
       "id": "year-hyundai-001-kr-2015",
       "model_id": "model-hyundai-001-kr",
-      "year": 2015
+      "year": 2015,
+      "generation_id": "generation-hyundai-avante-ad",
+      "production_year_label": "2015~2020.4"
     },
     {
       "id": "year-hyundai-avante-n-kr-2026",
@@ -14377,17 +14478,23 @@
     {
       "id": "year-kia-013-k3-2017",
       "model_id": "model-kia-013-k3",
-      "year": 2017
+      "year": 2017,
+      "generation_id": "generation-kia-k3-yd",
+      "production_year_label": "2015~2018.2"
     },
     {
       "id": "year-kia-013-k3-2016",
       "model_id": "model-kia-013-k3",
-      "year": 2016
+      "year": 2016,
+      "generation_id": "generation-kia-k3-yd",
+      "production_year_label": "2015~2018.2"
     },
     {
       "id": "year-kia-013-k3-2015",
       "model_id": "model-kia-013-k3",
-      "year": 2015
+      "year": 2015,
+      "generation_id": "generation-kia-k3-yd",
+      "production_year_label": "2015~2018.2"
     },
     {
       "id": "year-kia-014-k5-2026",
@@ -17311,12 +17418,16 @@
     {
       "id": "year-bmw-055-5-2016",
       "model_id": "model-bmw-055-5",
-      "year": 2016
+      "year": 2016,
+      "generation_id": "generation-bmw-5series-f10",
+      "production_year_label": "2015~2016"
     },
     {
       "id": "year-bmw-055-5-2015",
       "model_id": "model-bmw-055-5",
-      "year": 2015
+      "year": 2015,
+      "generation_id": "generation-bmw-5series-f10",
+      "production_year_label": "2015~2016"
     },
     {
       "id": "year-bmw-056-7-2026",
@@ -25763,6 +25874,7 @@
     {
       "id": "variant-hyundai-avante-2019-gasoline",
       "model_year_id": "year-hyundai-001-kr-2019",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2019,
@@ -25787,6 +25899,7 @@
     {
       "id": "variant-hyundai-avante-2019-hybrid",
       "model_year_id": "year-hyundai-001-kr-2019",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2019,
@@ -25811,6 +25924,7 @@
     {
       "id": "variant-hyundai-avante-2019-lpi",
       "model_year_id": "year-hyundai-001-kr-2019",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2019,
@@ -25835,6 +25949,7 @@
     {
       "id": "variant-hyundai-avante-2018-gasoline",
       "model_year_id": "year-hyundai-001-kr-2018",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2018,
@@ -25859,6 +25974,7 @@
     {
       "id": "variant-hyundai-avante-2018-hybrid",
       "model_year_id": "year-hyundai-001-kr-2018",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2018,
@@ -25883,6 +25999,7 @@
     {
       "id": "variant-hyundai-avante-2018-lpi",
       "model_year_id": "year-hyundai-001-kr-2018",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2018,
@@ -25907,6 +26024,7 @@
     {
       "id": "variant-hyundai-avante-2017-gasoline",
       "model_year_id": "year-hyundai-001-kr-2017",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2017,
@@ -25931,6 +26049,7 @@
     {
       "id": "variant-hyundai-avante-2017-hybrid",
       "model_year_id": "year-hyundai-001-kr-2017",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2017,
@@ -25955,6 +26074,7 @@
     {
       "id": "variant-hyundai-avante-2017-lpi",
       "model_year_id": "year-hyundai-001-kr-2017",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2017,
@@ -25979,6 +26099,7 @@
     {
       "id": "variant-hyundai-avante-2016-gasoline",
       "model_year_id": "year-hyundai-001-kr-2016",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2016,
@@ -26003,6 +26124,7 @@
     {
       "id": "variant-hyundai-avante-2016-hybrid",
       "model_year_id": "year-hyundai-001-kr-2016",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2016,
@@ -26027,6 +26149,7 @@
     {
       "id": "variant-hyundai-avante-2016-lpi",
       "model_year_id": "year-hyundai-001-kr-2016",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2016,
@@ -26051,6 +26174,7 @@
     {
       "id": "variant-hyundai-avante-2015-gasoline",
       "model_year_id": "year-hyundai-001-kr-2015",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2015,
@@ -26075,6 +26199,7 @@
     {
       "id": "variant-hyundai-avante-2015-hybrid",
       "model_year_id": "year-hyundai-001-kr-2015",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2015,
@@ -26099,6 +26224,7 @@
     {
       "id": "variant-hyundai-avante-2015-lpi",
       "model_year_id": "year-hyundai-001-kr-2015",
+      "generation_id": "generation-hyundai-avante-ad",
       "manufacturer_name": "현대",
       "model_name": "아반떼",
       "year": 2015,
@@ -33308,6 +33434,7 @@
     {
       "id": "variant-kia-k3-2017-16-gdi-6at",
       "model_year_id": "year-kia-013-k3-2017",
+      "generation_id": "generation-kia-k3-yd",
       "manufacturer_name": "기아",
       "model_name": "K3",
       "year": 2017,
@@ -33332,6 +33459,7 @@
     {
       "id": "variant-kia-k3-2017-16-diesel-7dct",
       "model_year_id": "year-kia-013-k3-2017",
+      "generation_id": "generation-kia-k3-yd",
       "manufacturer_name": "기아",
       "model_name": "K3",
       "year": 2017,
@@ -33356,6 +33484,7 @@
     {
       "id": "variant-kia-k3-2016-16-gdi-6at",
       "model_year_id": "year-kia-013-k3-2016",
+      "generation_id": "generation-kia-k3-yd",
       "manufacturer_name": "기아",
       "model_name": "K3",
       "year": 2016,
@@ -33380,6 +33509,7 @@
     {
       "id": "variant-kia-k3-2016-16-diesel-7dct",
       "model_year_id": "year-kia-013-k3-2016",
+      "generation_id": "generation-kia-k3-yd",
       "manufacturer_name": "기아",
       "model_name": "K3",
       "year": 2016,
@@ -33404,6 +33534,7 @@
     {
       "id": "variant-kia-k3-2015-16-gdi-6at",
       "model_year_id": "year-kia-013-k3-2015",
+      "generation_id": "generation-kia-k3-yd",
       "manufacturer_name": "기아",
       "model_name": "K3",
       "year": 2015,
@@ -51049,6 +51180,7 @@
     {
       "id": "variant-bmw-055-5-2016-gasoline",
       "model_year_id": "year-bmw-055-5-2016",
+      "generation_id": "generation-bmw-5series-f10",
       "manufacturer_name": "BMW",
       "model_name": "5시리즈",
       "year": 2016,
@@ -51073,6 +51205,7 @@
     {
       "id": "variant-bmw-055-5-2016-diesel",
       "model_year_id": "year-bmw-055-5-2016",
+      "generation_id": "generation-bmw-5series-f10",
       "manufacturer_name": "BMW",
       "model_name": "5시리즈",
       "year": 2016,
@@ -51097,6 +51230,7 @@
     {
       "id": "variant-bmw-055-5-2016-plug_in_hybrid",
       "model_year_id": "year-bmw-055-5-2016",
+      "generation_id": "generation-bmw-5series-f10",
       "manufacturer_name": "BMW",
       "model_name": "5시리즈",
       "year": 2016,
@@ -51121,6 +51255,7 @@
     {
       "id": "variant-bmw-055-5-2015-gasoline",
       "model_year_id": "year-bmw-055-5-2015",
+      "generation_id": "generation-bmw-5series-f10",
       "manufacturer_name": "BMW",
       "model_name": "5시리즈",
       "year": 2015,
@@ -51145,6 +51280,7 @@
     {
       "id": "variant-bmw-055-5-2015-diesel",
       "model_year_id": "year-bmw-055-5-2015",
+      "generation_id": "generation-bmw-5series-f10",
       "manufacturer_name": "BMW",
       "model_name": "5시리즈",
       "year": 2015,
@@ -51169,6 +51305,7 @@
     {
       "id": "variant-bmw-055-5-2015-plug_in_hybrid",
       "model_year_id": "year-bmw-055-5-2015",
+      "generation_id": "generation-bmw-5series-f10",
       "manufacturer_name": "BMW",
       "model_name": "5시리즈",
       "year": 2015,
@@ -91033,23 +91170,54 @@
       "manufacturer_name": "지프",
       "model_name": "랭글러",
       "year": 2026,
-      "trim_name": "공식 제원 검수 대기",
-      "engine_name": "Pending official specification review",
+      "trim_name": "Wrangler",
+      "engine_name": "Pending official Wrangler specification review",
       "fuel_type": "가솔린",
       "displacement_cc": null,
       "battery_kwh": null,
-      "drivetrain": "검수 대기",
-      "transmission": "검수 대기",
+      "drivetrain": "review pending",
+      "transmission": "review pending",
       "official_efficiency": null,
       "efficiency_unit": "km/L",
       "vehicle_class": "SUV",
       "fuel_league": "gasoline",
       "is_verified": false,
       "source_status": "pending_review",
-      "confidence_score": 0.1,
+      "source_name": "Jeep Korea official Wrangler page",
+      "source_url": "https://www.jeep.co.kr/wrangler.html",
+      "last_verified_at": "2026-06-13",
+      "confidence_score": 0.58,
       "is_selectable": false,
       "is_deprecated": false,
       "sort_order": 10
+    },
+    {
+      "id": "variant-jeep-wrangler-2026-trail-hunt-pending",
+      "model_year_id": "year-jeep-152-kr-2026",
+      "generation_id": "generation-jeep-wrangler-official-lineup",
+      "manufacturer_name": "지프",
+      "model_name": "랭글러",
+      "year": 2026,
+      "trim_name": "Wrangler Trail Hunt Edition",
+      "engine_name": "Pending official Wrangler Trail Hunt Edition specification review",
+      "fuel_type": "가솔린",
+      "displacement_cc": null,
+      "battery_kwh": null,
+      "drivetrain": "review pending",
+      "transmission": "review pending",
+      "official_efficiency": null,
+      "efficiency_unit": "km/L",
+      "vehicle_class": "SUV",
+      "fuel_league": "gasoline",
+      "is_verified": false,
+      "source_status": "pending_review",
+      "source_name": "Jeep Korea official Wrangler Trail Hunt Edition page",
+      "source_url": "https://www.jeep.co.kr/JL/wrangler/edition.html",
+      "last_verified_at": "2026-06-13",
+      "confidence_score": 0.62,
+      "is_selectable": false,
+      "is_deprecated": false,
+      "sort_order": 11
     },
     {
       "id": "variant-jeep-152-kr-2026-plug_in_hybrid",

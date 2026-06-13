@@ -849,3 +849,66 @@
 ### Remaining
 - Continue official homepage sweeps for remaining hidden body-style/performance/taxi/commercial cards, but keep card-like trim/body variants under existing models unless the manufacturer exposes a clearly separate model identity and row-level source.
 - Promote Kia card rows only after official row-level fuel economy/displacement/battery evidence is attached.
+
+## 2026-06-13 Generation Link Backlog Cleanup Continued
+
+### Completed
+- Re-checked official generation/code evidence for the remaining variant rows that lacked explicit `generation_id`.
+- Confirmed Hyundai Motor official Avante History plus Hyundai AutoEver software version list evidence for Avante AD/CN7 boundaries; added `generation-hyundai-avante-ad` for 2015-2019 model years.
+- Confirmed Kia official software version list evidence for K3 YD/BD boundaries; added `generation-kia-k3-yd` for 2015-2017 model years while keeping K3 GT under K3, not as a standalone model.
+- Confirmed BMW Korea PressClub `F10 LCI` 5 Series evidence; added `generation-bmw-5series-f10` for 2015-2016 model years.
+- Updated `supabase/migrations/202606130033_generation_link_backlog_cleanup.sql`, generator seeds, generation import template, JSON catalog, Supabase seed SQL, and generated coverage/BMW audit docs.
+- Kept all affected powertrain rows at their existing verification boundary: no row was promoted to `verified_official` or `is_selectable=true`; BMW 5시리즈 rows remain `pending_review`, `is_selectable=false`.
+- Current quality report: 22 manufacturers / 255 models / 313 generations / 1689 years / 2850 variants; models without generation 0; powertrains without generation 0; P0 failures 0.
+
+### Verification
+- `dart format tool/generate_vehicle_catalog_seed.dart tool/vehicle_catalog/generate_catalog_quality_report.dart`: PASS
+- `flutter pub get`: PASS
+- `dart run tool/generate_vehicle_catalog_seed.dart`: PASS, 22 manufacturers / 255 models / 1689 years / 2850 variants; JSON spot-check found 313 generations and 0 variants without `generation_id`
+- `dart run tool/import_vehicle_catalog.dart --in assets/data/vehicle_catalog_kr_seed.json --out supabase/seed_vehicle_catalog.sql`: PASS
+- `dart run tool/validate_vehicle_catalog.dart`: PASS, 22 manufacturers / 255 models / 313 generations / 1689 years / 2850 variants
+- `dart run tool/vehicle_catalog/validate_vehicle_catalog.dart`: PASS
+- `dart run tool/validate_supabase_schema.dart`: PASS, 1043 checks
+- `dart run tool/vehicle_catalog/generate_catalog_quality_report.dart --fail-on-p0 --write-docs`: PASS, verified 51 / pending_review 2799 / models without generation 0 / powertrains without generation 0 / P0 failures 0
+- `dart run tool/vehicle_catalog/import_vehicle_generations.dart --generations assets/data/vehicle_catalog_sources/generation_template.csv --powertrains assets/data/vehicle_catalog_sources/powertrain_generation_template.csv --dry-run`: PASS, inserted generations 2 / updated generations 311 / linked model years 2 / linked variants 2 / powertrain links 2
+- `dart run tool/validate_product_invariants.dart`: PASS, 1933 checks
+- `python tool/validate_secret_hygiene.py`: PASS
+- `dart run tool/security/scan_secrets.dart`: PASS
+- `flutter analyze`: PASS, no issues found
+- `flutter test`: PASS, all 227 tests passed
+- `git diff --check`: PASS, CRLF normalization warnings only
+
+### Remaining
+- Continue manufacturer-by-manufacturer official specification audits before promoting any pending placeholder powertrain to `verified_official`.
+- Keep official homepage/card-only rows non-selectable until row-level domestic fuel economy, displacement, battery, and drivetrain evidence is attached.
+
+## 2026-06-13 Jeep Wrangler Trail Hunt Official Card Continued
+
+### Completed
+- Re-checked Jeep Korea official home, Wrangler, and Wrangler Trail Hunt Edition pages.
+- Confirmed `WRANGLER TRAIL HUNT EDITION` is an official Wrangler edition/card, not a standalone model group.
+- Added `variant-jeep-wrangler-2026-trail-hunt-pending` under existing `model-jeep-152-kr` / `year-jeep-152-kr-2026` / `generation-jeep-wrangler-official-lineup`.
+- Updated the base `variant-jeep-152-kr-2026-gasoline` placeholder with official Wrangler page source metadata.
+- Kept both Wrangler gasoline rows `pending_review`, `is_selectable=false`, `is_verified=false`, with null displacement, battery, and official efficiency because only official card/page-level evidence was found.
+- Added migration `supabase/migrations/202606130034_jeep_trail_hunt_official_card_placeholder.sql` and validator guards preventing Trail Hunt from becoming a standalone model row.
+
+### Verification
+- `dart format tool/generate_vehicle_catalog_seed.dart tool/vehicle_catalog/validate_vehicle_catalog.dart tool/validate_vehicle_catalog.dart`: PASS
+- `flutter pub get`: PASS
+- `dart run tool/generate_vehicle_catalog_seed.dart`: PASS, 22 manufacturers / 255 models / 1689 years / 2851 variants
+- `dart run tool/import_vehicle_catalog.dart --in assets/data/vehicle_catalog_kr_seed.json --out supabase/seed_vehicle_catalog.sql`: PASS
+- `dart run tool/validate_vehicle_catalog.dart`: PASS, 22 manufacturers / 255 models / 313 generations / 1689 years / 2851 variants
+- `dart run tool/vehicle_catalog/validate_vehicle_catalog.dart`: PASS, 22 manufacturers / 255 models / 313 generations / 1689 years / 2851 variants
+- `dart run tool/validate_supabase_schema.dart`: PASS, 1043 checks
+- `dart run tool/vehicle_catalog/generate_catalog_quality_report.dart --fail-on-p0 --write-docs`: PASS, verified 51 / pending_review 2800 / models without generation 0 / powertrains without generation 0 / P0 failures 0
+- `dart run tool/vehicle_catalog/import_vehicle_generations.dart --generations assets/data/vehicle_catalog_sources/generation_template.csv --powertrains assets/data/vehicle_catalog_sources/powertrain_generation_template.csv --dry-run`: PASS, inserted generations 2 / updated generations 311 / linked model years 2 / linked variants 2 / powertrain links 2
+- `dart run tool/validate_product_invariants.dart`: PASS, 1933 checks
+- `python tool/validate_secret_hygiene.py`: PASS
+- `dart run tool/security/scan_secrets.dart`: PASS
+- `flutter analyze`: PASS, no issues found
+- `flutter test`: PASS, all 227 tests passed
+- `git diff --check`: PASS, CRLF normalization warnings only
+- JSON spot-check: PASS, Trail Hunt exists only as `variant-jeep-wrangler-2026-trail-hunt-pending`; no Trail Hunt standalone model row exists.
+
+### Remaining
+- Continue Jeep/Porsche official row-level specification audits before promoting any Jeep or Porsche placeholder to `verified_official`.

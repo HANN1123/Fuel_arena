@@ -1,4 +1,4 @@
--- Generated from assets\data\vehicle_catalog_kr_seed.json
+-- Generated from assets/data/vehicle_catalog_kr_seed.json
 -- official_efficiency is intentionally null when official data has not been verified.
 begin;
 
@@ -4621,7 +4621,8 @@ values
   ('variant-jeep-151-kr-2017-gasoline', 'year-jeep-151-kr-2017', '공식 제원 검수 대기', 'Pending official specification review', '가솔린', null, null, '검수 대기', '검수 대기', null, 'km/L', 'SUV', 'gasoline', false, 10),
   ('variant-jeep-151-kr-2016-gasoline', 'year-jeep-151-kr-2016', '공식 제원 검수 대기', 'Pending official specification review', '가솔린', null, null, '검수 대기', '검수 대기', null, 'km/L', 'SUV', 'gasoline', false, 10),
   ('variant-jeep-151-kr-2015-gasoline', 'year-jeep-151-kr-2015', '공식 제원 검수 대기', 'Pending official specification review', '가솔린', null, null, '검수 대기', '검수 대기', null, 'km/L', 'SUV', 'gasoline', false, 10),
-  ('variant-jeep-152-kr-2026-gasoline', 'year-jeep-152-kr-2026', '공식 제원 검수 대기', 'Pending official specification review', '가솔린', null, null, '검수 대기', '검수 대기', null, 'km/L', 'SUV', 'gasoline', false, 10),
+  ('variant-jeep-152-kr-2026-gasoline', 'year-jeep-152-kr-2026', 'Wrangler', 'Pending official Wrangler specification review', '가솔린', null, null, 'review pending', 'review pending', null, 'km/L', 'SUV', 'gasoline', false, 10),
+  ('variant-jeep-wrangler-2026-trail-hunt-pending', 'year-jeep-152-kr-2026', 'Wrangler Trail Hunt Edition', 'Pending official Wrangler Trail Hunt Edition specification review', '가솔린', null, null, 'review pending', 'review pending', null, 'km/L', 'SUV', 'gasoline', false, 11),
   ('variant-jeep-152-kr-2026-plug_in_hybrid', 'year-jeep-152-kr-2026', '공식 제원 검수 대기', 'Pending official specification review', '플러그인 하이브리드', null, null, '검수 대기', '검수 대기', null, 'km/L', 'SUV', 'plug_in_hybrid', false, 60),
   ('variant-jeep-152-kr-2025-gasoline', 'year-jeep-152-kr-2025', '공식 제원 검수 대기', 'Pending official specification review', '가솔린', null, null, '검수 대기', '검수 대기', null, 'km/L', 'SUV', 'gasoline', false, 10),
   ('variant-jeep-152-kr-2025-plug_in_hybrid', 'year-jeep-152-kr-2025', '공식 제원 검수 대기', 'Pending official specification review', '플러그인 하이브리드', null, null, '검수 대기', '검수 대기', null, 'km/L', 'SUV', 'plug_in_hybrid', false, 60),

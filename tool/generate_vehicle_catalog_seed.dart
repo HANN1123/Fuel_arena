@@ -248,6 +248,37 @@ String _csvEscape(Object? value) {
 List<Map<String, Object?>> _generationSeeds() {
   return [
     {
+      'id': 'generation-hyundai-avante-ad',
+      'model_id': 'model-hyundai-001-kr',
+      'generation_order': 6,
+      'generation_name_ko': '6세대',
+      'generation_name_en': 'Sixth generation',
+      'generation_code': 'AD',
+      'platform_code': 'AD',
+      'start_year': 2015,
+      'start_month': null,
+      'end_year': 2020,
+      'end_month': 4,
+      'display_period': '2015~2020.4',
+      'is_current': false,
+      'is_upcoming': false,
+      'market_region': 'KR',
+      'source_status': 'verified_admin',
+      'confidence_score': 0.68,
+      'source_name':
+          'Hyundai Motor official Avante history and software version list',
+      'source_url':
+          'https://update.hyundai.com/KR/KO/updateNoticeView/software-version',
+      'source_file_name': null,
+      'last_verified_at': '2026-06-13',
+      'is_selectable': true,
+      'is_deprecated': false,
+      'model_year_ids': [
+        for (var year = 2015; year <= 2019; year += 1)
+          'year-hyundai-001-kr-$year',
+      ],
+    },
+    {
       'id': 'generation-hyundai-avante-cn7',
       'model_id': 'model-hyundai-001-kr',
       'generation_order': 7,
@@ -937,6 +968,35 @@ List<Map<String, Object?>> _generationSeeds() {
       ],
     },
     {
+      'id': 'generation-bmw-5series-f10',
+      'model_id': 'model-bmw-055-5',
+      'generation_order': 6,
+      'generation_name_ko': '6세대',
+      'generation_name_en': 'Sixth generation',
+      'generation_code': 'F10 LCI',
+      'platform_code': 'F10',
+      'start_year': 2015,
+      'start_month': null,
+      'end_year': 2016,
+      'end_month': null,
+      'display_period': '2015~2016',
+      'is_current': false,
+      'is_upcoming': false,
+      'market_region': 'KR',
+      'source_status': 'verified_admin',
+      'confidence_score': 0.66,
+      'source_name': 'BMW Korea PressClub F10 LCI 5 Series release',
+      'source_url':
+          'https://www.press.bmwgroup.com/korea/article/detail/T0233602KO/bmw-%EC%BD%94%EB%A6%AC%EC%95%84-520d-m-%EC%97%90%EC%96%B4%EB%A1%9C%EB%8B%A4%EC%9D%B4%EB%82%B4%EB%AF%B9-%EC%8A%A4%ED%8E%98%EC%85%9C-%EC%97%90%EB%94%94%EC%85%98-%EC%B6%9C%EC%8B%9C?language=ko',
+      'source_file_name': null,
+      'last_verified_at': '2026-06-13',
+      'is_selectable': true,
+      'is_deprecated': false,
+      'model_year_ids': [
+        for (var year = 2015; year <= 2016; year += 1) 'year-bmw-055-5-$year',
+      ],
+    },
+    {
       'id': 'generation-bmw-5series-g30',
       'model_id': 'model-bmw-055-5',
       'generation_order': 7,
@@ -1396,6 +1456,35 @@ List<Map<String, Object?>> _generationSeeds() {
       'is_deprecated': false,
       'model_year_ids': [
         for (var year = 2022; year <= 2026; year += 1) 'year-bmw-064-ix3-$year',
+      ],
+    },
+    {
+      'id': 'generation-kia-k3-yd',
+      'model_id': 'model-kia-013-k3',
+      'generation_order': 1,
+      'generation_name_ko': '1세대',
+      'generation_name_en': 'First generation',
+      'generation_code': 'YD',
+      'platform_code': 'YD',
+      'start_year': 2015,
+      'start_month': null,
+      'end_year': 2018,
+      'end_month': 2,
+      'display_period': '2015~2018.2',
+      'is_current': false,
+      'is_upcoming': false,
+      'market_region': 'KR',
+      'source_status': 'verified_admin',
+      'confidence_score': 0.66,
+      'source_name': 'Kia official software version list',
+      'source_url':
+          'https://update.kia.com/KR/KO/updateNoticeView/software-version',
+      'source_file_name': null,
+      'last_verified_at': '2026-06-13',
+      'is_selectable': true,
+      'is_deprecated': false,
+      'model_year_ids': [
+        for (var year = 2015; year <= 2017; year += 1) 'year-kia-013-k3-$year',
       ],
     },
     {
@@ -5477,6 +5566,9 @@ String? _generationIdFor(String modelId, int year) {
   if (modelId == 'model-hyundai-001-kr' && year >= 2020 && year <= 2026) {
     return 'generation-hyundai-avante-cn7';
   }
+  if (modelId == 'model-hyundai-001-kr' && year >= 2015 && year <= 2019) {
+    return 'generation-hyundai-avante-ad';
+  }
   if (modelId == 'model-hyundai-009-5' && year >= 2021 && year <= 2026) {
     return 'generation-hyundai-ioniq5-ne';
   }
@@ -5720,6 +5812,9 @@ String? _generationIdFor(String modelId, int year) {
   if (modelId == 'model-kia-013-k3' && year >= 2018 && year <= 2024) {
     return 'generation-kia-k3-bd';
   }
+  if (modelId == 'model-kia-013-k3' && year >= 2015 && year <= 2017) {
+    return 'generation-kia-k3-yd';
+  }
   if (modelId == 'model-kia-014-k5' && year >= 2015 && year <= 2018) {
     return 'generation-kia-k5-jf';
   }
@@ -5951,6 +6046,9 @@ String? _generationIdFor(String modelId, int year) {
   if (modelId == 'model-bmw-055-5' && year >= 2017 && year <= 2023) {
     return 'generation-bmw-5series-g30';
   }
+  if (modelId == 'model-bmw-055-5' && year >= 2015 && year <= 2016) {
+    return 'generation-bmw-5series-f10';
+  }
   if (modelId == 'model-bmw-055-5' && year >= 2024 && year <= 2026) {
     return 'generation-bmw-5series-g60';
   }
@@ -6005,6 +6103,7 @@ String _generationPeriodLabel(String generationId) {
     return remainingLabel;
   }
   return switch (generationId) {
+    'generation-hyundai-avante-ad' => '2015~2020.4',
     'generation-hyundai-avante-cn7' => '2020.4~현재',
     'generation-hyundai-ioniq5-ne' => '2021.2~현재',
     'generation-hyundai-ioniq6-ce' => '2022.7~현재',
@@ -6082,6 +6181,7 @@ String _generationPeriodLabel(String generationId) {
     'generation-volvo-ex30' => '2025~현재',
     'generation-volvo-ex90' => '2026~현재',
     'generation-volvo-v60-cross-country-spa' => '2018~현재',
+    'generation-kia-k3-yd' => '2015~2018.2',
     'generation-kia-k3-bd' => '2018.2~2024',
     'generation-kia-k5-jf' => '2015~2019',
     'generation-kia-k5-dl3' => '2019~현재',
@@ -6159,6 +6259,7 @@ String _generationPeriodLabel(String generationId) {
     'generation-bmw-3series-g20' => '2019.3~현재',
     'generation-bmw-4series-f32-f33-f36' => '2013.10~2020',
     'generation-bmw-4series-g22-g23-g26' => '2021.2~현재',
+    'generation-bmw-5series-f10' => '2015~2016',
     'generation-bmw-5series-g30' => '2017~2023',
     'generation-bmw-5series-g60' => '2023.10~현재',
     'generation-bmw-7series-g11-g12' => '2015.10~2022',
@@ -6413,6 +6514,13 @@ List<OfficialPowertrain> _officialOverrides(
     );
     if (landRoverOverrides.isNotEmpty) {
       return landRoverOverrides;
+    }
+    final jeepOverrides = _jeep2026OfficialPowertrains(
+      modelId,
+      fuelLeague,
+    );
+    if (jeepOverrides.isNotEmpty) {
+      return jeepOverrides;
     }
   }
   if (modelId == 'model-kia-013-k3' &&
@@ -8851,6 +8959,53 @@ List<OfficialPowertrain> _landRover2026OfficialPowertrains(
   }
 
   return const [];
+}
+
+List<OfficialPowertrain> _jeep2026OfficialPowertrains(
+  String modelId,
+  String fuelLeague,
+) {
+  if (modelId != 'model-jeep-152-kr' || fuelLeague != 'gasoline') {
+    return const [];
+  }
+
+  return const [
+    OfficialPowertrain(
+      id: 'variant-jeep-152-kr-2026-gasoline',
+      trimName: 'Wrangler',
+      engineName: 'Pending official Wrangler specification review',
+      drivetrain: 'review pending',
+      transmission: 'review pending',
+      officialEfficiency: null,
+      efficiencyUnit: 'km/L',
+      vehicleClass: 'SUV',
+      sourceStatus: 'pending_review',
+      sourceName: 'Jeep Korea official Wrangler page',
+      sourceUrl: 'https://www.jeep.co.kr/wrangler.html',
+      lastVerifiedAt: '2026-06-13',
+      confidenceScore: 0.58,
+      isSelectable: false,
+      sortOrder: 10,
+    ),
+    OfficialPowertrain(
+      id: 'variant-jeep-wrangler-2026-trail-hunt-pending',
+      trimName: 'Wrangler Trail Hunt Edition',
+      engineName:
+          'Pending official Wrangler Trail Hunt Edition specification review',
+      drivetrain: 'review pending',
+      transmission: 'review pending',
+      officialEfficiency: null,
+      efficiencyUnit: 'km/L',
+      vehicleClass: 'SUV',
+      sourceStatus: 'pending_review',
+      sourceName: 'Jeep Korea official Wrangler Trail Hunt Edition page',
+      sourceUrl: 'https://www.jeep.co.kr/JL/wrangler/edition.html',
+      lastVerifiedAt: '2026-06-13',
+      confidenceScore: 0.62,
+      isSelectable: false,
+      sortOrder: 11,
+    ),
+  ];
 }
 
 final _officialPowertrains = {

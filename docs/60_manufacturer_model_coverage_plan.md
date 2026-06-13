@@ -78,9 +78,9 @@
 ## 현재 known gaps
 
 - 모든 seed 모델은 세대 row에 연결되어 있고, 자동 리포트 기준 `models without generation = 0`이다. 다만 Volkswagen/Toyota/Lexus/Honda/Nissan/Tesla/Porsche/MINI/Peugeot/Jeep/Land Rover/Polestar의 다수 row는 아직 보수적 `공식 라인업` 세대이므로 세대 코드/플랫폼 코드/상세 powertrain 검증 전까지 `pending_review`로 유지한다.
-- BMW는 모든 seed 모델에 세대 row를 연결했고, 공식 모델 라인업에서 확인한 X2, X4, X6, XM, Z4, i7, iX1, iX2, i3에 더해 2시리즈 그란 쿠페, 8시리즈, M2, M3, M4, M5, M8, X5 M, X6 M을 2026 현재 공식 라인업 모델로 보강했다. 세부 파워트레인은 공식 제원 출처가 붙기 전까지 `pending_review`, `is_selectable=false`로 유지하고, placeholder 수치 제원은 비워 둔다.
-- 기아는 모든 seed 모델에 세대 row를 연결했다. K8, 셀토스, 니로, EV3, EV6, EV9의 출시 전 placeholder 연식은 seed에서 제거하고 Supabase legacy row는 deprecated/non-selectable로 낮춘다. EV4, EV5, PV5, 타스만은 Kia Korea 공식 모델/EV 라인업 페이지에서 확인한 2026 현재 모델 row로 추가했고, 상세 세대/파워트레인 제원 감사 전까지 `pending_review`, `is_selectable=false` placeholder를 유지한다. Kia EV/PBV/택시&상용 공식 카드의 EV3 GT, EV4 GT, EV5 GT, EV6 GT, EV9 GT, PV5 패신저/카고/WAV/오픈베드/택시, K8 택시, 봉고 특장/EV 카드는 독립 모델 row가 아니라 기존 모델의 powertrain/trim 후보로 보강했으며, row-level 제원 검증 전까지 모두 비선택 pending 상태로 둔다.
-- 현대는 모든 seed 모델에 세대 row를 연결했다. 아반떼 CN7, 아반떼 N CN7 N, 아반떼 스포츠 AD Sport, 쏘나타 LF/DN8, 그랜저 HG/IG/GN7, 코나 OS/SX2, 투싼 TL/NX4, 싼타페 DM/TM/MX5, 팰리세이드 LX2/LX3, 캐스퍼 AX1, 아이오닉 5 NE/NE PE, 아이오닉 6 CE/CE PE, 스타리아 US4, 포터 II HR을 포함한다. 베뉴, 캐스퍼 Electric, 아이오닉 5 N, 아이오닉 6 N, 아이오닉 9, 넥쏘, 스타리아 Electric, ST1은 현대 공식 모델 페이지 기준 2026 현재 row로 추가했고, 넥쏘는 수소전기차 리그 `hydrogen`/`km/kg`를 사용한다. 아반떼 스포츠 AD Sport는 코드 출처 추가 확인 전까지 `pending_review`로 유지한다.
+- BMW는 모든 seed 모델에 세대 row를 연결했고, 5시리즈 2015-2016 placeholder는 BMW Korea PressClub `F10 LCI` 자료를 근거로 `generation-bmw-5series-f10`에 연결했다. 공식 모델 라인업에서 확인한 X2, X4, X6, XM, Z4, i7, iX1, iX2, i3에 더해 2시리즈 그란 쿠페, 8시리즈, M2, M3, M4, M5, M8, X5 M, X6 M을 2026 현재 공식 라인업 모델로 보강했다. 세부 파워트레인은 공식 제원 출처가 붙기 전까지 `pending_review`, `is_selectable=false`로 유지하고, placeholder 수치 제원은 비워 둔다.
+- 기아는 모든 seed 모델에 세대 row를 연결했다. K3 2015-2017 placeholder는 Kia 공식 소프트웨어 버전 목록의 `K3 YD` 표기 근거로 `generation-kia-k3-yd`에 연결했고, K3 2018-2024는 기존 BD row를 유지한다. K8, 셀토스, 니로, EV3, EV6, EV9의 출시 전 placeholder 연식은 seed에서 제거하고 Supabase legacy row는 deprecated/non-selectable로 낮춘다. EV4, EV5, PV5, 타스만은 Kia Korea 공식 모델/EV 라인업 페이지에서 확인한 2026 현재 모델 row로 추가했고, 상세 세대/파워트레인 제원 감사 전까지 `pending_review`, `is_selectable=false` placeholder를 유지한다. Kia EV/PBV/택시&상용 공식 카드의 EV3 GT, EV4 GT, EV5 GT, EV6 GT, EV9 GT, PV5 패신저/카고/WAV/오픈베드/택시, K8 택시, 봉고 특장/EV 카드는 독립 모델 row가 아니라 기존 모델의 powertrain/trim 후보로 보강했으며, row-level 제원 검증 전까지 모두 비선택 pending 상태로 둔다.
+- 현대는 모든 seed 모델에 세대 row를 연결했다. 아반떼 AD/CN7, 아반떼 N CN7 N, 아반떼 스포츠 AD Sport, 쏘나타 LF/DN8, 그랜저 HG/IG/GN7, 코나 OS/SX2, 투싼 TL/NX4, 싼타페 DM/TM/MX5, 팰리세이드 LX2/LX3, 캐스퍼 AX1, 아이오닉 5 NE/NE PE, 아이오닉 6 CE/CE PE, 스타리아 US4, 포터 II HR을 포함한다. 베뉴, 캐스퍼 Electric, 아이오닉 5 N, 아이오닉 6 N, 아이오닉 9, 넥쏘, 스타리아 Electric, ST1은 현대 공식 모델 페이지 기준 2026 현재 row로 추가했고, 넥쏘는 수소전기차 리그 `hydrogen`/`km/kg`를 사용한다. 아반떼 AD는 Hyundai Motor 공식 아반떼 History와 현대 AutoEver 소프트웨어 버전 목록 근거로 2015-2019 model_year만 연결했고, 아반떼 스포츠 AD Sport는 코드 출처 추가 확인 전까지 `pending_review`로 유지한다.
 - 제네시스는 10개 seed 모델 모두 세대 row에 연결했다. G70 슈팅 브레이크, Electrified G80, Electrified GV70, GV80 Coupe는 공식 라인업 기준의 명시 모델 ID로 추가했고, G80/GV70의 전기차 placeholder는 별도 Electrified 모델로 분리한다.
 - 르노코리아는 기존 seed 모델 모두 세대 row에 연결했다. Arkana와 Filante는 공식 라인업 기준 명시 모델 ID로 추가했고, Scenic E-Tech는 르노코리아 공식 가격표/브로슈어 근거의 2025~현재 `pending_review` 모델 row로 보강했다. SM6/QM6/XM3는 현행 공식 모델 페이지가 없어 `pending_review`로 유지하고, 단종 후 placeholder는 생성하지 않는다.
 - KG모빌리티는 공식 국내 모델 목록 기준으로 세대 row를 정리했다. 액티언/액티언 하이브리드, 토레스 하이브리드/EVX, 토레스 밴/EVX 밴, 렉스턴 써밋, 무쏘/무쏘 EV를 공식 라인업 기준 명시 모델 ID로 추가했다. 공식 페이지에서 확인되지 않는 코드명은 비워 두고, 코란도는 국내 현재 MODEL_LIST 카드에 없어 2019~2024 `pending_review`로 유지한다. 토레스 밴/EVX 밴과 렉스턴 써밋은 모델 카드 존재만 확인했으므로 상세 제원 감사 전까지 `pending_review`, `is_selectable=false` powertrain으로 유지한다.
@@ -95,4 +95,12 @@
 
 ## 다음 공식화 우선순위
 
-자동 리포트 기준 generation 미연결 제조사는 없다. 다음 우선순위는 공식 한국 홈페이지 또는 공식 미디어/가격표를 기준으로 보수적 `공식 라인업` row를 실제 세대명/코드명/플랫폼/판매 기간으로 쪼개고, 공식 제원표가 붙은 powertrain만 `verified_official` 승격 후보로 분리하는 것이다. 추가 확인 후보는 현대/기아/Volkswagen/Lexus/Porsche 신규 row의 국내 가격표 제원 감사, Lexus LX/LS 500의 상세 제원표 확인, Toyota/Honda의 현행 국내 라인업 주기적 재확인, Mercedes-Benz/Audi의 body-style 모델별 실제 국내 세대 코드 감사 등이며 공식 출처 확인 전에는 seed에 `verified`로 넣지 않는다.
+자동 리포트 기준 generation 미연결 모델과 generation 미연결 powertrain은 모두 0이다. 다음 우선순위는 공식 한국 홈페이지 또는 공식 미디어/가격표를 기준으로 보수적 `공식 라인업` row를 실제 세대명/코드명/플랫폼/판매 기간으로 쪼개고, 공식 제원표가 붙은 powertrain만 `verified_official` 승격 후보로 분리하는 것이다. 추가 확인 후보는 현대/기아/Volkswagen/Lexus/Porsche 신규 row의 국내 가격표 제원 감사, Lexus LX/LS 500의 상세 제원표 확인, Toyota/Honda의 현행 국내 라인업 주기적 재확인, Mercedes-Benz/Audi의 body-style 모델별 실제 국내 세대 코드 감사 등이며 공식 출처 확인 전에는 seed에 `verified`로 넣지 않는다.
+
+## 2026-06-13 Jeep Wrangler Trail Hunt Boundary Update
+
+- Jeep Korea official home and edition pages were re-checked for `WRANGLER TRAIL HUNT EDITION`.
+- Trail Hunt is treated as a Wrangler edition/trim card, not a standalone `vehicle_models` row.
+- Added one 2026 Wrangler gasoline powertrain/trim candidate (`variant-jeep-wrangler-2026-trail-hunt-pending`) under `model-jeep-152-kr`; the base 2026 Wrangler gasoline placeholder now carries official Wrangler page source metadata.
+- Both rows stay `pending_review`, `is_selectable=false`, `is_verified=false`, with null numeric specifications until official row-level domestic specs are attached.
+- Migration: `supabase/migrations/202606130034_jeep_trail_hunt_official_card_placeholder.sql`.

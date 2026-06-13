@@ -4,10 +4,10 @@ Fuel Arena의 차량 카탈로그는 앱 코드 상수보다 `assets/data/vehicl
 
 ## 포함 범위
 - 제조사 22개.
-- 모델 241개.
-- 세대 296개.
-- 2015-2026 범위의 판매 연식 조합 1671개.
-- 파워트레인 variant 2818개.
+- 모델 255개.
+- 세대 313개.
+- 2015-2026 범위의 판매 연식 조합 1689개.
+- 파워트레인 variant 2851개.
 
 ## 데이터 원칙
 - 공식 효율을 확인하지 못한 항목은 `official_efficiency`를 `null`로 둔다.
@@ -74,6 +74,7 @@ dart run tool/vehicle_catalog/generate_catalog_quality_report.dart --fail-on-p0 
 - MINI 공식 라인업 경계 감사: MINI Korea 공식 home/model range에서 All-Electric MINI Cooper, All-Electric MINI Aceman, All-Electric MINI Countryman, MINI Countryman, MINI Cooper, MINI Cooper 5-Door, MINI Cooper Convertible, John Cooper Works 등 모델 그룹 존재를 확인했다. 다만 공식 페이지가 경쟁 점수 산정에 필요한 국내 공인연비/배터리/배기량 표를 안정적으로 제공하지 않으므로 모든 MINI powertrain은 `pending_review`, `is_selectable=false`, 수치 제원 null로 잠근다. 출처: `https://www.mini.co.kr/ko_KR/home.html`, `https://www.mini.co.kr/ko_KR/home/range/all-electric-mini-aceman.html`, `https://www.mini.co.kr/ko_KR/home/range/john-cooper-works.html`
 - 공식 홈페이지 경계 감사: Porsche/Jeep, Mercedes-Benz/Audi/Volvo/Honda/Nissan, Genesis/Chevrolet/Renault/KGM, Hyundai/Kia는 각 공식 홈페이지, 모델 목록, 가격표, 또는 공식 철수/아카이브 공지에서 모델 경계만 확인한 row를 별도 migration으로 잠갔다. 공식 공인연비/배기량/배터리 용량 출처가 row 단위로 붙지 않은 powertrain은 `pending_review`, `is_selectable=false`, 수치 제원 null로 유지한다. 출처: `https://www.porsche.com/korea/ko/models/`, `https://www.jeep.co.kr/`, `https://www.mercedes-benz.co.kr/passengercars/models.html`, `https://www.audi.co.kr/ko/models/`, `https://www.volvocars.com/kr/`, `https://www.genesis.com/kr/ko/support/download-center/genesis-models.html`, `https://www.chevrolet.co.kr/finance/type-price`, `https://www.chevrolet.co.kr/suvs`, `https://www.renault.co.kr/ko/model/model_list.jsp`, `https://www.kg-mobility.com/pr/model`, `https://www.hyundai.com/kr/ko/e/all-vehicles`, `https://www.kia.com/kr/vehicles/ev`
 - Renault/BMW 공식 홈페이지 추가 보강: Renault Korea 공식 Scenic E-Tech 가격표/PDF와 BMW Korea 공식 전체 모델 라인업을 기준으로 Scenic E-Tech, 2시리즈 그란 쿠페, 8시리즈, M2, M3, M4, M5, M8, X5 M, X6 M을 명시 모델 ID로 추가했다. BMW M 모델은 공식 라인업의 별도 모델 카드이므로 K3 GT처럼 일반 모델의 단순 트림으로 병합하지 않는다. 단, 상세 국내 제원표 감사 전까지 모든 신규 powertrain은 `pending_review`, `is_selectable=false`, 수치 제원 null로 유지한다. 출처: `https://www.renault.co.kr/upload/asset/price/price_scenic_202508.pdf`, `https://www.renault.co.kr/upload/asset/ebrochure/eBrochure_scenic_202506.pdf`, `https://www.bmw.co.kr/ko/all-models.html`
+- 세대 연결 backlog 정리: Hyundai Motor 공식 아반떼 History와 현대 AutoEver 소프트웨어 버전 목록의 `아반떼 AD`, Kia 공식 소프트웨어 버전 목록의 `K3 YD`, BMW Korea PressClub의 `F10 LCI` 5시리즈 자료를 근거로 기존 seed의 미연결 placeholder variant에만 세대를 연결했다. 아반떼 AD는 2015-2019 model_year, K3 YD는 2015-2017 model_year, BMW 5시리즈 F10 LCI는 2015-2016 model_year에 연결한다. 이 작업은 기존 powertrain을 `verified`나 `selectable`로 올리지 않으며, 제원 수치는 계속 null/pending 정책을 따른다. 출처: `https://www.hyundai.com/kr/ko/brand/brandstory/model/avante-history`, `https://update.hyundai.com/KR/KO/updateNoticeView/software-version`, `https://update.kia.com/KR/KO/updateNoticeView/software-version`, `https://www.press.bmwgroup.com/korea/article/detail/T0233602KO/bmw-%EC%BD%94%EB%A6%AC%EC%95%84-520d-m-%EC%97%90%EC%96%B4%EB%A1%9C%EB%8B%A4%EC%9D%B4%EB%82%B4%EB%AF%B9-%EC%8A%A4%ED%8E%98%EC%85%9C-%EC%97%90%EB%94%94%EC%85%98-%EC%B6%9C%EC%8B%9C?language=ko`
 - 아반떼 CN7 대표 플로우: 현대 공식 더 뉴 아반떼 가격표 PDF에서 `Smartstream G1.6`, `IVT`, 1,598cc, 복합 15.0km/L을 확인한 `variant-hyundai-avante-2024-gasoline`만 `verified_official`, `is_selectable=true`로 둔다. 다른 현대 placeholder powertrain은 상세 공식 제원 감사 전까지 선택 불가 pending이다. 출처: `https://www.hyundai.com/contents/repn-car/catalog/the-new-avante-price.pdf`
 - K3 2024: 기아 공식 `price_k3gt.pdf`의 파워트레인 표를 기준으로 K3 `1.6 가솔린 · Smartstream G1.6 · IVT`를 `verified_official`로 반영한다. 출처: `https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_k3gt.pdf`
 - K3 GT 2024: 기아 공식 `price_k3gt.pdf`의 파워트레인 표를 기준으로 K3 모델의 GT 트림 `K3 GT 1.6T 가솔린 DCT · Gamma 1.6 T-GDi · 7단 DCT`를 `verified_official`로 반영한다. 출처: `https://www.kia.com/content/dam/kwp/kr/ko/vehicles/pdf/price/price_k3gt.pdf`
@@ -92,7 +93,7 @@ dart run tool/vehicle_catalog/generate_catalog_quality_report.dart --fail-on-p0 
 - BMW 공식 라인업 placeholder: BMW Korea 공식 전체 모델 라인업에서 확인했지만 세대 코드/국내 공인연비 감사를 마치지 않은 2시리즈 그란 쿠페, 8시리즈, M2/M3/M4/M5/M8, X5 M, X6 M은 `공식 라인업, 2026~현재` 세대 row로만 연결한다. 이 row들은 BMW 엄격 정책에 따라 `pending_review`, `is_selectable=false` powertrain으로 유지하고, 공식 가격표/제원표 또는 운영자 검수 파일이 붙기 전에는 verified로 승격하지 않는다.
 - BMW 3시리즈 F30/G20: BMW Korea PressClub의 3시리즈 역사 자료와 BMW Group PressClub의 7세대 3시리즈 release를 근거로 3시리즈 `6세대 F30, 2012~2018`, `7세대 G20, 2019.3~현재` 세대 row를 둔다. 앱 `vehicle_model_years` 매핑은 현재 seed 범위에 맞춰 F30은 2015-2018년, G20은 2019-2026년 row에 연결한다. 세부 파워트레인은 공식 제원 출처가 붙기 전까지 `pending_review`, `is_selectable=false`로 유지한다.
 - BMW 4시리즈 F32/G22 계열: BMW Korea PressClub의 2013년 뉴 4시리즈 쿠페 출시와 2021년 뉴 4시리즈 국내 출시 자료를 근거로 4시리즈 `1세대 F32/F33/F36, 2013.10~2020`, `2세대 G22/G23/G26, 2021.2~현재` 세대 row를 둔다. 앱 `vehicle_model_years` 매핑은 F32/F33/F36은 2015-2020년, G22/G23/G26은 2021-2026년 row에 연결한다. 세부 파워트레인은 공식 제원 출처가 붙기 전까지 `pending_review`, `is_selectable=false`로 유지한다.
-- BMW 5시리즈 G30/G60: BMW Group PressClub의 2017 5 Series release와 BMW Korea PressClub의 차세대 5시리즈 G60 release를 근거로 5시리즈 `7세대 G30, 2017~2023`, `8세대 G60, 2023.10~현재` 세대 row를 둔다. G60은 실제 출시 시작이 2023년 10월이지만 앱 `vehicle_model_years` 매핑은 2024년 row부터 연결한다. 세부 파워트레인은 공식 제원 출처가 붙기 전까지 `pending_review`, `is_selectable=false`로 유지한다.
+- BMW 5시리즈 F10/G30/G60: BMW Korea PressClub의 F10 LCI 5시리즈 자료, BMW Group PressClub의 2017 5 Series release, BMW Korea PressClub의 차세대 5시리즈 G60 release를 근거로 5시리즈 `6세대 F10 LCI, 2015~2016`, `7세대 G30, 2017~2023`, `8세대 G60, 2023.10~현재` 세대 row를 둔다. G60은 실제 출시 시작이 2023년 10월이지만 앱 `vehicle_model_years` 매핑은 2024년 row부터 연결한다. 세부 파워트레인은 공식 제원 출처가 붙기 전까지 `pending_review`, `is_selectable=false`로 유지한다.
 - BMW 7시리즈 G11/G70: BMW Korea PressClub의 6세대 뉴 7시리즈 출시와 G70 뉴 7시리즈 국내 공식 출시 자료를 근거로 7시리즈 `6세대 G11/G12, 2015.10~2022`, `7세대 G70, 2022.12~현재` 세대 row를 둔다. 앱 `vehicle_model_years` 매핑은 G11/G12는 2015-2022년, G70은 2023-2026년 row에 연결한다. 세부 파워트레인은 공식 제원 출처가 붙기 전까지 `pending_review`, `is_selectable=false`로 유지한다.
 - BMW X1 E84/F48/U11: BMW Korea PressClub의 X1 국내 출시, 2세대 뉴 X1 공식 출시, 뉴 X1/iX1 공식 출시 자료를 근거로 X1 `1세대 E84, 2010.2~2015`, `2세대 F48, 2016.2~2022`, `3세대 U11, 2023.3~현재` 세대 row를 둔다. 앱 `vehicle_model_years` 매핑은 현재 seed 범위에 맞춰 E84는 2015년, F48은 2016-2022년, U11은 2023-2026년 row에 연결한다.
 - BMW X3 F25/G01/G45: BMW Korea PressClub의 2세대 X3 국내 출시 메모, 3세대 뉴 X3 공식 출시, 4세대 뉴 X3 공식 출시 자료를 근거로 X3 `2세대 F25, 2011~2017`, `3세대 G01, 2017.11~2024`, `4세대 G45, 2024.11~현재` 세대 row를 둔다. 앱 `vehicle_model_years` 매핑은 F25는 2015-2017년, G01은 2018-2024년, G45는 2025-2026년 row에 연결한다.
@@ -115,3 +116,10 @@ dart run tool/import_vehicle_catalog.dart --in assets/data/vehicle_catalog_kr_se
 - 운영자는 관리자 차량 카탈로그 화면의 검수 큐에서 요청을 확인하고 승인/반려한다.
 - 승인/반려 처리는 `review_custom_vehicle` Edge Function으로 처리한다. 이 함수는 `custom_vehicle_requests.user_vehicle_id`와 요청 사용자, 검수 대상 `user_vehicles` 소유자가 일치할 때만 `user_vehicles.verification_status`와 `custom_vehicle_requests.status`를 함께 갱신하고, 사용자 알림함에 `vehicle_review` 알림을 남긴다.
 - 승인된 차량만 공식 랭킹과 공식 배틀에 반영한다.
+
+## 2026-06-13 Jeep Wrangler Trail Hunt Audit Note
+
+- Jeep Korea home/edition pages expose `WRANGLER TRAIL HUNT EDITION` as an official Wrangler edition/card, not as a separate model group.
+- The catalog keeps it under existing `model-jeep-152-kr` (`Wrangler`) as `variant-jeep-wrangler-2026-trail-hunt-pending` for `year-jeep-152-kr-2026` and `generation-jeep-wrangler-official-lineup`.
+- Both the base 2026 Wrangler gasoline placeholder and Trail Hunt Edition row remain `pending_review`, `is_selectable=false`, `is_verified=false`, with null displacement, battery, and official efficiency until row-level domestic specification evidence is audited.
+- Sources: `https://www.jeep.co.kr/`, `https://www.jeep.co.kr/wrangler.html`, `https://www.jeep.co.kr/JL/wrangler/edition.html`

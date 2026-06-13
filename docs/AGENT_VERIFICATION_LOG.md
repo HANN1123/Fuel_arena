@@ -6,6 +6,40 @@ This log documents all tests and static analysis commands run during implementat
 
 | Timestamp | Command | Result | Notes |
 |---|---|---|---|
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | Official source inspection | PASS | Jeep Korea home, Wrangler, and Wrangler Trail Hunt Edition pages were checked. Trail Hunt stayed a Wrangler edition/trim candidate, not a standalone model row. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `dart format tool/generate_vehicle_catalog_seed.dart tool/vehicle_catalog/validate_vehicle_catalog.dart tool/validate_vehicle_catalog.dart` | PASS | Formatted generator and both catalog validators after adding the Wrangler Trail Hunt pending row and guards. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `flutter pub get` | PASS | Dependencies resolved; version constraint update notices only. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `dart run tool/generate_vehicle_catalog_seed.dart` | PASS | Regenerated 22 manufacturers, 255 models, 1689 years, 2851 variants. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `dart run tool/import_vehicle_catalog.dart --in assets/data/vehicle_catalog_kr_seed.json --out supabase/seed_vehicle_catalog.sql` | PASS | Rebuilt Supabase vehicle catalog seed SQL. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | JSON spot-check | PASS | `variant-jeep-wrangler-2026-trail-hunt-pending` is pending/non-selectable/non-verified with null numeric specs; no Trail Hunt standalone model row exists. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `dart run tool/validate_vehicle_catalog.dart` | PASS | Catalog valid: 22 manufacturers, 255 models, 313 generations, 1689 years, 2851 variants. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `dart run tool/vehicle_catalog/validate_vehicle_catalog.dart` | PASS | Domain validation passed: 22 manufacturers, 255 models, 313 generations, 1689 years, 2851 variants. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `dart run tool/validate_supabase_schema.dart` | PASS | Supabase schema valid: 1043 checks. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `dart run tool/vehicle_catalog/generate_catalog_quality_report.dart --fail-on-p0 --write-docs` | PASS | Verified 51, pending_review 2800, models without generation 0, powertrains without generation 0, P0 failures 0. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `dart run tool/vehicle_catalog/import_vehicle_generations.dart --generations assets/data/vehicle_catalog_sources/generation_template.csv --powertrains assets/data/vehicle_catalog_sources/powertrain_generation_template.csv --dry-run` | PASS | Dry run: inserted generations 2, updated generations 311, linked model years 2, linked variants 2, powertrain links 2. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `dart run tool/validate_product_invariants.dart` | PASS | Product invariants valid: 1933 checks. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `python tool/validate_secret_hygiene.py` | PASS | Secret hygiene valid. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `dart run tool/security/scan_secrets.dart` | PASS | Secret scan passed. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `flutter analyze` | PASS | No issues found. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `flutter test` | PASS | All 227 tests passed. |
+| 2026-06-13 (Jeep Wrangler Trail Hunt official card) | `git diff --check` | PASS | No whitespace errors; LF/CRLF normalization warnings only. |
+| 2026-06-13 (Generation link backlog cleanup) | Official source inspection | PASS | Hyundai official Avante History/AutoEver software list confirmed Avante AD/CN7 boundary; Kia official software list confirmed K3 YD/BD boundary; BMW Korea PressClub confirmed F10 LCI 5 Series. No affected powertrain was promoted to verified/selectable. |
+| 2026-06-13 (Generation link backlog cleanup) | `dart format tool/generate_vehicle_catalog_seed.dart` | PASS | Formatted generator after adding Avante AD, K3 YD, and BMW 5 Series F10 generation rows. |
+| 2026-06-13 (Generation link backlog cleanup) | `dart format tool/vehicle_catalog/generate_catalog_quality_report.dart` | PASS | Formatted quality report generator after updating BMW F10/G30/G60 judgement text. |
+| 2026-06-13 (Generation link backlog cleanup) | `flutter pub get` | PASS | Dependencies resolved; version constraint update notices only. |
+| 2026-06-13 (Generation link backlog cleanup) | `dart run tool/generate_vehicle_catalog_seed.dart` | PASS | Regenerated 22 manufacturers, 255 models, 1689 years, 2850 variants; JSON spot-check found 313 generations and 0 variants without `generation_id`. |
+| 2026-06-13 (Generation link backlog cleanup) | `dart run tool/import_vehicle_catalog.dart --in assets/data/vehicle_catalog_kr_seed.json --out supabase/seed_vehicle_catalog.sql` | PASS | Rebuilt Supabase vehicle catalog seed SQL. |
+| 2026-06-13 (Generation link backlog cleanup) | `dart run tool/validate_vehicle_catalog.dart` | PASS | Catalog valid: 22 manufacturers, 255 models, 313 generations, 1689 years, 2850 variants. |
+| 2026-06-13 (Generation link backlog cleanup) | `dart run tool/vehicle_catalog/validate_vehicle_catalog.dart` | PASS | Domain validation passed with generation coverage intact. |
+| 2026-06-13 (Generation link backlog cleanup) | `dart run tool/validate_supabase_schema.dart` | PASS | Supabase schema valid: 1043 checks. |
+| 2026-06-13 (Generation link backlog cleanup) | `dart run tool/vehicle_catalog/generate_catalog_quality_report.dart --fail-on-p0 --write-docs` | PASS | Verified 51, pending_review 2799, models without generation 0, powertrains without generation 0, P0 failures 0. |
+| 2026-06-13 (Generation link backlog cleanup) | `dart run tool/vehicle_catalog/import_vehicle_generations.dart --generations assets/data/vehicle_catalog_sources/generation_template.csv --powertrains assets/data/vehicle_catalog_sources/powertrain_generation_template.csv --dry-run` | PASS | Dry run: inserted generations 2, updated generations 311, linked model years 2, linked variants 2, powertrain links 2. |
+| 2026-06-13 (Generation link backlog cleanup) | `dart run tool/validate_product_invariants.dart` | PASS | Product invariants valid: 1933 checks. |
+| 2026-06-13 (Generation link backlog cleanup) | `python tool/validate_secret_hygiene.py` | PASS | Secret hygiene valid. |
+| 2026-06-13 (Generation link backlog cleanup) | `dart run tool/security/scan_secrets.dart` | PASS | Secret scan passed. |
+| 2026-06-13 (Generation link backlog cleanup) | `flutter analyze` | PASS | No issues found. |
+| 2026-06-13 (Generation link backlog cleanup) | `flutter test` | PASS | All 227 tests passed. |
+| 2026-06-13 (Generation link backlog cleanup) | `git diff --check` | PASS | No whitespace errors; LF/CRLF normalization warnings only. |
 | 2026-06-13 (Volvo EX40/EC40 official name continuation) | Official source inspection | PASS | Volvo Cars Korea official rename/support sources confirm XC40 Recharge/C40 Recharge naming boundary as EX40/EC40 for 2025+ rows. |
 | 2026-06-13 (Volvo EX40/EC40 official name continuation) | `dart run tool/generate_vehicle_catalog_seed.dart` | PASS | Regenerated 22 manufacturers, 241 models, 296 generations, 1671 years, 2818 variants. |
 | 2026-06-13 (Volvo EX40/EC40 official name continuation) | `dart run tool/import_vehicle_catalog.dart --in assets/data/vehicle_catalog_kr_seed.json --out supabase/seed_vehicle_catalog.sql` | PASS | Rebuilt Supabase vehicle catalog seed SQL. |

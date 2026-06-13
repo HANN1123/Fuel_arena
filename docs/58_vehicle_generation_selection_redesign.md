@@ -77,3 +77,9 @@ P1:
 - 관리자 CRUD 실제 연결
 - 공식 출처 수집 자동화
 - 세대 내 연식별 제원 변경 보조 선택 UI
+
+## 2026-06-13 Jeep Trail Hunt Migration Note
+
+- `202606130034_jeep_trail_hunt_official_card_placeholder.sql` keeps Jeep Wrangler Trail Hunt Edition as a 2026 Wrangler gasoline trim/powertrain placeholder.
+- It does not create a standalone model or generation row.
+- The row is source-backed only at official card/page level and remains `pending_review`, `is_selectable=false`, `is_verified=false`, with null numeric specifications.

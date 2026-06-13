@@ -49,6 +49,14 @@ void runValidation(String path) {
     if ('${model['name_ko'] ?? ''}' == 'K3 GT') {
       addError('[K3] K3 GT는 별도 모델이 아니라 K3의 트림/파워트레인입니다.');
     }
+    final modelNameEn = '${model['name_en'] ?? ''}'.toLowerCase();
+    final modelNameKo = '${model['name_ko'] ?? ''}'.toLowerCase();
+    if (modelNameEn.contains('trail hunt') ||
+        modelNameKo.contains('trail hunt')) {
+      addError(
+        '[JEEP] Wrangler Trail Hunt must stay a Wrangler trim/edition candidate, not a standalone model: $id',
+      );
+    }
     if (_isVerifiedStatus('${model['source_status'] ?? ''}') &&
         !_hasSource(model)) {
       addError('[SOURCE] verified 모델에 출처가 없습니다: $id');
@@ -1557,6 +1565,17 @@ void _validateJeepOfficialBoundaryState(
       '${variant['trim_name'] ?? ''}'.contains('2.0')) {
     addError(
       '[JEEP] official homepage placeholders must stay pending, non-selectable, and free of invented numeric specs: $id',
+    );
+  }
+
+  final isTrailHunt = '${variant['trim_name'] ?? ''}'.contains('Trail Hunt');
+  if (isTrailHunt &&
+      (id != 'variant-jeep-wrangler-2026-trail-hunt-pending' ||
+          modelYearId != 'year-jeep-152-kr-2026' ||
+          variant['fuel_league'] != 'gasoline' ||
+          !'${variant['source_url'] ?? ''}'.contains('jeep.co.kr'))) {
+    addError(
+      '[JEEP] Wrangler Trail Hunt must stay a sourced 2026 Wrangler gasoline trim candidate: $id',
     );
   }
 }
