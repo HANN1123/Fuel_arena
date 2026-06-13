@@ -23,6 +23,9 @@ DEFAULT_ROUTE_CASES = [
     ("/support", "390,844"),
     ("/admin", "1440,1000"),
     ("/admin/vehicles", "1440,1000"),
+    ("/admin/vehicle-generations", "1440,1000"),
+    ("/admin/vehicle-generations/quality", "1440,1000"),
+    ("/admin/vehicle-generations/bmw", "1440,1000"),
 ]
 
 DEFAULT_ROUTES = [route for route, _ in DEFAULT_ROUTE_CASES]

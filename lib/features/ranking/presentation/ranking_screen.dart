@@ -26,6 +26,7 @@ class _RankingScreenState extends ConsumerState<RankingScreen> {
     '하이브리드',
     '전기차',
     'LPG',
+    '수소전기차',
     '차급',
     '지역',
     '친구',

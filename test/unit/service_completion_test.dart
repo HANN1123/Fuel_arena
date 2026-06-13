@@ -23,6 +23,8 @@ void main() {
     expect(formatter.metricLabelForFuelLeague('electric'), '평균 효율');
     expect(formatter.formatResultLine(6.7, 'electric'), '평균 효율 6.7km/kWh');
     expect(formatter.formatResultLine(17.2, 'gasoline'), '평균 연비 17.2km/L');
+    expect(formatter.unitForFuelLeague('hydrogen'), 'km/kg');
+    expect(formatter.formatResultLine(107.6, 'hydrogen'), '평균 효율 107.6km/kg');
   });
 
   test('InputValidators reject placeholder and short support text', () {
@@ -1476,12 +1478,25 @@ void main() {
     final variants = data['variants'] as List;
     final verifiedVariants =
         variants.where((item) => item['is_verified'] == true).toList();
+    final selectableVariants = variants
+        .where((item) =>
+            item['is_selectable'] != false && item['is_deprecated'] != true)
+        .toList();
+    final verifiedPolicyViolations = verifiedVariants.where((item) {
+      final status = '${item['source_status'] ?? ''}';
+      final hasSource = '${item['source_name'] ?? ''}'.trim().isNotEmpty ||
+          '${item['source_url'] ?? ''}'.trim().isNotEmpty ||
+          '${item['source_file_name'] ?? ''}'.trim().isNotEmpty;
+      return !(status == 'verified_official' || status == 'verified_admin') ||
+          !hasSource;
+    }).toList();
 
     expect(manufacturers.length, greaterThanOrEqualTo(20));
     expect(models.length, greaterThanOrEqualTo(120));
-    expect(years.length, greaterThanOrEqualTo(1500));
-    expect(variants.length, greaterThanOrEqualTo(3000));
-    expect(verifiedVariants.length, greaterThanOrEqualTo(2000));
+    expect(years.length, greaterThanOrEqualTo(1200));
+    expect(variants.length, greaterThanOrEqualTo(2200));
+    expect(selectableVariants.length, greaterThanOrEqualTo(50));
+    expect(verifiedPolicyViolations, isEmpty);
     expect(
       manufacturers.map((item) => item['name_ko']),
       containsAll(['현대', '기아', '테슬라', 'BMW', '폴스타']),
@@ -1494,7 +1509,15 @@ void main() {
     );
     expect(
       variants
-          .where((item) => item['fuel_league'] != 'electric')
+          .where((item) => item['fuel_league'] == 'hydrogen')
+          .every((item) => item['efficiency_unit'] == 'km/kg'),
+      isTrue,
+    );
+    expect(
+      variants
+          .where((item) =>
+              item['fuel_league'] != 'electric' &&
+              item['fuel_league'] != 'hydrogen')
           .every((item) => item['efficiency_unit'] == 'km/L'),
       isTrue,
     );
@@ -1511,14 +1534,16 @@ void main() {
               '${item['trim_name']}'.contains('N Line') ||
               '${item['trim_name']}'.contains('N라인'))
           .toList(),
-      isNotEmpty,
+      isEmpty,
     );
-    expect(
-      verifiedVariants.every((item) =>
-          (item['displacement_cc'] is num || item['battery_kwh'] is num) &&
-          '${item['transmission']}'.isNotEmpty),
-      isTrue,
-    );
+    if (verifiedVariants.isNotEmpty) {
+      expect(
+        verifiedVariants.every((item) =>
+            (item['displacement_cc'] is num || item['battery_kwh'] is num) &&
+            '${item['transmission']}'.isNotEmpty),
+        isTrue,
+      );
+    }
   });
 
   test('Admin dashboard metrics migration exposes admin-only RPC', () {

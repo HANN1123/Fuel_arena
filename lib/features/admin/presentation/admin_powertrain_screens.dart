@@ -989,6 +989,8 @@ class _AdminCustomVehicleReviewScreenState
                 createdAt: request.createdAt,
                 metadata: {
                   'user_vehicle_id': request.userVehicleId,
+                  'generation_name': request.generationName,
+                  'generation_code': request.generationCode,
                   'fuel_league': request.fuelLeague,
                   'vehicle_class': request.vehicleClass,
                 },

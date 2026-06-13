@@ -7,6 +7,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:uuid/uuid.dart';
 
+import '../domain/vehicle_selection_filters.dart';
 import '../models/fuel_arena_models.dart';
 import '../services/app_logger.dart';
 
@@ -1193,9 +1194,48 @@ abstract class VehicleCatalogRepository {
   Future<List<VehicleModel>> listModels(String manufacturerId,
       {String? keyword});
 
+  Future<List<String>> listFuelTypesByManufacturer(String manufacturerId);
+
+  Future<List<VehicleCategoryFilter>>
+      listVehicleClassesByManufacturerAndFuelType(
+    String manufacturerId,
+    String fuelType,
+  );
+
+  Future<List<VehicleModelFilterSummary>> listModelsByFilter(
+    VehicleModelFilterQuery query,
+  );
+
   Future<List<VehicleModelYear>> listYears(String modelId);
 
+  Future<List<VehicleModelYear>> listYearsByFilter(
+    VehicleYearFilterQuery query,
+  );
+
+  Future<List<VehicleGenerationSummary>> listGenerationsByFilter(
+    VehicleGenerationFilterQuery query,
+  );
+
+  Future<List<VehicleModelYear>> listModelYearsByGeneration(
+    String generationId,
+  );
+
   Future<List<VehicleVariant>> listVariants(String modelYearId);
+
+  Future<List<VehicleVariant>> listPowertrainsByFilter(
+    VehiclePowertrainFilterQuery query,
+  );
+
+  Future<List<VehiclePowertrainChoice>> listPowertrainsByGeneration(
+    VehiclePowertrainFilterQuery query,
+  );
+
+  Future<VehicleGeneration?> inferGenerationByYear({
+    required String modelId,
+    required int year,
+  });
+
+  Future<List<VehicleGenerationSummary>> searchGenerations(String keyword);
 
   Future<List<VehicleVariant>> searchVehicleCatalog(String keyword);
 
@@ -1204,6 +1244,8 @@ abstract class VehicleCatalogRepository {
   Future<UserVehicle> createCustomVehicleRequest({
     required String manufacturer,
     required String modelName,
+    String generationName = '',
+    String generationCode = '',
     required int year,
     required String trimName,
     required String fuelType,
@@ -1268,6 +1310,55 @@ class MockVehicleCatalogRepository implements VehicleCatalogRepository {
   }
 
   @override
+  Future<List<String>> listFuelTypesByManufacturer(
+      String manufacturerId) async {
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    final catalog = await _loadVehicleCatalogAsset();
+    return supportedFuelTypesFromVariants(
+      _vehicleCatalogVariantsForManufacturer(catalog, manufacturerId),
+    );
+  }
+
+  @override
+  Future<List<VehicleCategoryFilter>>
+      listVehicleClassesByManufacturerAndFuelType(
+    String manufacturerId,
+    String fuelType,
+  ) async {
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    final catalog = await _loadVehicleCatalogAsset();
+    return buildVehicleCategoryFilters(
+      _vehicleCatalogVariantsForManufacturer(catalog, manufacturerId),
+      fuelType: fuelType,
+    );
+  }
+
+  @override
+  Future<List<VehicleModelFilterSummary>> listModelsByFilter(
+    VehicleModelFilterQuery query,
+  ) async {
+    await Future<void>.delayed(const Duration(milliseconds: 160));
+    final catalog = await _loadVehicleCatalogAsset();
+    final models = catalog.models
+        .where((item) => item.manufacturerId == query.manufacturerId)
+        .toList();
+    final modelIds = models.map((item) => item.id).toSet();
+    final years =
+        catalog.years.where((item) => modelIds.contains(item.modelId)).toList();
+    return buildVehicleModelFilterSummaries(
+      models: models,
+      years: years,
+      variants: _vehicleCatalogVariantsForManufacturer(
+        catalog,
+        query.manufacturerId,
+      ),
+      fuelType: query.fuelType,
+      category: query.category,
+      keyword: query.keyword,
+    );
+  }
+
+  @override
   Future<List<VehicleModelYear>> listYears(String modelId) async {
     await Future<void>.delayed(const Duration(milliseconds: 150));
     final catalog = await _loadVehicleCatalogAsset();
@@ -1276,13 +1367,170 @@ class MockVehicleCatalogRepository implements VehicleCatalogRepository {
   }
 
   @override
+  Future<List<VehicleModelYear>> listYearsByFilter(
+    VehicleYearFilterQuery query,
+  ) async {
+    await Future<void>.delayed(const Duration(milliseconds: 120));
+    final catalog = await _loadVehicleCatalogAsset();
+    final years =
+        catalog.years.where((item) => item.modelId == query.modelId).toList();
+    return filterVehicleYearsByPowertrain(
+      years: years,
+      variants: _vehicleCatalogVariantsForModel(catalog, query.modelId),
+      fuelType: query.fuelType,
+      category: query.category,
+    );
+  }
+
+  @override
+  Future<List<VehicleGenerationSummary>> listGenerationsByFilter(
+    VehicleGenerationFilterQuery query,
+  ) async {
+    await Future<void>.delayed(const Duration(milliseconds: 140));
+    final catalog = await _loadVehicleCatalogAsset();
+    final model = catalog.models.firstWhere(
+      (item) => item.id == query.modelId,
+      orElse: () => VehicleModel(
+        id: query.modelId,
+        manufacturerId: query.manufacturerId,
+        nameKo: '',
+      ),
+    );
+    return buildVehicleGenerationSummaries(
+      model: model,
+      generations: catalog.generations,
+      years: catalog.years,
+      variants: _vehicleCatalogVariantsForModel(catalog, query.modelId),
+      fuelType: query.fuelType,
+      category: query.category,
+      keyword: query.keyword,
+    );
+  }
+
+  @override
+  Future<List<VehicleModelYear>> listModelYearsByGeneration(
+    String generationId,
+  ) async {
+    await Future<void>.delayed(const Duration(milliseconds: 100));
+    final catalog = await _loadVehicleCatalogAsset();
+    final generation = catalog.generations.firstWhere(
+      (item) => item.id == generationId,
+      orElse: () => VehicleGeneration(
+        id: generationId,
+        modelId: '',
+        generationNameKo: '',
+      ),
+    );
+    final explicitYearIds = generation.modelYearIds.toSet();
+    return catalog.years.where((year) {
+      return year.generationId == generationId ||
+          explicitYearIds.contains(year.id);
+    }).toList()
+      ..sort((a, b) => b.year.compareTo(a.year));
+  }
+
+  @override
   Future<List<VehicleVariant>> listVariants(String modelYearId) async {
     await Future<void>.delayed(const Duration(milliseconds: 180));
     final catalog = await _loadVehicleCatalogAsset();
-    return catalog.variants
-        .where((item) => item.modelYearId == modelYearId && item.isVerified)
+    return _hydratedVehicleCatalogVariants(catalog)
+        .where((item) =>
+            item.modelYearId == modelYearId && isVehicleVariantSelectable(item))
         .toList()
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  }
+
+  @override
+  Future<List<VehicleVariant>> listPowertrainsByFilter(
+    VehiclePowertrainFilterQuery query,
+  ) async {
+    await Future<void>.delayed(const Duration(milliseconds: 140));
+    final catalog = await _loadVehicleCatalogAsset();
+    final variants = _hydratedVehicleCatalogVariants(catalog)
+        .where((item) => item.modelYearId == query.modelYearId)
+        .toList();
+    return filterVehiclePowertrains(
+      variants: variants,
+      fuelType: query.fuelType,
+      category: query.category,
+      keyword: query.keyword,
+    );
+  }
+
+  @override
+  Future<List<VehiclePowertrainChoice>> listPowertrainsByGeneration(
+    VehiclePowertrainFilterQuery query,
+  ) async {
+    await Future<void>.delayed(const Duration(milliseconds: 140));
+    final catalog = await _loadVehicleCatalogAsset();
+    final generation = catalog.generations.firstWhere(
+      (item) => item.id == query.generationId,
+      orElse: () => VehicleGeneration(
+        id: query.generationId,
+        modelId: '',
+        generationNameKo: '',
+      ),
+    );
+    final variants = filterVehiclePowertrainsByGeneration(
+      generation: generation,
+      years: catalog.years,
+      variants: _hydratedVehicleCatalogVariants(catalog),
+      fuelType: query.fuelType,
+      category: query.category,
+      keyword: query.keyword,
+    );
+    return buildVehiclePowertrainChoices(variants);
+  }
+
+  @override
+  Future<VehicleGeneration?> inferGenerationByYear({
+    required String modelId,
+    required int year,
+  }) async {
+    final catalog = await _loadVehicleCatalogAsset();
+    VehicleModelYear? modelYear;
+    for (final item in catalog.years) {
+      if (item.modelId == modelId && item.year == year) {
+        modelYear = item;
+        break;
+      }
+    }
+    if (modelYear == null) {
+      return null;
+    }
+    for (final generation in catalog.generations) {
+      if (generation.modelId == modelId &&
+          (generation.modelYearIds.contains(modelYear.id) ||
+              generation.id == modelYear.generationId)) {
+        return generation;
+      }
+    }
+    return null;
+  }
+
+  @override
+  Future<List<VehicleGenerationSummary>> searchGenerations(
+      String keyword) async {
+    final normalized = keyword.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      return const [];
+    }
+    final catalog = await _loadVehicleCatalogAsset();
+    final summaries = <VehicleGenerationSummary>[];
+    for (final model in catalog.models) {
+      summaries.addAll(
+        buildVehicleGenerationSummaries(
+          model: model,
+          generations: catalog.generations,
+          years: catalog.years,
+          variants: _vehicleCatalogVariantsForModel(catalog, model.id),
+          fuelType: '',
+          category: VehicleCategoryFilter.all,
+          keyword: normalized,
+        ),
+      );
+    }
+    return summaries.take(20).toList();
   }
 
   @override
@@ -1293,8 +1541,8 @@ class MockVehicleCatalogRepository implements VehicleCatalogRepository {
       return const [];
     }
     final catalog = await _loadVehicleCatalogAsset();
-    return catalog.variants.where((item) {
-      return item.isVerified &&
+    return _hydratedVehicleCatalogVariants(catalog).where((item) {
+      return isVehicleVariantSelectable(item) &&
           (item.manufacturerName.toLowerCase().contains(normalized) ||
               item.modelName.toLowerCase().contains(normalized) ||
               item.trimName.toLowerCase().contains(normalized));
@@ -1306,7 +1554,7 @@ class MockVehicleCatalogRepository implements VehicleCatalogRepository {
   Future<VehicleVariant?> getVariant(String variantId) async {
     await Future<void>.delayed(const Duration(milliseconds: 120));
     final catalog = await _loadVehicleCatalogAsset();
-    for (final item in catalog.variants) {
+    for (final item in _hydratedVehicleCatalogVariants(catalog)) {
       if (item.id == variantId) {
         return item;
       }
@@ -1318,6 +1566,8 @@ class MockVehicleCatalogRepository implements VehicleCatalogRepository {
   Future<UserVehicle> createCustomVehicleRequest({
     required String manufacturer,
     required String modelName,
+    String generationName = '',
+    String generationCode = '',
     required int year,
     required String trimName,
     required String fuelType,
@@ -1341,6 +1591,8 @@ class MockVehicleCatalogRepository implements VehicleCatalogRepository {
         modelYearId: 'custom',
         manufacturerName: manufacturer,
         modelName: modelName,
+        generationName: generationName,
+        generationCode: generationCode,
         year: year,
         trimName: trimName,
         fuelType: fuelType,
@@ -1360,6 +1612,8 @@ class MockVehicleCatalogRepository implements VehicleCatalogRepository {
         userVehicleId: userVehicle.id,
         manufacturerName: manufacturer,
         modelName: modelName,
+        generationName: generationName,
+        generationCode: generationCode,
         year: year,
         trimName: trimName,
         fuelType: fuelType,
@@ -1500,6 +1754,68 @@ class SupabaseVehicleCatalogRepository implements VehicleCatalogRepository {
   }
 
   @override
+  Future<List<String>> listFuelTypesByManufacturer(
+      String manufacturerId) async {
+    try {
+      return supportedFuelTypesFromVariants(
+        await _listHydratedVariantsByManufacturer(manufacturerId),
+      );
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _fallback.listFuelTypesByManufacturer(manufacturerId);
+    }
+  }
+
+  @override
+  Future<List<VehicleCategoryFilter>>
+      listVehicleClassesByManufacturerAndFuelType(
+    String manufacturerId,
+    String fuelType,
+  ) async {
+    try {
+      return buildVehicleCategoryFilters(
+        await _listHydratedVariantsByManufacturer(manufacturerId),
+        fuelType: fuelType,
+      );
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _fallback.listVehicleClassesByManufacturerAndFuelType(
+        manufacturerId,
+        fuelType,
+      );
+    }
+  }
+
+  @override
+  Future<List<VehicleModelFilterSummary>> listModelsByFilter(
+    VehicleModelFilterQuery query,
+  ) async {
+    try {
+      final models = await _listModelsForManufacturer(query.manufacturerId);
+      final years = await _listYearsForModels(models);
+      return buildVehicleModelFilterSummaries(
+        models: models,
+        years: years,
+        variants: await _listHydratedVariantsByManufacturer(
+          query.manufacturerId,
+        ),
+        fuelType: query.fuelType,
+        category: query.category,
+        keyword: query.keyword,
+      );
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _fallback.listModelsByFilter(query);
+    }
+  }
+
+  @override
   Future<List<VehicleModelYear>> listYears(String modelId) async {
     try {
       final rows = await _client
@@ -1517,20 +1833,388 @@ class SupabaseVehicleCatalogRepository implements VehicleCatalogRepository {
   }
 
   @override
+  Future<List<VehicleModelYear>> listYearsByFilter(
+    VehicleYearFilterQuery query,
+  ) async {
+    try {
+      final years = await _listYearsForModel(query.modelId);
+      final variants = await _listHydratedVariantsByModel(query.modelId);
+      return filterVehicleYearsByPowertrain(
+        years: years,
+        variants: variants,
+        fuelType: query.fuelType,
+        category: query.category,
+      );
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _fallback.listYearsByFilter(query);
+    }
+  }
+
+  @override
+  Future<List<VehicleGenerationSummary>> listGenerationsByFilter(
+    VehicleGenerationFilterQuery query,
+  ) async {
+    try {
+      final models = await _listModelsByIds([query.modelId]);
+      final model = models.isNotEmpty
+          ? models.first
+          : VehicleModel(
+              id: query.modelId,
+              manufacturerId: query.manufacturerId,
+              nameKo: '',
+            );
+      return buildVehicleGenerationSummaries(
+        model: model,
+        generations: await _listGenerationsForModel(query.modelId),
+        years: await _listYearsForModel(query.modelId),
+        variants: await _listHydratedVariantsByModel(query.modelId),
+        fuelType: query.fuelType,
+        category: query.category,
+        keyword: query.keyword,
+      );
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _fallback.listGenerationsByFilter(query);
+    }
+  }
+
+  @override
+  Future<List<VehicleModelYear>> listModelYearsByGeneration(
+    String generationId,
+  ) async {
+    try {
+      final rows = await _client
+          .from('vehicle_model_years')
+          .select()
+          .eq('generation_id', generationId)
+          .order('year', ascending: false);
+      final years = rows.map((row) => VehicleModelYear.fromJson(row)).toList();
+      if (years.isNotEmpty) {
+        return years;
+      }
+      final junctionRows = await _client
+          .from('vehicle_generation_years')
+          .select('model_year_id')
+          .eq('generation_id', generationId);
+      final yearIds = junctionRows
+          .map((row) => '${(row as Map)['model_year_id'] ?? ''}')
+          .where((item) => item.isNotEmpty)
+          .toSet()
+          .toList();
+      return _listYearsByIds(yearIds);
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _fallback.listModelYearsByGeneration(generationId);
+    }
+  }
+
+  @override
   Future<List<VehicleVariant>> listVariants(String modelYearId) async {
     try {
       final rows = await _client
           .from('vehicle_catalog_view')
           .select()
           .eq('model_year_id', modelYearId)
-          .eq('is_verified', true);
-      return rows.map((row) => VehicleVariant.fromJson(row)).toList();
+          .eq('is_selectable', true)
+          .eq('is_deprecated', false);
+      final years = await _listYearsByIds([modelYearId]);
+      return _hydrateSupabaseVariants(
+        rows,
+        years: years,
+        models: await _listModelsByIds(
+          years.map((item) => item.modelId).toSet().toList(),
+        ),
+      );
     } catch (_) {
       if (!allowMockFallback) {
         rethrow;
       }
       return _fallback.listVariants(modelYearId);
     }
+  }
+
+  @override
+  Future<List<VehicleVariant>> listPowertrainsByFilter(
+    VehiclePowertrainFilterQuery query,
+  ) async {
+    try {
+      final variants = await listVariants(query.modelYearId);
+      return filterVehiclePowertrains(
+        variants: variants,
+        fuelType: query.fuelType,
+        category: query.category,
+        keyword: query.keyword,
+      );
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _fallback.listPowertrainsByFilter(query);
+    }
+  }
+
+  @override
+  Future<List<VehiclePowertrainChoice>> listPowertrainsByGeneration(
+    VehiclePowertrainFilterQuery query,
+  ) async {
+    try {
+      final years = await listModelYearsByGeneration(query.generationId);
+      if (years.isEmpty) {
+        return const [];
+      }
+      final generation = await _getGenerationById(query.generationId) ??
+          VehicleGeneration(
+            id: query.generationId,
+            modelId: years.first.modelId,
+            generationNameKo: '',
+            modelYearIds: years.map((item) => item.id).toList(),
+          );
+      final models = await _listModelsByIds(
+        years.map((item) => item.modelId).toSet().toList(),
+      );
+      final rows = await _client
+          .from('vehicle_catalog_view')
+          .select()
+          .inFilter('model_year_id', years.map((item) => item.id).toList())
+          .eq('is_selectable', true)
+          .eq('is_deprecated', false);
+      final variants = _hydrateSupabaseVariants(
+        rows,
+        years: years,
+        models: models,
+      );
+      return buildVehiclePowertrainChoices(
+        filterVehiclePowertrainsByGeneration(
+          generation: generation,
+          years: years,
+          variants: variants,
+          fuelType: query.fuelType,
+          category: query.category,
+          keyword: query.keyword,
+        ),
+      );
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _fallback.listPowertrainsByGeneration(query);
+    }
+  }
+
+  @override
+  Future<VehicleGeneration?> inferGenerationByYear({
+    required String modelId,
+    required int year,
+  }) async {
+    try {
+      final row = await _client
+          .from('vehicle_model_years')
+          .select()
+          .eq('model_id', modelId)
+          .eq('year', year)
+          .maybeSingle();
+      if (row == null) {
+        return null;
+      }
+      final modelYear = VehicleModelYear.fromJson(row);
+      if (modelYear.generationId.isEmpty) {
+        return null;
+      }
+      return _getGenerationById(modelYear.generationId);
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _fallback.inferGenerationByYear(modelId: modelId, year: year);
+    }
+  }
+
+  @override
+  Future<List<VehicleGenerationSummary>> searchGenerations(
+      String keyword) async {
+    try {
+      final normalized = keyword.trim();
+      if (normalized.isEmpty) {
+        return const [];
+      }
+      final rows = await _client
+          .from('vehicle_generations')
+          .select()
+          .or('generation_name_ko.ilike.%$normalized%,generation_code.ilike.%$normalized%')
+          .limit(20);
+      final generations =
+          rows.map((row) => VehicleGeneration.fromJson(row)).toList();
+      final summaries = <VehicleGenerationSummary>[];
+      for (final generation in generations) {
+        final models = await _listModelsByIds([generation.modelId]);
+        if (models.isEmpty) {
+          continue;
+        }
+        summaries.addAll(
+          await listGenerationsByFilter(
+            VehicleGenerationFilterQuery(
+              modelId: generation.modelId,
+              manufacturerId: models.first.manufacturerId,
+              keyword: normalized,
+            ),
+          ),
+        );
+      }
+      return summaries;
+    } catch (_) {
+      if (!allowMockFallback) {
+        rethrow;
+      }
+      return _fallback.searchGenerations(keyword);
+    }
+  }
+
+  Future<List<VehicleModel>> _listModelsForManufacturer(
+    String manufacturerId,
+  ) async {
+    final rows = await _client
+        .from('vehicle_models')
+        .select()
+        .eq('manufacturer_id', manufacturerId)
+        .order('sort_order');
+    return rows.map((row) => VehicleModel.fromJson(row)).toList();
+  }
+
+  Future<List<VehicleModel>> _listModelsByIds(List<String> modelIds) async {
+    if (modelIds.isEmpty) {
+      return const [];
+    }
+    final rows = await _client
+        .from('vehicle_models')
+        .select()
+        .inFilter('id', modelIds)
+        .order('sort_order');
+    return rows.map((row) => VehicleModel.fromJson(row)).toList();
+  }
+
+  Future<List<VehicleModelYear>> _listYearsForModel(String modelId) async {
+    final rows = await _client
+        .from('vehicle_model_years')
+        .select()
+        .eq('model_id', modelId)
+        .order('year', ascending: false);
+    return rows.map((row) => VehicleModelYear.fromJson(row)).toList();
+  }
+
+  Future<List<VehicleModelYear>> _listYearsForModels(
+    List<VehicleModel> models,
+  ) async {
+    final modelIds = models.map((item) => item.id).toSet().toList();
+    if (modelIds.isEmpty) {
+      return const [];
+    }
+    final rows = await _client
+        .from('vehicle_model_years')
+        .select()
+        .inFilter('model_id', modelIds)
+        .order('year', ascending: false);
+    return rows.map((row) => VehicleModelYear.fromJson(row)).toList();
+  }
+
+  Future<List<VehicleModelYear>> _listYearsByIds(List<String> yearIds) async {
+    if (yearIds.isEmpty) {
+      return const [];
+    }
+    final rows = await _client
+        .from('vehicle_model_years')
+        .select()
+        .inFilter('id', yearIds)
+        .order('year', ascending: false);
+    return rows.map((row) => VehicleModelYear.fromJson(row)).toList();
+  }
+
+  Future<List<VehicleGeneration>> _listGenerationsForModel(
+    String modelId,
+  ) async {
+    final rows = await _client
+        .from('vehicle_generations')
+        .select()
+        .eq('model_id', modelId)
+        .order('is_current', ascending: false)
+        .order('generation_order', ascending: false);
+    return rows.map((row) => VehicleGeneration.fromJson(row)).toList();
+  }
+
+  Future<VehicleGeneration?> _getGenerationById(String generationId) async {
+    if (generationId.isEmpty) {
+      return null;
+    }
+    final row = await _client
+        .from('vehicle_generations')
+        .select()
+        .eq('id', generationId)
+        .maybeSingle();
+    return row == null ? null : VehicleGeneration.fromJson(row);
+  }
+
+  Future<List<VehicleVariant>> _listHydratedVariantsByManufacturer(
+    String manufacturerId,
+  ) async {
+    final models = await _listModelsForManufacturer(manufacturerId);
+    final years = await _listYearsForModels(models);
+    if (years.isEmpty) {
+      return const [];
+    }
+    final rows = await _client
+        .from('vehicle_catalog_view')
+        .select()
+        .inFilter('model_year_id', years.map((item) => item.id).toList())
+        .eq('is_selectable', true)
+        .eq('is_deprecated', false);
+    return _hydrateSupabaseVariants(rows, years: years, models: models);
+  }
+
+  Future<List<VehicleVariant>> _listHydratedVariantsByModel(
+    String modelId,
+  ) async {
+    final years = await _listYearsForModel(modelId);
+    if (years.isEmpty) {
+      return const [];
+    }
+    final models = await _listModelsByIds([modelId]);
+    final rows = await _client
+        .from('vehicle_catalog_view')
+        .select()
+        .inFilter('model_year_id', years.map((item) => item.id).toList())
+        .eq('is_selectable', true)
+        .eq('is_deprecated', false);
+    return _hydrateSupabaseVariants(rows, years: years, models: models);
+  }
+
+  List<VehicleVariant> _hydrateSupabaseVariants(
+    Iterable<dynamic> rows, {
+    required List<VehicleModelYear> years,
+    List<VehicleModel> models = const [],
+  }) {
+    final yearById = {for (final year in years) year.id: year};
+    final modelById = {for (final model in models) model.id: model};
+    return rows.map((row) {
+      final json = Map<String, dynamic>.from(row as Map);
+      final year = yearById['${json['model_year_id'] ?? ''}'];
+      final model = year == null ? null : modelById[year.modelId];
+      return VehicleVariant.fromJson({
+        ...json,
+        'generation_id': json['generation_id'] ?? year?.generationId,
+        'manufacturer_id': json['manufacturer_id'] ?? model?.manufacturerId,
+        'model_id': json['model_id'] ?? model?.id,
+        'body_type': json['body_type'] ?? model?.bodyType,
+        'market_segment': json['market_segment'] ??
+            deriveVehicleMarketSegment(model?.bodyType ?? ''),
+      });
+    }).toList()
+      ..sort(compareVehicleVariants);
   }
 
   @override
@@ -1543,7 +2227,8 @@ class SupabaseVehicleCatalogRepository implements VehicleCatalogRepository {
       final rows = await _client
           .from('vehicle_catalog_view')
           .select()
-          .eq('is_verified', true)
+          .eq('is_selectable', true)
+          .eq('is_deprecated', false)
           .ilike('search_text', '%$normalized%')
           .limit(20);
       return rows.map((row) => VehicleVariant.fromJson(row)).toList();
@@ -1576,6 +2261,8 @@ class SupabaseVehicleCatalogRepository implements VehicleCatalogRepository {
   Future<UserVehicle> createCustomVehicleRequest({
     required String manufacturer,
     required String modelName,
+    String generationName = '',
+    String generationCode = '',
     required int year,
     required String trimName,
     required String fuelType,
@@ -1591,6 +2278,8 @@ class SupabaseVehicleCatalogRepository implements VehicleCatalogRepository {
       return _fallback.createCustomVehicleRequest(
         manufacturer: manufacturer,
         modelName: modelName,
+        generationName: generationName,
+        generationCode: generationCode,
         year: year,
         trimName: trimName,
         fuelType: fuelType,
@@ -1620,6 +2309,8 @@ class SupabaseVehicleCatalogRepository implements VehicleCatalogRepository {
         'user_vehicle_id': row['id'],
         'manufacturer_name': manufacturer,
         'model_name': modelName,
+        'generation_name': generationName,
+        'generation_code': generationCode,
         'year': year,
         'trim_name': trimName,
         'fuel_type': fuelType,
@@ -1648,7 +2339,11 @@ class SupabaseVehicleCatalogRepository implements VehicleCatalogRepository {
           fuelType: fuelType,
           vehicleClass: vehicleClass,
           fuelLeague: fuelLeague,
-          efficiencyUnit: fuelLeague == 'electric' ? 'km/kWh' : 'km/L',
+          efficiencyUnit: switch (fuelLeague) {
+            'electric' => 'km/kWh',
+            'hydrogen' => 'km/kg',
+            _ => 'km/L',
+          },
           isVerified: false,
         ),
       );
@@ -1659,6 +2354,8 @@ class SupabaseVehicleCatalogRepository implements VehicleCatalogRepository {
       return _fallback.createCustomVehicleRequest(
         manufacturer: manufacturer,
         modelName: modelName,
+        generationName: generationName,
+        generationCode: generationCode,
         year: year,
         trimName: trimName,
         fuelType: fuelType,
@@ -1754,6 +2451,8 @@ class SupabaseVehicleCatalogRepository implements VehicleCatalogRepository {
       userVehicleId: '${json['user_vehicle_id'] ?? ''}',
       manufacturerName: '${json['manufacturer_name'] ?? ''}',
       modelName: '${json['model_name'] ?? ''}',
+      generationName: '${json['generation_name'] ?? ''}',
+      generationCode: '${json['generation_code'] ?? ''}',
       year: _intFrom(json['year'], DateTime.now().year),
       trimName: '${json['trim_name'] ?? ''}',
       fuelType: '${json['fuel_type'] ?? ''}',
@@ -3132,6 +3831,7 @@ class MockRankingRepository implements RankingRepository {
       '하이브리드' => 'hybrid',
       '전기차' => 'electric',
       'LPG' => 'lpg',
+      '수소전기차' => 'hydrogen',
       _ => '',
     };
     final items = key.isEmpty
@@ -3169,6 +3869,7 @@ class SupabaseRankingRepository implements RankingRepository {
       '하이브리드' => 'hybrid',
       '전기차' => 'electric',
       'LPG' => 'lpg',
+      '수소전기차' => 'hydrogen',
       _ => '',
     };
     String vehicleClass = '';
@@ -4502,7 +5203,11 @@ class SupabaseStatsRepository implements StatsRepository {
           id: 'avg-efficiency',
           label: '평균 연비',
           value: _metricNumber(avgEfficiency, fractionDigits: 1),
-          unit: fuelLeague == 'electric' ? 'km/kWh' : 'km/L',
+          unit: switch (fuelLeague) {
+            'electric' => 'km/kWh',
+            'hydrogen' => 'km/kg',
+            _ => 'km/L',
+          },
         ),
         AdminMetric(
           id: 'verified-drives',
@@ -6219,6 +6924,7 @@ class _VehicleCatalogAsset {
   const _VehicleCatalogAsset({
     required this.manufacturers,
     required this.models,
+    required this.generations,
     required this.years,
     required this.variants,
   });
@@ -6232,6 +6938,10 @@ class _VehicleCatalogAsset {
       models: (json['models'] as List? ?? const [])
           .cast<Map<String, dynamic>>()
           .map(VehicleModel.fromJson)
+          .toList(),
+      generations: (json['generations'] as List? ?? const [])
+          .cast<Map<String, dynamic>>()
+          .map(VehicleGeneration.fromJson)
           .toList(),
       years: (json['years'] as List? ?? const [])
           .cast<Map<String, dynamic>>()
@@ -6248,6 +6958,7 @@ class _VehicleCatalogAsset {
     return const _VehicleCatalogAsset(
       manufacturers: _catalogManufacturers,
       models: _catalogModels,
+      generations: _catalogGenerations,
       years: _catalogYears,
       variants: _catalogVariants,
     );
@@ -6255,8 +6966,53 @@ class _VehicleCatalogAsset {
 
   final List<VehicleManufacturer> manufacturers;
   final List<VehicleModel> models;
+  final List<VehicleGeneration> generations;
   final List<VehicleModelYear> years;
   final List<VehicleVariant> variants;
+}
+
+List<VehicleVariant> _hydratedVehicleCatalogVariants(
+  _VehicleCatalogAsset catalog,
+) {
+  final yearById = {for (final year in catalog.years) year.id: year};
+  final modelById = {for (final model in catalog.models) model.id: model};
+  return catalog.variants.map((variant) {
+    final year = yearById[variant.modelYearId];
+    final model = year == null ? null : modelById[year.modelId];
+    return variant.copyWith(
+      generationId: variant.generationId.isNotEmpty
+          ? variant.generationId
+          : year?.generationId ?? '',
+      manufacturerId: variant.manufacturerId.isNotEmpty
+          ? variant.manufacturerId
+          : model?.manufacturerId ?? '',
+      modelId: variant.modelId.isNotEmpty ? variant.modelId : model?.id ?? '',
+      bodyType: variant.bodyType.isNotEmpty
+          ? variant.bodyType
+          : model?.bodyType ?? '',
+      marketSegment: variant.marketSegment.isNotEmpty
+          ? variant.marketSegment
+          : deriveVehicleMarketSegment(model?.bodyType ?? variant.bodyType),
+    );
+  }).toList();
+}
+
+List<VehicleVariant> _vehicleCatalogVariantsForManufacturer(
+  _VehicleCatalogAsset catalog,
+  String manufacturerId,
+) {
+  return _hydratedVehicleCatalogVariants(catalog)
+      .where((item) => item.manufacturerId == manufacturerId)
+      .toList();
+}
+
+List<VehicleVariant> _vehicleCatalogVariantsForModel(
+  _VehicleCatalogAsset catalog,
+  String modelId,
+) {
+  return _hydratedVehicleCatalogVariants(catalog)
+      .where((item) => item.modelId == modelId)
+      .toList();
 }
 
 Map<String, _ManufacturerCatalogStats> _manufacturerStatsById(
@@ -6634,6 +7390,192 @@ const _catalogModels = [
       sortOrder: 20)
 ];
 
+const _catalogGenerations = [
+  VehicleGeneration(
+    id: 'generation-hyundai-avante-cn7',
+    modelId: 'model-hyundai-001-kr',
+    generationOrder: 7,
+    generationNameKo: '7세대',
+    generationCode: 'CN7',
+    startYear: 2020,
+    startMonth: 4,
+    displayPeriod: '2020.4~현재',
+    isCurrent: true,
+    sourceStatus: 'unverified',
+    confidenceScore: 0.35,
+    modelYearIds: [
+      'year-hyundai-001-kr-2026',
+      'year-hyundai-001-kr-2025',
+      'year-hyundai-001-kr-2024',
+      'year-hyundai-001-kr-2023',
+      'year-hyundai-001-kr-2022',
+      'year-hyundai-001-kr-2021',
+      'year-hyundai-001-kr-2020',
+    ],
+  ),
+  VehicleGeneration(
+    id: 'generation-hyundai-sonata-dn8',
+    modelId: 'model-hyundai-002-kr',
+    generationOrder: 8,
+    generationNameKo: '8세대',
+    generationNameEn: 'Eighth generation',
+    generationCode: 'DN8/DN8 PE',
+    platformCode: 'DN8',
+    startYear: 2019,
+    displayPeriod: '2019~현재',
+    isCurrent: true,
+    sourceStatus: 'verified_admin',
+    confidenceScore: 0.76,
+    sourceName: 'Hyundai Motor model history and software version list',
+    sourceUrl:
+        'https://www.hyundai.com/kr/ko/brand/brandstory/model/sonata-history',
+    modelYearIds: ['year-hyundai-002-kr-2026'],
+  ),
+  VehicleGeneration(
+    id: 'generation-hyundai-grandeur-gn7',
+    modelId: 'model-hyundai-003-kr',
+    generationOrder: 7,
+    generationNameKo: '7세대',
+    generationNameEn: 'Seventh generation',
+    generationCode: 'GN7',
+    platformCode: 'GN7',
+    startYear: 2022,
+    displayPeriod: '2022~현재',
+    isCurrent: true,
+    sourceStatus: 'verified_admin',
+    confidenceScore: 0.76,
+    sourceName: 'Hyundai Motor model history and software version list',
+    sourceUrl:
+        'https://www.hyundai.com/kr/ko/brand/brandstory/model/grandeur-history',
+    modelYearIds: ['year-hyundai-003-kr-2026'],
+  ),
+  VehicleGeneration(
+    id: 'generation-hyundai-tucson-nx4',
+    modelId: 'model-hyundai-005-kr',
+    generationOrder: 4,
+    generationNameKo: '4세대',
+    generationNameEn: 'Fourth generation',
+    generationCode: 'NX4/NX4 PE',
+    platformCode: 'NX4',
+    startYear: 2020,
+    displayPeriod: '2020~현재',
+    isCurrent: true,
+    sourceStatus: 'verified_admin',
+    confidenceScore: 0.76,
+    sourceName: 'Hyundai Motor model history and software version list',
+    sourceUrl:
+        'https://www.hyundai.com/kr/ko/brand/brandstory/model/tucson-history',
+    modelYearIds: ['year-hyundai-005-kr-2026'],
+  ),
+  VehicleGeneration(
+    id: 'generation-hyundai-santafe-mx5',
+    modelId: 'model-hyundai-006-kr',
+    generationOrder: 5,
+    generationNameKo: '5세대',
+    generationNameEn: 'Fifth generation',
+    generationCode: 'MX5',
+    platformCode: 'MX5',
+    startYear: 2023,
+    displayPeriod: '2023~현재',
+    isCurrent: true,
+    sourceStatus: 'verified_admin',
+    confidenceScore: 0.76,
+    sourceName: 'Hyundai Motor model history and software version list',
+    sourceUrl:
+        'https://www.hyundai.com/kr/ko/brand/brandstory/model/santafe-history',
+    modelYearIds: ['year-hyundai-006-kr-2026'],
+  ),
+  VehicleGeneration(
+    id: 'generation-hyundai-ioniq5-ne',
+    modelId: 'model-hyundai-009-5',
+    generationOrder: 1,
+    generationNameKo: '1세대',
+    generationNameEn: 'First generation',
+    generationCode: 'NE/NE PE',
+    platformCode: 'E-GMP',
+    startYear: 2021,
+    startMonth: 2,
+    displayPeriod: '2021.2~현재',
+    isCurrent: true,
+    sourceStatus: 'verified_admin',
+    confidenceScore: 0.76,
+    sourceName: 'Hyundai Motor IONIQ 5 world premiere',
+    sourceUrl:
+        'https://www.hyundai.com/worldwide/en/newsroom/detail/hyundai-ioniq-5-redefines-electric-mobility-lifestyle-0000000551',
+    modelYearIds: ['year-hyundai-009-5-2026'],
+  ),
+  VehicleGeneration(
+    id: 'generation-hyundai-ioniq6-ce',
+    modelId: 'model-hyundai-010-6',
+    generationOrder: 1,
+    generationNameKo: '1세대',
+    generationNameEn: 'First generation',
+    generationCode: 'CE/CE PE',
+    platformCode: 'E-GMP',
+    startYear: 2022,
+    startMonth: 7,
+    displayPeriod: '2022.7~현재',
+    isCurrent: true,
+    sourceStatus: 'verified_admin',
+    confidenceScore: 0.76,
+    sourceName: 'Hyundai Motor IONIQ 6 world premiere',
+    sourceUrl:
+        'https://www.hyundai.com/worldwide/en/newsroom/detail/hyundai-motor-debuts-ioniq-6-electrified-streamliner-with-610km-range-and-innovative-personal-space--0000016850',
+    modelYearIds: ['year-hyundai-010-6-2026'],
+  ),
+  VehicleGeneration(
+    id: 'generation-kia-k5-dl3',
+    modelId: 'model-kia-014-k5',
+    generationOrder: 3,
+    generationNameKo: '3세대',
+    generationNameEn: 'Third generation',
+    generationCode: 'DL3/DL3 PE',
+    platformCode: 'DL3',
+    startYear: 2019,
+    displayPeriod: '2019~현재',
+    isCurrent: true,
+    sourceStatus: 'verified_admin',
+    confidenceScore: 0.74,
+    sourceName: 'Kia software version list',
+    sourceUrl: 'https://update.kia.com/KR/KO/updateNoticeView/software-version',
+    modelYearIds: ['year-kia-014-k5-2026'],
+  ),
+  VehicleGeneration(
+    id: 'generation-kia-sportage-nq5',
+    modelId: 'model-kia-021-kr',
+    generationOrder: 5,
+    generationNameKo: '5세대',
+    generationNameEn: 'Fifth generation',
+    generationCode: 'NQ5/NQ5 PE',
+    platformCode: 'NQ5',
+    startYear: 2021,
+    displayPeriod: '2021~현재',
+    isCurrent: true,
+    sourceStatus: 'verified_admin',
+    confidenceScore: 0.74,
+    sourceName: 'Kia software version list',
+    sourceUrl: 'https://update.kia.com/KR/KO/updateNoticeView/software-version',
+    modelYearIds: ['year-kia-021-kr-2026'],
+  ),
+  VehicleGeneration(
+    id: 'generation-kia-ev6-cv',
+    modelId: 'model-kia-025-ev6',
+    generationOrder: 1,
+    generationNameKo: '1세대',
+    generationNameEn: 'First generation',
+    generationCode: 'CV/CV PE',
+    platformCode: 'E-GMP',
+    startYear: 2021,
+    displayPeriod: '2021~현재',
+    isCurrent: true,
+    sourceStatus: 'verified_admin',
+    confidenceScore: 0.74,
+    sourceName: 'Kia software version list',
+    sourceUrl: 'https://update.kia.com/KR/KO/updateNoticeView/software-version',
+    modelYearIds: ['year-kia-025-ev6-2026'],
+  ),
+];
+
 const _catalogYears = [
   VehicleModelYear(
       id: 'year-hyundai-001-kr-2026',
@@ -6642,11 +7584,15 @@ const _catalogYears = [
   VehicleModelYear(
       id: 'year-hyundai-002-kr-2026',
       modelId: 'model-hyundai-002-kr',
-      year: 2026),
+      year: 2026,
+      generationId: 'generation-hyundai-sonata-dn8',
+      productionYearLabel: '2019~현재'),
   VehicleModelYear(
       id: 'year-hyundai-003-kr-2026',
       modelId: 'model-hyundai-003-kr',
-      year: 2026),
+      year: 2026,
+      generationId: 'generation-hyundai-grandeur-gn7',
+      productionYearLabel: '2022~현재'),
   VehicleModelYear(
       id: 'year-hyundai-004-kr-2026',
       modelId: 'model-hyundai-004-kr',
@@ -6654,11 +7600,15 @@ const _catalogYears = [
   VehicleModelYear(
       id: 'year-hyundai-005-kr-2026',
       modelId: 'model-hyundai-005-kr',
-      year: 2026),
+      year: 2026,
+      generationId: 'generation-hyundai-tucson-nx4',
+      productionYearLabel: '2020~현재'),
   VehicleModelYear(
       id: 'year-hyundai-006-kr-2026',
       modelId: 'model-hyundai-006-kr',
-      year: 2026),
+      year: 2026,
+      generationId: 'generation-hyundai-santafe-mx5',
+      productionYearLabel: '2023~현재'),
   VehicleModelYear(
       id: 'year-hyundai-007-kr-2026',
       modelId: 'model-hyundai-007-kr',
@@ -6670,17 +7620,33 @@ const _catalogYears = [
   VehicleModelYear(
       id: 'year-hyundai-009-5-2026',
       modelId: 'model-hyundai-009-5',
-      year: 2026),
+      year: 2026,
+      generationId: 'generation-hyundai-ioniq5-ne',
+      productionYearLabel: '2021.2~현재'),
   VehicleModelYear(
       id: 'year-hyundai-010-6-2026',
       modelId: 'model-hyundai-010-6',
-      year: 2026),
+      year: 2026,
+      generationId: 'generation-hyundai-ioniq6-ce',
+      productionYearLabel: '2022.7~현재'),
   VehicleModelYear(
-      id: 'year-kia-014-k5-2026', modelId: 'model-kia-014-k5', year: 2026),
+      id: 'year-kia-014-k5-2026',
+      modelId: 'model-kia-014-k5',
+      year: 2026,
+      generationId: 'generation-kia-k5-dl3',
+      productionYearLabel: '2019~현재'),
   VehicleModelYear(
-      id: 'year-kia-021-kr-2026', modelId: 'model-kia-021-kr', year: 2026),
+      id: 'year-kia-021-kr-2026',
+      modelId: 'model-kia-021-kr',
+      year: 2026,
+      generationId: 'generation-kia-sportage-nq5',
+      productionYearLabel: '2021~현재'),
   VehicleModelYear(
-      id: 'year-kia-025-ev6-2026', modelId: 'model-kia-025-ev6', year: 2026),
+      id: 'year-kia-025-ev6-2026',
+      modelId: 'model-kia-025-ev6',
+      year: 2026,
+      generationId: 'generation-kia-ev6-cv',
+      productionYearLabel: '2021~현재'),
   VehicleModelYear(
       id: 'year-tesla-120-model-3-2026',
       modelId: 'model-tesla-120-model-3',

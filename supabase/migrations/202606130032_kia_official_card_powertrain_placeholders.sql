@@ -1,0 +1,133 @@
+-- Kia official EV/PBV/commercial card audit.
+-- Official homepage cards such as EV3 GT, PV5 Cargo, and K8 Taxi are kept as
+-- powertrain/trim candidates under the existing model rows, not standalone
+-- vehicle_models. Row-level specs are not verified yet, so every added row is
+-- pending_review, non-selectable, and has null numeric specifications.
+
+delete from public.vehicle_variants
+where id in (
+  'variant-kia-015-k8-2026-lpg',
+  'variant-kia-018-kr-2026-electric',
+  'variant-kia-024-ev3-2026-electric',
+  'variant-kia-ev4-kr-2026-electric',
+  'variant-kia-ev5-kr-2026-electric',
+  'variant-kia-025-ev6-2026-electric',
+  'variant-kia-026-ev9-2026-electric',
+  'variant-kia-pv5-kr-2026-electric',
+  'variant-kia-027-kr-2026-diesel',
+  'variant-kia-027-kr-2026-electric'
+);
+
+with kia_cards (
+  id,
+  model_year_id,
+  generation_id,
+  trim_name,
+  engine_name,
+  fuel_type,
+  efficiency_unit,
+  vehicle_class,
+  fuel_league,
+  source_name,
+  source_url,
+  sort_order
+) as (
+  values
+    ('variant-kia-k8-2026-taxi-lpg-pending', 'year-kia-015-k8-2026', 'generation-kia-k8-gl3', 'K8 택시', 'Pending official K8 택시 specification review', 'LPG', 'km/L', '택시', 'lpg', 'Kia Korea official taxi, bus and commercial lineup page', 'https://www.kia.com/kr/vehicles/commercial', 30),
+    ('variant-kia-ray-2026-ray-ev-pending', 'year-kia-018-kr-2026', 'generation-kia-ray-tam', '레이 EV', 'Pending official 레이 EV specification review', '전기차', 'km/kWh', '경형', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 50),
+    ('variant-kia-ev3-2026-ev3-pending', 'year-kia-024-ev3-2026', 'generation-kia-ev3-sv1', 'EV3', 'Pending official EV3 specification review', '전기차', 'km/kWh', '소형 SUV', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 50),
+    ('variant-kia-ev3-2026-ev3-gt-pending', 'year-kia-024-ev3-2026', 'generation-kia-ev3-sv1', 'EV3 GT', 'Pending official EV3 GT specification review', '전기차', 'km/kWh', '소형 SUV', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 51),
+    ('variant-kia-ev4-2026-ev4-pending', 'year-kia-ev4-kr-2026', 'generation-kia-ev4-official-lineup', 'EV4', 'Pending official EV4 specification review', '전기차', 'km/kWh', '중형', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 50),
+    ('variant-kia-ev4-2026-ev4-gt-pending', 'year-kia-ev4-kr-2026', 'generation-kia-ev4-official-lineup', 'EV4 GT', 'Pending official EV4 GT specification review', '전기차', 'km/kWh', '중형', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 51),
+    ('variant-kia-ev5-2026-ev5-pending', 'year-kia-ev5-kr-2026', 'generation-kia-ev5-official-lineup', 'EV5', 'Pending official EV5 specification review', '전기차', 'km/kWh', 'SUV', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 50),
+    ('variant-kia-ev5-2026-ev5-gt-pending', 'year-kia-ev5-kr-2026', 'generation-kia-ev5-official-lineup', 'EV5 GT', 'Pending official EV5 GT specification review', '전기차', 'km/kWh', 'SUV', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 51),
+    ('variant-kia-ev6-2026-ev6-pending', 'year-kia-025-ev6-2026', 'generation-kia-ev6-cv', 'EV6', 'Pending official EV6 specification review', '전기차', 'km/kWh', 'SUV', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 50),
+    ('variant-kia-ev6-2026-ev6-gt-pending', 'year-kia-025-ev6-2026', 'generation-kia-ev6-cv', 'EV6 GT', 'Pending official EV6 GT specification review', '전기차', 'km/kWh', 'SUV', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 51),
+    ('variant-kia-ev9-2026-ev9-pending', 'year-kia-026-ev9-2026', 'generation-kia-ev9-mv1', 'EV9', 'Pending official EV9 specification review', '전기차', 'km/kWh', '대형 SUV', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 50),
+    ('variant-kia-ev9-2026-ev9-gt-pending', 'year-kia-026-ev9-2026', 'generation-kia-ev9-mv1', 'EV9 GT', 'Pending official EV9 GT specification review', '전기차', 'km/kWh', '대형 SUV', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 51),
+    ('variant-kia-pv5-2026-passenger-pending', 'year-kia-pv5-kr-2026', 'generation-kia-pv5-official-lineup', 'PV5 패신저', 'Pending official PV5 패신저 specification review', '전기차', 'km/kWh', '상용', 'electric', 'Kia Korea official PBV lineup page', 'https://www.kia.com/kr/vehicles/pbv', 50),
+    ('variant-kia-pv5-2026-cargo-pending', 'year-kia-pv5-kr-2026', 'generation-kia-pv5-official-lineup', 'PV5 카고', 'Pending official PV5 카고 specification review', '전기차', 'km/kWh', '상용', 'electric', 'Kia Korea official PBV lineup page', 'https://www.kia.com/kr/vehicles/pbv', 51),
+    ('variant-kia-pv5-2026-wav-pending', 'year-kia-pv5-kr-2026', 'generation-kia-pv5-official-lineup', 'PV5 WAV', 'Pending official PV5 WAV specification review', '전기차', 'km/kWh', '상용', 'electric', 'Kia Korea official PBV lineup page', 'https://www.kia.com/kr/vehicles/pbv', 52),
+    ('variant-kia-pv5-2026-openbed-pending', 'year-kia-pv5-kr-2026', 'generation-kia-pv5-official-lineup', 'PV5 오픈베드', 'Pending official PV5 오픈베드 specification review', '전기차', 'km/kWh', '상용', 'electric', 'Kia Korea official PBV lineup page', 'https://www.kia.com/kr/vehicles/pbv', 53),
+    ('variant-kia-pv5-2026-passenger-taxi-pending', 'year-kia-pv5-kr-2026', 'generation-kia-pv5-official-lineup', 'PV5 패신저 택시', 'Pending official PV5 패신저 택시 specification review', '전기차', 'km/kWh', '택시', 'electric', 'Kia Korea official taxi, bus and commercial lineup page', 'https://www.kia.com/kr/vehicles/commercial', 54),
+    ('variant-kia-pv5-2026-wav-taxi-pending', 'year-kia-pv5-kr-2026', 'generation-kia-pv5-official-lineup', 'PV5 WAV 택시', 'Pending official PV5 WAV 택시 specification review', '전기차', 'km/kWh', '택시', 'electric', 'Kia Korea official taxi, bus and commercial lineup page', 'https://www.kia.com/kr/vehicles/commercial', 55),
+    ('variant-kia-bongo-2026-truck-diesel-pending', 'year-kia-027-kr-2026', 'generation-kia-bongo-pu', '봉고Ⅲ 트럭', 'Pending official 봉고Ⅲ 트럭 specification review', '디젤', 'km/L', '상용', 'diesel', 'Kia Korea official taxi, bus and commercial lineup page', 'https://www.kia.com/kr/vehicles/commercial', 40),
+    ('variant-kia-bongo-2026-box-wing-walkthrough-diesel-pending', 'year-kia-027-kr-2026', 'generation-kia-bongo-pu', '봉고III 탑차/윙바디/워크스루밴', 'Pending official 봉고III 탑차/윙바디/워크스루밴 specification review', '디젤', 'km/L', '상용', 'diesel', 'Kia Korea official taxi, bus and commercial lineup page', 'https://www.kia.com/kr/vehicles/commercial', 41),
+    ('variant-kia-bongo-2026-dump-diesel-pending', 'year-kia-027-kr-2026', 'generation-kia-bongo-pu', '봉고III 덤프', 'Pending official 봉고III 덤프 specification review', '디젤', 'km/L', '상용', 'diesel', 'Kia Korea official taxi, bus and commercial lineup page', 'https://www.kia.com/kr/vehicles/commercial', 42),
+    ('variant-kia-bongo-2026-ev-truck-pending', 'year-kia-027-kr-2026', 'generation-kia-bongo-pu', '봉고Ⅲ EV', 'Pending official 봉고Ⅲ EV specification review', '전기차', 'km/kWh', '상용', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 50),
+    ('variant-kia-bongo-2026-ev-box-wing-pending', 'year-kia-027-kr-2026', 'generation-kia-bongo-pu', '봉고III EV 탑차/윙바디', 'Pending official 봉고III EV 탑차/윙바디 specification review', '전기차', 'km/kWh', '상용', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 51),
+    ('variant-kia-bongo-2026-ev-powergate-pending', 'year-kia-027-kr-2026', 'generation-kia-bongo-pu', '봉고III EV 파워게이트', 'Pending official 봉고III EV 파워게이트 specification review', '전기차', 'km/kWh', '상용', 'electric', 'Kia Korea official EV lineup page', 'https://www.kia.com/kr/vehicles/ev', 52)
+)
+insert into public.vehicle_variants (
+  id,
+  model_year_id,
+  generation_id,
+  trim_name,
+  engine_name,
+  fuel_type,
+  displacement_cc,
+  battery_kwh,
+  drivetrain,
+  transmission,
+  official_efficiency,
+  efficiency_unit,
+  vehicle_class,
+  fuel_league,
+  is_verified,
+  source_status,
+  source_name,
+  source_url,
+  last_verified_at,
+  confidence_score,
+  is_selectable,
+  is_deprecated,
+  sort_order
+)
+select
+  id,
+  model_year_id,
+  generation_id,
+  trim_name,
+  engine_name,
+  fuel_type,
+  null::integer,
+  null::numeric,
+  '검수 대기',
+  '검수 대기',
+  null::numeric,
+  efficiency_unit,
+  vehicle_class,
+  fuel_league,
+  false,
+  'pending_review',
+  source_name,
+  source_url,
+  '2026-06-13'::date,
+  0.66,
+  false,
+  false,
+  sort_order
+from kia_cards
+on conflict (id) do update set
+  model_year_id = excluded.model_year_id,
+  generation_id = excluded.generation_id,
+  trim_name = excluded.trim_name,
+  engine_name = excluded.engine_name,
+  fuel_type = excluded.fuel_type,
+  displacement_cc = excluded.displacement_cc,
+  battery_kwh = excluded.battery_kwh,
+  drivetrain = excluded.drivetrain,
+  transmission = excluded.transmission,
+  official_efficiency = excluded.official_efficiency,
+  efficiency_unit = excluded.efficiency_unit,
+  vehicle_class = excluded.vehicle_class,
+  fuel_league = excluded.fuel_league,
+  is_verified = excluded.is_verified,
+  source_status = excluded.source_status,
+  source_name = excluded.source_name,
+  source_url = excluded.source_url,
+  last_verified_at = excluded.last_verified_at,
+  confidence_score = excluded.confidence_score,
+  is_selectable = excluded.is_selectable,
+  is_deprecated = excluded.is_deprecated,
+  sort_order = excluded.sort_order;

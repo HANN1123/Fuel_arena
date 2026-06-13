@@ -127,12 +127,12 @@ void main() {
     final avante =
         models.firstWhere((item) => item.id == 'model-hyundai-001-kr');
     final years = await repository.listYears(avante.id);
-    final year2026 = years.firstWhere((item) => item.year == 2026);
-    final variants = await repository.listVariants(year2026.id);
+    final year2024 = years.firstWhere((item) => item.year == 2024);
+    final variants = await repository.listVariants(year2024.id);
     final gasoline = variants.firstWhere(
-        (item) => item.id == 'variant-hyundai-avante-2026-gasoline');
+        (item) => item.id == 'variant-hyundai-avante-2024-gasoline');
 
-    expect(gasoline.breadcrumb, '현대 > 아반떼 > 2026년식 > 1.6 가솔린');
+    expect(gasoline.breadcrumb, '현대 > 아반떼 > 2024년식 > 1.6 가솔린');
     expect(
       gasoline.specSummary,
       '1598cc · Smartstream G1.6 · IVT · 15.0 km/L',
@@ -169,11 +169,11 @@ void main() {
 
     expect(years.map((item) => item.year), containsAll([2026, 2015]));
 
-    final year2026 = years.firstWhere((item) => item.year == 2026);
-    final variants = await repository.listVariants(year2026.id);
+    final year2024 = years.firstWhere((item) => item.year == 2024);
+    final variants = await repository.listVariants(year2024.id);
     final trimNames = variants.map((item) => item.trimName).toList();
 
-    expect(trimNames, ['1.6 가솔린', '1.6 하이브리드', '1.6 LPi']);
+    expect(trimNames, ['1.6 가솔린']);
     expect(trimNames.any((item) => item.contains('스마트')), isFalse);
     expect(trimNames.any((item) => item.contains('모던')), isFalse);
     expect(trimNames.any((item) => item.contains('인스퍼레이션')), isFalse);
@@ -181,38 +181,37 @@ void main() {
     expect(trimNames.any((item) => item.contains('인치')), isFalse);
   });
 
-  test('Vehicle catalog separates K3 and K3 GT by powertrain', () async {
+  test('Vehicle catalog keeps K3 GT as a K3 trim powertrain', () async {
     final repository = const MockVehicleCatalogRepository();
 
     final manufacturers = await repository.listManufacturers(keyword: '기아');
     final kia = manufacturers.firstWhere((item) => item.id == 'm-kia');
     final models = await repository.listModels(kia.id, keyword: 'K3');
 
-    expect(models.map((item) => item.nameKo), containsAll(['K3', 'K3 GT']));
+    expect(models.map((item) => item.nameKo), contains('K3'));
+    expect(models.map((item) => item.nameKo), isNot(contains('K3 GT')));
 
     final k3 = models.firstWhere((item) => item.nameKo == 'K3');
     expect(k3.availableFuelTypes, ['가솔린', '디젤']);
     final k3Years = await repository.listYears(k3.id);
     expect(k3Years.map((item) => item.year), containsAll([2024, 2015]));
     expect(k3Years.map((item) => item.year), isNot(contains(2014)));
-    final k3Year2017 = k3Years.firstWhere((item) => item.year == 2017);
-    final k3OldVariants = await repository.listVariants(k3Year2017.id);
-    expect(
-      k3OldVariants.map((item) => item.trimName),
-      ['1.6 가솔린', '1.6 디젤'],
-    );
-    final k3OldGasoline = k3OldVariants
-        .firstWhere((item) => item.id == 'variant-kia-k3-2017-16-gdi-6at');
+    final k3OldGasoline =
+        await repository.getVariant('variant-kia-k3-2017-16-gdi-6at');
 
-    expect(k3OldGasoline.trimName, '1.6 가솔린');
+    expect(k3OldGasoline, isNotNull);
+    expect(k3OldGasoline!.trimName, '1.6 가솔린');
+    expect(k3OldGasoline.isSelectable, isFalse);
     expect(
       k3OldGasoline.specSummary,
       '1591cc · Gamma 1.6 GDI · 자동 6단 · 14.3 km/L',
     );
 
-    final k3OldDiesel = k3OldVariants
-        .firstWhere((item) => item.id == 'variant-kia-k3-2017-16-diesel-7dct');
-    expect(k3OldDiesel.trimName, '1.6 디젤');
+    final k3OldDiesel =
+        await repository.getVariant('variant-kia-k3-2017-16-diesel-7dct');
+    expect(k3OldDiesel, isNotNull);
+    expect(k3OldDiesel!.trimName, '1.6 디젤');
+    expect(k3OldDiesel.isSelectable, isFalse);
     expect(
       k3OldDiesel.specSummary,
       '1582cc · U2 1.6 VGT 디젤 · 7단 DCT ISG · 19.1 km/L',
@@ -220,7 +219,10 @@ void main() {
 
     final k3Year2024 = k3Years.firstWhere((item) => item.year == 2024);
     final k3Variants = await repository.listVariants(k3Year2024.id);
-    expect(k3Variants.map((item) => item.trimName), ['1.6 가솔린']);
+    expect(
+      k3Variants.map((item) => item.trimName),
+      ['1.6 가솔린', 'K3 GT 1.6T 가솔린 DCT'],
+    );
     final k3Gasoline = k3Variants
         .firstWhere((item) => item.id == 'variant-kia-k3-2024-16-ivt');
 
@@ -230,24 +232,20 @@ void main() {
       '1598cc · Smartstream G1.6 · IVT · 15.2 km/L',
     );
 
-    final k3Gt = models.firstWhere((item) => item.nameKo == 'K3 GT');
-    final k3GtYears = await repository.listYears(k3Gt.id);
-    expect(k3GtYears.map((item) => item.year), containsAll([2024, 2018]));
-    expect(k3GtYears.map((item) => item.year), isNot(contains(2026)));
+    final k3GtManual =
+        await repository.getVariant('variant-kia-k3-gt-2020-16t-6mt');
+    final k3GtDct =
+        await repository.getVariant('variant-kia-k3-gt-2020-16t-7dct');
+    expect(k3GtManual?.trimName, 'K3 GT 1.6T 가솔린 수동');
+    expect(k3GtManual?.isSelectable, isFalse);
+    expect(k3GtDct?.trimName, 'K3 GT 1.6T 가솔린 DCT');
+    expect(k3GtDct?.isSelectable, isFalse);
 
-    final k3GtYear2020 = k3GtYears.firstWhere((item) => item.year == 2020);
-    final k3Gt2020Variants = await repository.listVariants(k3GtYear2020.id);
-    expect(
-      k3Gt2020Variants.map((item) => item.trimName),
-      ['1.6T 가솔린 수동', '1.6T 가솔린 DCT'],
-    );
-
-    final k3GtYear2024 = k3GtYears.firstWhere((item) => item.year == 2024);
-    final k3GtVariants = await repository.listVariants(k3GtYear2024.id);
-    final k3GtTurbo = k3GtVariants
+    final k3GtTurbo = k3Variants
         .firstWhere((item) => item.id == 'variant-kia-k3-gt-2024-16t-7dct');
 
-    expect(k3GtTurbo.trimName, '1.6T 가솔린 DCT');
+    expect(k3GtTurbo.modelName, 'K3');
+    expect(k3GtTurbo.trimName, 'K3 GT 1.6T 가솔린 DCT');
     expect(
       k3GtTurbo.specSummary,
       '1591cc · Gamma 1.6 T-GDi · 7단 DCT · 12.1 km/L',
@@ -260,7 +258,7 @@ void main() {
     final repository = MockUserVehicleRepository(catalogRepository: catalog);
 
     final vehicle = await repository.addUserVehicleFromVariant(
-        'variant-hyundai-avante-2026-gasoline', '테스트 아반떼', true);
+        'variant-hyundai-avante-2024-gasoline', '테스트 아반떼', true);
     final membership = await repository.assignLeagueForVehicle(vehicle.id);
     final primary = await MockVehicleRepository().getPrimaryVehicle();
 
@@ -274,6 +272,8 @@ void main() {
     final vehicle = await repository.createCustomVehicleRequest(
       manufacturer: '기타',
       modelName: '테스트 모델',
+      generationName: '테스트 세대',
+      generationCode: 'TEST',
       year: 2026,
       trimName: '수동 입력',
       fuelType: '전기차',
@@ -289,6 +289,8 @@ void main() {
     expect(reviewQueue, hasLength(1));
     expect(reviewQueue.single.userVehicleId, vehicle.id);
     expect(reviewQueue.single.fuelLeague, 'electric');
+    expect(reviewQueue.single.generationName, '테스트 세대');
+    expect(reviewQueue.single.generationCode, 'TEST');
 
     final approved = await repository.reviewCustomVehicleRequest(
       requestId: reviewQueue.single.id,

@@ -20,6 +20,10 @@ Fuel Arena는 연비 기록장이 아니라 연비로 경쟁하는 게임형 드
 - 정확한 위치 좌표와 raw drive_points는 공개 화면에 노출하지 않는다.
 - Supabase service_role key는 Flutter 앱에 절대 넣지 않는다.
 - Google 로그인 이후 DB 보강은 `auth.users` trigger, profiles protected field trigger/RPC, consent/account deletion/data export/auth audit RLS를 함께 유지한다.
+- 차량 선택 UX는 기본적으로 제조사 → 연료 타입 → 넓은 범주 → 모델 → 세대 → 파워트레인/트림 → 확인 흐름을 유지하고, 기본 단계로 연식 선택을 되돌리지 않는다.
+- 차량 세대/파워트레인 정보는 임의 생성하지 않고, 출처 없는 generation은 verified 처리하지 않는다.
+- BMW 데이터는 공식 출처 또는 운영자 검수 전까지 `unverified`/`pending_review`/`conflict`로 두고 selectable verified로 노출하지 않는다.
+- K3 GT는 별도 모델이 아니라 K3 모델의 GT 트림/파워트레인으로 관리한다.
 
 ## 테스트 기준
 - 계산 helper는 단위 테스트를 추가한다.

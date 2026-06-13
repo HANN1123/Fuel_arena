@@ -12,7 +12,7 @@ Flutter, Dart, go_router, flutter_riverpod, Supabase Auth/Postgres/Realtime/Stor
 
 - Splash → Onboarding → Google Login → Consent → Additional Setup → Home 흐름
 - 차량 설정은 로그인 직후 강제하지 않고 `/setup/vehicle` 또는 설정에서 진행
-- 제조사 → 모델/파생모델 → 기준 연식 → 엔진·미션 파워트레인 → 확인 스텝퍼 차량 선택
+- 제조사 → 연료 타입 → 넓은 범주 → 모델 → 세대 → 엔진·미션 파워트레인 → 확인 스텝퍼 차량 선택
 - 가솔린, 디젤, 하이브리드, 전기차, LPG, 플러그인 하이브리드, 기타 리그 분리
 - 하단 5개 탭: 홈, 배틀, 랭킹, 시즌, 프로필
 - 주행 시작, 안전 모드, 주행 결과, 점수 분석, 광고 보상 선택
@@ -161,7 +161,7 @@ Store 빌드는 macOS/Xcode 환경에서 Bundle ID, Team, Google iOS client,
 
 ## 차량 카탈로그
 
-dev/mock 차량 카탈로그는 `assets/data/vehicle_catalog_kr_seed.json`을 우선 사용합니다. 현재 seed는 제조사 22개, 모델 164개, 2008-2026 범위의 실제 판매 연식 조합 3098개, 파워트레인 variant 5079개를 포함합니다. 사용자 선택 축은 판매 트림/휠 인치가 아니라 차종과 파생모델, 기준 연식, 엔진·미션 파워트레인입니다. production 제조사 카드 통계는 `vehicle_manufacturer_catalog_view`, 파워트레인 목록은 `vehicle_catalog_view`를 사용합니다.
+dev/mock 차량 카탈로그는 `assets/data/vehicle_catalog_kr_seed.json`을 우선 사용합니다. 현재 seed는 제조사, 모델, 세대, 연식, 파워트레인 variant를 포함합니다. 사용자 선택 축은 판매 트림/휠 인치가 아니라 제조사, 연료 타입, EV/승용/SUV/RV/상용 같은 넓은 범주, 모델, 세대, 엔진·미션 파워트레인입니다. K3 GT는 별도 모델이 아니라 K3의 GT 트림/파워트레인으로 관리합니다. production 제조사 카드 통계는 `vehicle_manufacturer_catalog_view`, 파워트레인 목록은 `vehicle_catalog_view`, 세대 필터는 `vehicle_generations`/`vehicle_generation_filter_view`를 사용합니다.
 
 ```bash
 dart run tool/generate_vehicle_catalog_seed.dart

@@ -39,7 +39,6 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
   var _selection = const VehicleSelectionState();
   var _query = '';
   var _manufacturerCountry = '';
-  var _modelBodyType = '';
   var _saving = false;
   String? _saveError;
   final _nicknameController = TextEditingController();
@@ -52,10 +51,12 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
 
   String get _stepLabel {
     return switch (_selection.currentStep) {
-      VehicleSelectionStep.manufacturer => '1/4 제조사 선택',
-      VehicleSelectionStep.model => '2/4 모델 선택',
-      VehicleSelectionStep.year => '3/4 기준 연식 선택',
-      VehicleSelectionStep.variant => '4/4 파워트레인 선택',
+      VehicleSelectionStep.manufacturer => '1/6 제조사 선택',
+      VehicleSelectionStep.fuelType => '2/6 연료 선택',
+      VehicleSelectionStep.category => '3/6 범주 선택',
+      VehicleSelectionStep.model => '4/6 모델 선택',
+      VehicleSelectionStep.generation => '5/6 세대 선택',
+      VehicleSelectionStep.powertrain => '6/6 파워트레인 선택',
       VehicleSelectionStep.confirm => '선택 확인',
     };
   }
@@ -127,14 +128,15 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
           const SizedBox(height: AppSpacing.md),
           VehicleSetupBreadcrumb(selection: _selection, onTap: _goTo),
           const SizedBox(height: AppSpacing.lg),
-          if (_selection.currentStep != VehicleSelectionStep.confirm &&
-              _selection.currentStep != VehicleSelectionStep.year) ...[
+          if (_showsSearchField) ...[
             VehicleSearchField(
               hintText: switch (_selection.currentStep) {
                 VehicleSelectionStep.manufacturer => '제조사 검색',
+                VehicleSelectionStep.fuelType => '',
+                VehicleSelectionStep.category => '',
                 VehicleSelectionStep.model => '모델 검색',
-                VehicleSelectionStep.year => '기준 연식 선택',
-                VehicleSelectionStep.variant => '파워트레인 검색',
+                VehicleSelectionStep.generation => '세대/코드 검색',
+                VehicleSelectionStep.powertrain => '파워트레인 검색',
                 VehicleSelectionStep.confirm => '',
               },
               onChanged: (value) => setState(() => _query = value),
@@ -149,6 +151,20 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
         ],
       ),
     );
+  }
+
+  bool get _showsSearchField {
+    return switch (_selection.currentStep) {
+      VehicleSelectionStep.manufacturer ||
+      VehicleSelectionStep.model ||
+      VehicleSelectionStep.generation ||
+      VehicleSelectionStep.powertrain =>
+        true,
+      VehicleSelectionStep.fuelType ||
+      VehicleSelectionStep.category ||
+      VehicleSelectionStep.confirm =>
+        false,
+    };
   }
 
   Widget _buildCurrentStep() {
@@ -169,10 +185,58 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
             });
             setState(() {
               _query = '';
-              _modelBodyType = '';
               _selection = _selection.copyWith(
                 selectedManufacturer: manufacturer,
+                clearFuelType: true,
+                clearCategory: true,
                 clearModel: true,
+                clearGeneration: true,
+                clearYear: true,
+                clearVariant: true,
+                currentStep: VehicleSelectionStep.fuelType,
+              );
+            });
+          },
+        ),
+      VehicleSelectionStep.fuelType => _FuelTypeStep(
+          manufacturer: _selection.selectedManufacturer!,
+          onSelected: (fuelType) {
+            ref.read(analyticsRepositoryProvider).track(
+              'vehicle_fuel_type_selected',
+              properties: {'fuel_type': fuelType},
+            );
+            setState(() {
+              _query = '';
+              _selection = _selection.copyWith(
+                selectedFuelType: fuelType,
+                clearCategory: true,
+                clearModel: true,
+                clearGeneration: true,
+                clearYear: true,
+                clearVariant: true,
+                currentStep: VehicleSelectionStep.category,
+              );
+            });
+          },
+        ),
+      VehicleSelectionStep.category => _CategoryStep(
+          manufacturer: _selection.selectedManufacturer!,
+          fuelType: _selection.selectedFuelType,
+          selectedCategory: _selection.selectedCategory,
+          onSelected: (category) {
+            ref.read(analyticsRepositoryProvider).track(
+              'vehicle_category_selected',
+              properties: {
+                'fuel_type': _selection.selectedFuelType,
+                'category': category.key,
+              },
+            );
+            setState(() {
+              _query = '';
+              _selection = _selection.copyWith(
+                selectedCategory: category,
+                clearModel: true,
+                clearGeneration: true,
                 clearYear: true,
                 clearVariant: true,
                 currentStep: VehicleSelectionStep.model,
@@ -182,57 +246,69 @@ class _VehicleSetupScreenState extends ConsumerState<VehicleSetupScreen> {
         ),
       VehicleSelectionStep.model => _ModelStep(
           manufacturer: _selection.selectedManufacturer!,
+          fuelType: _selection.selectedFuelType,
+          category: _selection.selectedCategory,
           keyword: _query,
-          bodyType: _modelBodyType,
-          onBodyTypeChanged: (bodyType) {
-            setState(() => _modelBodyType = bodyType);
-          },
-          onSelected: (model) {
-            ref.read(analyticsRepositoryProvider).track(
-                'vehicle_model_selected',
-                properties: {'model_id': model.id});
+          onSelected: (summary) {
+            ref
+                .read(analyticsRepositoryProvider)
+                .track('vehicle_model_selected', properties: {
+              'model_id': summary.model.id,
+              'fuel_type': _selection.selectedFuelType,
+              'category': _selection.selectedCategory.key,
+            });
             setState(() {
               _query = '';
               _selection = _selection.copyWith(
-                selectedModel: model,
+                selectedModel: summary.model,
+                clearGeneration: true,
                 clearYear: true,
                 clearVariant: true,
-                currentStep: VehicleSelectionStep.year,
+                currentStep: VehicleSelectionStep.generation,
               );
             });
           },
         ),
-      VehicleSelectionStep.year => _YearStep(
+      VehicleSelectionStep.generation => _GenerationStep(
           model: _selection.selectedModel!,
-          onSelected: (modelRange) {
+          manufacturer: _selection.selectedManufacturer!,
+          fuelType: _selection.selectedFuelType,
+          category: _selection.selectedCategory,
+          keyword: _query,
+          onSelected: (summary) {
             ref.read(analyticsRepositoryProvider).track(
-              'vehicle_model_range_selected',
+              'vehicle_generation_selected',
               properties: {
                 'model_id': _selection.selectedModel!.id,
-                'model_range': modelRange.label,
-                'representative_year': modelRange.representativeYear.year,
+                'generation_id': summary.generation.id,
+                'generation_code': summary.generation.generationCode,
               },
             );
             setState(() {
               _query = '';
               _selection = _selection.copyWith(
-                selectedYear: modelRange.representativeYear,
-                selectedModelRangeLabel: modelRange.label,
+                selectedGeneration: summary.generation,
+                clearYear: true,
                 clearVariant: true,
-                currentStep: VehicleSelectionStep.variant,
+                currentStep: VehicleSelectionStep.powertrain,
               );
             });
           },
         ),
-      VehicleSelectionStep.variant => _VariantStep(
-          year: _selection.selectedYear!,
+      VehicleSelectionStep.powertrain => _VariantStep(
+          generation: _selection.selectedGeneration!,
+          fuelType: _selection.selectedFuelType,
+          category: _selection.selectedCategory,
           keyword: _query,
-          onSelected: (variant) {
+          onSelected: (choice) {
+            final variant = choice.representative;
             ref
                 .read(analyticsRepositoryProvider)
                 .track('vehicle_variant_selected', properties: {
               'variant_id': variant.id,
-              'fuel_league': variant.fuelLeague
+              'generation_id': _selection.selectedGeneration!.id,
+              'fuel_league': variant.fuelLeague,
+              'valid_period': choice.periodLabel,
             });
             setState(() {
               _query = '';
@@ -399,40 +475,27 @@ class _ManufacturerGrid extends StatelessWidget {
   }
 }
 
-class _ModelStep extends ConsumerWidget {
-  const _ModelStep({
+class _FuelTypeStep extends ConsumerWidget {
+  const _FuelTypeStep({
     required this.manufacturer,
-    required this.keyword,
-    required this.bodyType,
-    required this.onBodyTypeChanged,
     required this.onSelected,
   });
 
   final VehicleManufacturer manufacturer;
-  final String keyword;
-  final String bodyType;
-  final ValueChanged<String> onBodyTypeChanged;
-  final ValueChanged<VehicleModel> onSelected;
+  final ValueChanged<String> onSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final models = ref.watch(vehicleModelsProvider(manufacturer.id));
-    return models.when(
-      loading: () => const LoadingSkeletonView(lines: 4),
+    final fuels =
+        ref.watch(vehicleFuelTypesByManufacturerProvider(manufacturer.id));
+    return fuels.when(
+      loading: () => const LoadingSkeletonView(lines: 3),
       error: (error, stackTrace) => MappedErrorStateView(
         error: error,
-        onRetry: () => ref.invalidate(vehicleModelsProvider(manufacturer.id)),
+        onRetry: () => ref.invalidate(
+            vehicleFuelTypesByManufacturerProvider(manufacturer.id)),
       ),
-      data: (allItems) {
-        final normalized = keyword.trim().toLowerCase();
-        final bodyTypes = _modelBodyTypes(allItems);
-        final items = allItems.where((item) {
-          final keywordMatches = normalized.isEmpty ||
-              item.nameKo.toLowerCase().contains(normalized) ||
-              item.nameEn.toLowerCase().contains(normalized);
-          final bodyMatches = bodyType.isEmpty || item.bodyType == bodyType;
-          return keywordMatches && bodyMatches;
-        }).toList();
+      data: (items) {
         if (items.isEmpty) {
           return CustomVehicleRequestCard(
               manufacturerName: manufacturer.nameKo);
@@ -440,20 +503,15 @@ class _ModelStep extends ConsumerWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (bodyTypes.length > 1) ...[
-              VehicleModelBodyTypeFilter(
-                bodyTypes: bodyTypes,
-                selectedBodyType: bodyType,
-                onChanged: onBodyTypeChanged,
-              ),
-              const SizedBox(height: AppSpacing.md),
-            ],
-            SectionHeader(title: '${manufacturer.nameKo} 모델'),
+            SectionHeader(title: '${manufacturer.nameKo} 연료 타입'),
+            const SizedBox(height: AppSpacing.sm),
             ...items.map(
-              (item) => Padding(
+              (fuelType) => Padding(
                 padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                child: VehicleModelCard(
-                    model: item, onTap: () => onSelected(item)),
+                child: VehicleFuelTypeCard(
+                  fuelType: fuelType,
+                  onTap: () => onSelected(fuelType),
+                ),
               ),
             ),
           ],
@@ -463,31 +521,152 @@ class _ModelStep extends ConsumerWidget {
   }
 }
 
-class VehicleModelBodyTypeFilter extends StatelessWidget {
-  const VehicleModelBodyTypeFilter({
+class _CategoryStep extends ConsumerWidget {
+  const _CategoryStep({
+    required this.manufacturer,
+    required this.fuelType,
+    required this.selectedCategory,
+    required this.onSelected,
+  });
+
+  final VehicleManufacturer manufacturer;
+  final String fuelType;
+  final VehicleCategoryFilter selectedCategory;
+  final ValueChanged<VehicleCategoryFilter> onSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final query = VehicleFuelCategoryQuery(
+      manufacturerId: manufacturer.id,
+      fuelType: fuelType,
+    );
+    final categories = ref.watch(vehicleCategoriesByFuelProvider(query));
+    return categories.when(
+      loading: () => const LoadingSkeletonView(lines: 3),
+      error: (error, stackTrace) => MappedErrorStateView(
+        error: error,
+        onRetry: () => ref.invalidate(vehicleCategoriesByFuelProvider(query)),
+      ),
+      data: (items) {
+        if (items.isEmpty) {
+          return CustomVehicleRequestCard(
+              manufacturerName: manufacturer.nameKo);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SectionHeader(
+              title:
+                  '${FuelLeague.nameForKey(fuelType).replaceAll(' 리그', '')} 범주',
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            VehicleCategoryFilterChips(
+              categories: items,
+              selectedCategory: selectedCategory,
+              onChanged: onSelected,
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              '브랜드 안의 모델을 EV, 승용, SUV, RV, 상용처럼 큰 범주로 좁힙니다.',
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.onSurfaceMuted),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            SecondaryButton(
+              label: '모델 보기',
+              icon: Icons.directions_car_rounded,
+              onPressed: () => onSelected(selectedCategory),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _ModelStep extends ConsumerWidget {
+  const _ModelStep({
+    required this.manufacturer,
+    required this.fuelType,
+    required this.category,
+    required this.keyword,
+    required this.onSelected,
+  });
+
+  final VehicleManufacturer manufacturer;
+  final String fuelType;
+  final VehicleCategoryFilter category;
+  final String keyword;
+  final ValueChanged<VehicleModelFilterSummary> onSelected;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final query = VehicleModelFilterQuery(
+      manufacturerId: manufacturer.id,
+      fuelType: fuelType,
+      category: category,
+      keyword: keyword,
+    );
+    final models = ref.watch(vehicleModelFilterProvider(query));
+    return models.when(
+      loading: () => const LoadingSkeletonView(lines: 4),
+      error: (error, stackTrace) => MappedErrorStateView(
+        error: error,
+        onRetry: () => ref.invalidate(vehicleModelFilterProvider(query)),
+      ),
+      data: (items) {
+        if (items.isEmpty) {
+          return CustomVehicleRequestCard(
+              manufacturerName: manufacturer.nameKo);
+        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SectionHeader(
+              title:
+                  '${manufacturer.nameKo} ${FuelLeague.nameForKey(fuelType).replaceAll(' 리그', '')} 모델',
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ...items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: VehicleModelSummaryCard(
+                  summary: item,
+                  onTap: () => onSelected(item),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class VehicleCategoryFilterChips extends StatelessWidget {
+  const VehicleCategoryFilterChips({
     super.key,
-    required this.bodyTypes,
-    required this.selectedBodyType,
+    required this.categories,
+    required this.selectedCategory,
     required this.onChanged,
   });
 
-  final List<String> bodyTypes;
-  final String selectedBodyType;
-  final ValueChanged<String> onChanged;
+  final List<VehicleCategoryFilter> categories;
+  final VehicleCategoryFilter selectedCategory;
+  final ValueChanged<VehicleCategoryFilter> onChanged;
 
   @override
   Widget build(BuildContext context) {
-    final options = ['', ...bodyTypes];
     return Wrap(
       spacing: AppSpacing.xs,
       runSpacing: AppSpacing.xs,
-      children: options.map((bodyType) {
-        final selected = selectedBodyType == bodyType;
+      children: categories.map((category) {
+        final selected = selectedCategory == category;
         return FilterChip(
           selected: selected,
           showCheckmark: false,
-          label: Text(bodyType.isEmpty ? '전체' : bodyType),
-          onSelected: (_) => onChanged(bodyType),
+          label: Text(category.label),
+          onSelected: (_) => onChanged(category),
           selectedColor: AppColors.neonGreen.withValues(alpha: 0.18),
           backgroundColor: AppColors.surfaceLow,
           side: BorderSide(
@@ -505,56 +684,39 @@ class VehicleModelBodyTypeFilter extends StatelessWidget {
   }
 }
 
-List<String> _modelBodyTypes(List<VehicleModel> models) {
-  const preferredOrder = [
-    '세단',
-    'SUV',
-    '해치백',
-    '왜건',
-    '쿠페',
-    '스포츠',
-    '픽업',
-    '밴',
-  ];
-  final values = models
-      .map((item) => item.bodyType.trim())
-      .where((item) => item.isNotEmpty)
-      .toSet()
-      .toList();
-  values.sort((a, b) {
-    final aIndex = preferredOrder.indexOf(a);
-    final bIndex = preferredOrder.indexOf(b);
-    if (aIndex >= 0 && bIndex >= 0) {
-      return aIndex.compareTo(bIndex);
-    }
-    if (aIndex >= 0) {
-      return -1;
-    }
-    if (bIndex >= 0) {
-      return 1;
-    }
-    return a.compareTo(b);
-  });
-  return values;
-}
-
-class _YearStep extends ConsumerWidget {
-  const _YearStep({
+class _GenerationStep extends ConsumerWidget {
+  const _GenerationStep({
     required this.model,
+    required this.manufacturer,
+    required this.fuelType,
+    required this.category,
+    required this.keyword,
     required this.onSelected,
   });
 
   final VehicleModel model;
-  final ValueChanged<VehicleModelRangeChoice> onSelected;
+  final VehicleManufacturer manufacturer;
+  final String fuelType;
+  final VehicleCategoryFilter category;
+  final String keyword;
+  final ValueChanged<VehicleGenerationSummary> onSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final years = ref.watch(vehicleYearsProvider(model.id));
-    return years.when(
-      loading: () => const LoadingSkeletonView(lines: 2),
+    final query = VehicleGenerationFilterQuery(
+      modelId: model.id,
+      manufacturerId: manufacturer.id,
+      fuelType: fuelType,
+      category: category,
+      keyword: keyword,
+    );
+    final generations = ref.watch(vehicleGenerationsByFilterProvider(query));
+    return generations.when(
+      loading: () => const LoadingSkeletonView(lines: 4),
       error: (error, stackTrace) => MappedErrorStateView(
         error: error,
-        onRetry: () => ref.invalidate(vehicleYearsProvider(model.id)),
+        onRetry: () =>
+            ref.invalidate(vehicleGenerationsByFilterProvider(query)),
       ),
       data: (items) {
         if (items.isEmpty) {
@@ -562,40 +724,25 @@ class _YearStep extends ConsumerWidget {
             manufacturerName: model.nameKo,
           );
         }
-        final modelRanges = buildVehicleModelRanges(items);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SectionHeader(title: '기준 연식 선택'),
+            const SectionHeader(title: '세대 선택'),
             const SizedBox(height: AppSpacing.sm),
-            VehicleModelRangePickerField(
-              model: model,
-              modelRanges: modelRanges,
-              onTap: () async {
-                final selected = await showVehicleModelRangePicker(
-                  context,
-                  model: model,
-                  modelRanges: modelRanges,
-                );
-                if (selected != null) {
-                  onSelected(selected);
-                }
-              },
+            Text(
+              '같은 모델이라도 세대에 따라 파워트레인과 리그 기준이 달라질 수 있어요.',
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.onSurfaceMuted),
             ),
-            const SizedBox(height: AppSpacing.sm),
-            Wrap(
-              spacing: AppSpacing.xs,
-              runSpacing: AppSpacing.xs,
-              children: [
-                StatusChip(
-                  label: '${modelRanges.length}개 연식',
-                  color: AppColors.neonGreen,
+            const SizedBox(height: AppSpacing.md),
+            ...items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                child: VehicleGenerationCard(
+                  summary: item,
+                  onTap: () => onSelected(item),
                 ),
-                StatusChip(
-                  label: '${modelRanges.first.label} 최신',
-                  color: AppColors.electricBlue,
-                ),
-              ],
+              ),
             ),
           ],
         );
@@ -606,145 +753,62 @@ class _YearStep extends ConsumerWidget {
 
 class _VariantStep extends ConsumerWidget {
   const _VariantStep({
-    required this.year,
+    required this.generation,
+    required this.fuelType,
+    required this.category,
     required this.keyword,
     required this.onSelected,
   });
 
-  final VehicleModelYear year;
+  final VehicleGeneration generation;
+  final String fuelType;
+  final VehicleCategoryFilter category;
   final String keyword;
-  final ValueChanged<VehicleVariant> onSelected;
+  final ValueChanged<VehiclePowertrainChoice> onSelected;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final variants = ref.watch(vehicleVariantsProvider(year.id));
-    return variants.when(
+    final query = VehiclePowertrainFilterQuery(
+      generationId: generation.id,
+      fuelType: fuelType,
+      category: category,
+      keyword: keyword,
+    );
+    final choices = ref.watch(vehiclePowertrainsByGenerationProvider(query));
+    return choices.when(
       loading: () => const LoadingSkeletonView(lines: 4),
       error: (error, stackTrace) => MappedErrorStateView(
         error: error,
-        onRetry: () => ref.invalidate(vehicleVariantsProvider(year.id)),
+        onRetry: () =>
+            ref.invalidate(vehiclePowertrainsByGenerationProvider(query)),
       ),
       data: (items) {
-        final normalized = keyword.trim().toLowerCase();
-        final filtered = items
-            .where((item) => _variantMatchesKeyword(item, normalized))
-            .toList();
-        if (filtered.isEmpty) {
+        if (items.isEmpty) {
           return const CustomVehicleRequestCard();
-        }
-        final groups = _groupVariantsByFuel(filtered);
-        final children = <Widget>[];
-        for (final group in groups) {
-          if (children.isNotEmpty) {
-            children.add(const SizedBox(height: AppSpacing.sm));
-          }
-          children
-            ..add(SectionHeader(title: group.label))
-            ..add(const SizedBox(height: AppSpacing.sm));
-          for (final item in group.variants) {
-            children.add(
-              Padding(
-                padding: const EdgeInsets.only(bottom: AppSpacing.md),
-                child: VehicleVariantCard(
-                    variant: item, onTap: () => onSelected(item)),
-              ),
-            );
-          }
         }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: children,
+          children: [
+            SectionHeader(
+              title:
+                  '${FuelLeague.nameForKey(fuelType).replaceAll(' 리그', '')} 파워트레인',
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            ...items.map(
+              (item) => Padding(
+                padding: const EdgeInsets.only(bottom: AppSpacing.md),
+                child: VehicleVariantCard(
+                  variant: item.representative,
+                  periodLabel: item.periodLabel,
+                  onTap: () => onSelected(item),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
   }
-}
-
-class _VehicleVariantGroup {
-  const _VehicleVariantGroup({
-    required this.label,
-    required this.variants,
-  });
-
-  final String label;
-  final List<VehicleVariant> variants;
-}
-
-List<_VehicleVariantGroup> _groupVariantsByFuel(List<VehicleVariant> variants) {
-  final grouped = <String, List<VehicleVariant>>{};
-  for (final variant in variants) {
-    final key = variant.fuelLeague.isEmpty
-        ? FuelLeague.keyForFuelType(variant.fuelType)
-        : variant.fuelLeague;
-    grouped.putIfAbsent(key, () => <VehicleVariant>[]).add(variant);
-  }
-
-  final entries = grouped.entries.toList()
-    ..sort((a, b) {
-      final byFuel = _fuelGroupOrder(a.key).compareTo(_fuelGroupOrder(b.key));
-      if (byFuel != 0) {
-        return byFuel;
-      }
-      return a.key.compareTo(b.key);
-    });
-
-  return entries.map((entry) {
-    final items = [...entry.value]..sort(_compareVehicleVariants);
-    return _VehicleVariantGroup(
-      label: _fuelGroupLabel(entry.key, items.first),
-      variants: items,
-    );
-  }).toList();
-}
-
-bool _variantMatchesKeyword(VehicleVariant variant, String normalized) {
-  if (normalized.isEmpty) {
-    return true;
-  }
-  final searchable = [
-    variant.trimName,
-    variant.engineName,
-    variant.fuelType,
-    variant.vehicleClass,
-    variant.transmission,
-    FuelLeague.nameForKey(variant.fuelLeague),
-    if (variant.displacementCc != null) '${variant.displacementCc}cc',
-    if (variant.officialEfficiency != null)
-      variant.officialEfficiency!.toStringAsFixed(1),
-  ].join(' ').toLowerCase();
-  return searchable.contains(normalized);
-}
-
-int _compareVehicleVariants(VehicleVariant a, VehicleVariant b) {
-  final bySortOrder = a.sortOrder.compareTo(b.sortOrder);
-  if (bySortOrder != 0) {
-    return bySortOrder;
-  }
-  return a.trimName.compareTo(b.trimName);
-}
-
-int _fuelGroupOrder(String key) {
-  return switch (key) {
-    'gasoline' => 10,
-    'hybrid' => 20,
-    'lpg' => 30,
-    'diesel' => 40,
-    'electric' => 50,
-    'plug_in_hybrid' => 60,
-    _ => 90,
-  };
-}
-
-String _fuelGroupLabel(String key, VehicleVariant sample) {
-  return switch (key) {
-    'gasoline' => '가솔린',
-    'hybrid' => '하이브리드(가솔린+전기)',
-    'lpg' => 'LPG',
-    'diesel' => '디젤',
-    'electric' => '전기차',
-    'plug_in_hybrid' => '플러그인 하이브리드',
-    _ => sample.fuelType.isEmpty ? '기타' : sample.fuelType,
-  };
 }
 
 class _ConfirmStep extends StatelessWidget {
@@ -830,6 +894,8 @@ class _CustomVehicleRequestScreenState
     extends ConsumerState<CustomVehicleRequestScreen> {
   late final TextEditingController _manufacturerController;
   final _modelController = TextEditingController();
+  final _generationNameController = TextEditingController();
+  final _generationCodeController = TextEditingController();
   final _yearController = TextEditingController(text: '2026');
   final _trimController = TextEditingController();
   final _nicknameController = TextEditingController();
@@ -846,6 +912,7 @@ class _CustomVehicleRequestScreenState
     '전기차',
     'LPG',
     '플러그인 하이브리드',
+    '수소전기차',
   ];
 
   static const _vehicleClasses = [
@@ -874,6 +941,8 @@ class _CustomVehicleRequestScreenState
   void dispose() {
     _manufacturerController.dispose();
     _modelController.dispose();
+    _generationNameController.dispose();
+    _generationCodeController.dispose();
     _yearController.dispose();
     _trimController.dispose();
     _nicknameController.dispose();
@@ -884,6 +953,8 @@ class _CustomVehicleRequestScreenState
   Future<void> _submit() async {
     final manufacturer = _manufacturerController.text.trim();
     final model = _modelController.text.trim();
+    final generationName = _generationNameController.text.trim();
+    final generationCode = _generationCodeController.text.trim();
     final year = int.tryParse(_yearController.text.trim());
     final trim = _trimController.text.trim();
     if (manufacturer.isEmpty || model.isEmpty || trim.isEmpty || year == null) {
@@ -903,6 +974,8 @@ class _CustomVehicleRequestScreenState
           .createCustomVehicleRequest(
             manufacturer: manufacturer,
             modelName: model,
+            generationName: generationName,
+            generationCode: generationCode,
             year: year,
             trimName: trim,
             fuelType: _fuelType,
@@ -972,6 +1045,24 @@ class _CustomVehicleRequestScreenState
                   decoration: const InputDecoration(
                     labelText: '모델',
                     prefixIcon: Icon(Icons.directions_car_rounded),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: _generationNameController,
+                  decoration: const InputDecoration(
+                    labelText: '세대명',
+                    hintText: '예: 7세대',
+                    prefixIcon: Icon(Icons.layers_rounded),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: _generationCodeController,
+                  decoration: const InputDecoration(
+                    labelText: '세대 코드',
+                    hintText: '예: CN7, G30',
+                    prefixIcon: Icon(Icons.tag_rounded),
                   ),
                 ),
                 const SizedBox(height: AppSpacing.md),
@@ -1180,20 +1271,27 @@ class VehicleSetupBreadcrumb extends StatelessWidget {
           label: selection.selectedManufacturer!.nameKo,
           step: VehicleSelectionStep.manufacturer
         ),
+      if (selection.selectedFuelType.isNotEmpty)
+        (label: selection.fuelTypeLabel, step: VehicleSelectionStep.fuelType),
+      if (!selection.selectedCategory.isAll)
+        (
+          label: selection.selectedCategory.label,
+          step: VehicleSelectionStep.category
+        ),
       if (selection.selectedModel != null)
         (
           label: selection.selectedModel!.nameKo,
           step: VehicleSelectionStep.model
         ),
-      if (selection.selectedYear != null)
+      if (selection.selectedGeneration != null)
         (
-          label: selection.selectedModelRangeDisplay,
-          step: VehicleSelectionStep.year
+          label: selection.selectedGeneration!.displayName,
+          step: VehicleSelectionStep.generation
         ),
       if (selection.selectedVariant != null)
         (
           label: selection.selectedVariant!.trimName,
-          step: VehicleSelectionStep.variant
+          step: VehicleSelectionStep.powertrain
         ),
     ];
     if (crumbs.isEmpty) {
@@ -1370,6 +1468,65 @@ class VehicleManufacturerCard extends StatelessWidget {
   }
 }
 
+class VehicleFuelTypeCard extends StatelessWidget {
+  const VehicleFuelTypeCard({
+    super.key,
+    required this.fuelType,
+    required this.onTap,
+  });
+
+  final String fuelType;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = _fuelTypeAccentColor(fuelType);
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: AppCard(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        borderColor: color.withValues(alpha: 0.24),
+        child: Row(
+          children: [
+            Container(
+              width: AppIconSize.lg,
+              height: AppIconSize.lg,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: color.withValues(alpha: 0.28)),
+              ),
+              child: Icon(_fuelTypeIcon(fuelType), color: color, size: 20),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    FuelLeague.nameForKey(fuelType).replaceAll(' 리그', ''),
+                    style: AppTypography.titleMedium,
+                  ),
+                  const SizedBox(height: AppSpacing.xs),
+                  Text(
+                    _fuelTypeCaption(fuelType),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTypography.bodyMedium
+                        .copyWith(color: AppColors.onSurfaceMuted),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.outline),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 class VehicleModelCard extends StatelessWidget {
   const VehicleModelCard({
     super.key,
@@ -1413,84 +1570,36 @@ class VehicleModelCard extends StatelessWidget {
   }
 }
 
-class VehicleModelRangeChoice {
-  const VehicleModelRangeChoice({
-    required this.sequence,
-    required this.years,
-  });
-
-  final int sequence;
-  final List<VehicleModelYear> years;
-
-  String get label => rangeLabel;
-  int get startYear =>
-      years.map((item) => item.year).reduce((a, b) => a < b ? a : b);
-  int get endYear =>
-      years.map((item) => item.year).reduce((a, b) => a > b ? a : b);
-  VehicleModelYear get representativeYear {
-    final sorted = [...years]..sort((a, b) => b.year.compareTo(a.year));
-    return sorted.first;
-  }
-
-  String get rangeLabel =>
-      startYear == endYear ? '$startYear년식' : '$startYear-$endYear년식';
-}
-
-List<VehicleModelRangeChoice> buildVehicleModelRanges(
-  List<VehicleModelYear> years,
-) {
-  if (years.isEmpty) {
-    return const [];
-  }
-  final sorted = [...years]..sort((a, b) => b.year.compareTo(a.year));
-  return [
-    for (var index = 0; index < sorted.length; index += 1)
-      VehicleModelRangeChoice(
-        sequence: index + 1,
-        years: [sorted[index]],
-      ),
-  ];
-}
-
-class VehicleModelRangePickerField extends StatelessWidget {
-  const VehicleModelRangePickerField({
+class VehicleModelSummaryCard extends StatelessWidget {
+  const VehicleModelSummaryCard({
     super.key,
-    required this.model,
-    required this.modelRanges,
+    required this.summary,
     required this.onTap,
   });
 
-  final VehicleModel model;
-  final List<VehicleModelRangeChoice> modelRanges;
+  final VehicleModelFilterSummary summary;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    final latest = modelRanges.first;
-    final oldest = modelRanges.last;
-    final supportedYears = latest.endYear == oldest.startYear
-        ? '${latest.endYear}년식 지원'
-        : '${oldest.startYear}-${latest.endYear}년식 지원';
+    final model = summary.model;
+    final samplePowertrains = summary.samplePowertrainLabels.join(' · ');
     return InkWell(
       borderRadius: BorderRadius.circular(12),
       onTap: onTap,
       child: AppCard(
-        borderColor: AppColors.neonGreen.withValues(alpha: 0.24),
         padding: const EdgeInsets.all(AppSpacing.md),
         child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Container(
-              width: 46,
-              height: 46,
-              decoration: BoxDecoration(
-                color: AppColors.neonGreen.withValues(alpha: 0.12),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.neonGreen.withValues(alpha: 0.24),
-                ),
+            const SizedBox(
+              width: AppIconSize.lg,
+              height: AppIconSize.lg,
+              child: Icon(
+                Icons.directions_car_filled_rounded,
+                color: AppColors.neonGreen,
+                size: AppIconSize.lg,
               ),
-              child: const Icon(Icons.calendar_month_rounded,
-                  color: AppColors.neonGreen),
             ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
@@ -1499,14 +1608,50 @@ class VehicleModelRangePickerField extends StatelessWidget {
                 children: [
                   Text(model.nameKo, style: AppTypography.titleMedium),
                   const SizedBox(height: AppSpacing.xs),
-                  Text('$supportedYears · 엔진/미션은 다음 단계',
+                  Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    children: [
+                      StatusChip(
+                        label: summary.yearRangeLabel,
+                        color: AppColors.electricBlue,
+                      ),
+                      StatusChip(
+                        label: '${summary.matchingPowertrainCount}개 파워트레인',
+                        color: AppColors.neonGreen,
+                      ),
+                    ],
+                  ),
+                  if (samplePowertrains.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      samplePowertrains,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                       style: AppTypography.bodyMedium
-                          .copyWith(color: AppColors.onSurfaceMuted)),
+                          .copyWith(color: AppColors.onSurfaceMuted),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.xs),
+                  Wrap(
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
+                    children: [
+                      ...summary.supportedVehicleClasses.take(2).map(
+                            (item) => VehicleClassBadge(vehicleClass: item),
+                          ),
+                      ...summary.supportedBodyTypes.take(1).map(
+                            (item) => StatusChip(
+                              label: item,
+                              color: AppColors.outline,
+                            ),
+                          ),
+                    ],
+                  ),
                 ],
               ),
             ),
-            const Icon(Icons.keyboard_arrow_down_rounded,
-                color: AppColors.outline),
+            const Icon(Icons.chevron_right_rounded, color: AppColors.outline),
           ],
         ),
       ),
@@ -1514,94 +1659,119 @@ class VehicleModelRangePickerField extends StatelessWidget {
   }
 }
 
-Future<VehicleModelRangeChoice?> showVehicleModelRangePicker(
-  BuildContext context, {
-  required VehicleModel model,
-  required List<VehicleModelRangeChoice> modelRanges,
-}) {
-  return showModalBottomSheet<VehicleModelRangeChoice>(
-    context: context,
-    useSafeArea: true,
-    backgroundColor: AppColors.surfaceLow,
-    barrierColor: Colors.black.withValues(alpha: 0.62),
-    constraints: const BoxConstraints(maxWidth: 430),
-    shape: const RoundedRectangleBorder(
-      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-    ),
-    builder: (context) {
-      final maxHeight = MediaQuery.sizeOf(context).height * 0.68;
-      return ConstrainedBox(
-        constraints: BoxConstraints(maxHeight: maxHeight),
+class VehicleGenerationCard extends StatelessWidget {
+  const VehicleGenerationCard({
+    super.key,
+    required this.summary,
+    required this.onTap,
+  });
+
+  final VehicleGenerationSummary summary;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final status = SourceStatus.fromKey(summary.sourceStatusSummary);
+    final generation = summary.generation;
+    final fuels = summary.supportedFuelTypes
+        .map((item) => FuelLeague.nameForKey(item).replaceAll(' 리그', ''))
+        .join(' · ');
+    return InkWell(
+      borderRadius: BorderRadius.circular(12),
+      onTap: onTap,
+      child: AppCard(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        borderColor: generation.isCurrent
+            ? AppColors.neonGreen.withValues(alpha: 0.24)
+            : AppColors.electricBlue.withValues(alpha: 0.16),
         child: Column(
-          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: AppSpacing.sm),
-            Container(
-              width: 42,
-              height: 4,
-              decoration: BoxDecoration(
-                color: AppColors.outline.withValues(alpha: 0.42),
-                borderRadius: BorderRadius.circular(99),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.md,
-                AppSpacing.md,
-                AppSpacing.md,
-                AppSpacing.sm,
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.calendar_month_rounded,
-                      color: AppColors.neonGreen),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(model.nameKo, style: AppTypography.titleMedium),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    generation.displayName,
+                    style: AppTypography.titleMedium,
                   ),
-                  IconButton(
-                    tooltip: '닫기',
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: const Icon(Icons.close_rounded),
-                  ),
-                ],
-              ),
-            ),
-            Divider(height: 1, color: Colors.white.withValues(alpha: 0.08)),
-            Flexible(
-              child: ListView.separated(
-                shrinkWrap: true,
-                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                itemCount: modelRanges.length,
-                separatorBuilder: (context, index) => Divider(
-                  height: 1,
-                  indent: 64,
-                  color: Colors.white.withValues(alpha: 0.06),
                 ),
-                itemBuilder: (context, index) {
-                  final item = modelRanges[index];
-                  return ListTile(
-                    leading: const Icon(Icons.event_available_rounded,
-                        color: AppColors.neonGreen),
-                    title: Text('${model.nameKo} ${item.label}',
-                        style: AppTypography.titleMedium),
-                    subtitle: Text(
-                      '옵션/트림 제외 · 엔진/미션 기준 파워트레인 선택',
-                      style: AppTypography.bodyMedium
-                          .copyWith(color: AppColors.onSurfaceMuted),
+                const Icon(Icons.chevron_right_rounded,
+                    color: AppColors.outline),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              generation.periodLabel,
+              style: AppTypography.bodyMedium
+                  .copyWith(color: AppColors.onSurfaceMuted),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.xs,
+              runSpacing: AppSpacing.xs,
+              children: [
+                if (generation.isCurrent)
+                  const StatusChip(
+                    label: '현재 판매 중',
+                    color: AppColors.neonGreen,
+                  ),
+                if (generation.isUpcoming)
+                  const StatusChip(
+                    label: '출시 예정',
+                    color: AppColors.amber,
+                  ),
+                if (fuels.isNotEmpty)
+                  StatusChip(label: fuels, color: AppColors.electricBlue),
+                ...summary.supportedVehicleClasses.take(2).map(
+                      (item) => VehicleClassBadge(vehicleClass: item),
                     ),
-                    trailing: const Icon(Icons.chevron_right_rounded,
-                        color: AppColors.outline),
-                    onTap: () => Navigator.of(context).pop(item),
-                  );
-                },
-              ),
+                StatusChip(
+                  label: '${summary.matchingPowertrainCount}개 파워트레인',
+                  color: AppColors.neonGreen,
+                ),
+                StatusChip(label: status.displayName, color: status.color),
+              ],
             ),
           ],
         ),
-      );
-    },
-  );
+      ),
+    );
+  }
+}
+
+IconData _fuelTypeIcon(String fuelType) {
+  return switch (fuelType) {
+    'electric' => Icons.electric_bolt_rounded,
+    'hydrogen' => Icons.water_drop_rounded,
+    'hybrid' || 'plug_in_hybrid' => Icons.energy_savings_leaf_rounded,
+    'diesel' => Icons.local_gas_station_rounded,
+    'lpg' => Icons.propane_tank_rounded,
+    _ => Icons.local_gas_station_rounded,
+  };
+}
+
+Color _fuelTypeAccentColor(String fuelType) {
+  return switch (fuelType) {
+    'electric' => AppColors.electricBlue,
+    'hydrogen' => AppColors.electricBlueSoft,
+    'hybrid' => AppColors.neonGreen,
+    'plug_in_hybrid' => AppColors.electricBlueSoft,
+    'lpg' => AppColors.amber,
+    'diesel' => AppColors.outline,
+    _ => AppColors.neonGreen,
+  };
+}
+
+String _fuelTypeCaption(String fuelType) {
+  return switch (fuelType) {
+    'electric' => '전기 파워트레인만 다음 단계에 표시됩니다.',
+    'hydrogen' => '수소전기 파워트레인만 다음 단계에 표시됩니다.',
+    'hybrid' => '하이브리드 파워트레인만 다음 단계에 표시됩니다.',
+    'plug_in_hybrid' => '플러그인 하이브리드만 다음 단계에 표시됩니다.',
+    'diesel' => '디젤 파워트레인만 다음 단계에 표시됩니다.',
+    'lpg' => 'LPG 파워트레인만 다음 단계에 표시됩니다.',
+    _ => '가솔린 파워트레인만 다음 단계에 표시됩니다.',
+  };
 }
 
 void _showSourceDetailBottomSheet(
@@ -1732,10 +1902,12 @@ class VehicleVariantCard extends StatelessWidget {
     super.key,
     required this.variant,
     required this.onTap,
+    this.periodLabel = '',
   });
 
   final VehicleVariant variant;
   final VoidCallback onTap;
+  final String periodLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -1775,6 +1947,14 @@ class VehicleVariantCard extends StatelessWidget {
             Text(variant.specSummary,
                 style: AppTypography.bodyMedium
                     .copyWith(color: AppColors.onSurfaceMuted)),
+            if (periodLabel.isNotEmpty) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                periodLabel,
+                style: AppTypography.dataUnit
+                    .copyWith(color: AppColors.electricBlue),
+              ),
+            ],
             const SizedBox(height: AppSpacing.md),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -1827,6 +2007,7 @@ class FuelLeagueBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = switch (fuelLeague) {
       'electric' => AppColors.electricBlue,
+      'hydrogen' => AppColors.electricBlueSoft,
       'hybrid' => AppColors.neonGreen,
       'diesel' => AppColors.outline,
       'lpg' => AppColors.amber,
@@ -1960,19 +2141,21 @@ class VehicleSetupProgressIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     final index = switch (step) {
       VehicleSelectionStep.manufacturer => 1,
-      VehicleSelectionStep.model => 2,
-      VehicleSelectionStep.year => 3,
-      VehicleSelectionStep.variant => 4,
-      VehicleSelectionStep.confirm => 4,
+      VehicleSelectionStep.fuelType => 2,
+      VehicleSelectionStep.category => 3,
+      VehicleSelectionStep.model => 4,
+      VehicleSelectionStep.generation => 5,
+      VehicleSelectionStep.powertrain => 6,
+      VehicleSelectionStep.confirm => 6,
     };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('$index / 4',
+        Text('$index / 6',
             style: AppTypography.dataUnit.copyWith(color: AppColors.neonGreen)),
         const SizedBox(height: AppSpacing.xs),
         LinearProgressIndicator(
-          value: index / 4,
+          value: index / 6,
           minHeight: 6,
           borderRadius: BorderRadius.circular(99),
           backgroundColor: AppColors.surfaceHighest,

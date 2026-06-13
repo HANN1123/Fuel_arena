@@ -53,6 +53,13 @@ class CheckFailure {
   String toString() => '$scope: $message';
 }
 
+String _readSource(File file) {
+  return file
+      .readAsStringSync()
+      .replaceAll('\r\n', '\n')
+      .replaceAll('\r', '\n');
+}
+
 void main() {
   final failures = <CheckFailure>[];
   var checkCount = 0;
@@ -137,7 +144,7 @@ void _validateSessionSignOutPrivacy(
     'app services file is missing',
   );
   if (servicesFile.existsSync()) {
-    final source = servicesFile.readAsStringSync();
+    final source = _readSource(servicesFile);
     for (final token in [
       'user?.onboardingCompleted',
       'user?.consentCompleted',
@@ -259,7 +266,7 @@ void _validateVehicleCatalogRuntimeFallback(
     'repository file is missing',
   );
   if (repositoryFile.existsSync()) {
-    final source = repositoryFile.readAsStringSync();
+    final source = _readSource(repositoryFile);
     check(
       repositoryFile.path,
       source.contains('variant-hyundai-avante-2026-gasoline') &&
@@ -310,7 +317,7 @@ void _validateProductionAuthConsentFallbackPolicy(
     'repository file is missing',
   );
   if (repositoryFile.existsSync()) {
-    final source = repositoryFile.readAsStringSync();
+    final source = _readSource(repositoryFile);
     for (final token in [
       'class UnavailableAuthRepository',
       'class UnavailableConsentRepository',
@@ -510,7 +517,7 @@ void _validateProfileSelfWriteHardening(
     'repository file is missing',
   );
   if (repositoryFile.existsSync()) {
-    final source = repositoryFile.readAsStringSync();
+    final source = _readSource(repositoryFile);
     final ensureProfileSection = _sectionBetween(
       source,
       'class SupabaseGoogleAuthRepository implements AuthRepository',
@@ -647,7 +654,7 @@ void _validateProductionVehicleCatalogFallbackPolicy(
     'repository file is missing',
   );
   if (repositoryFile.existsSync()) {
-    final source = repositoryFile.readAsStringSync();
+    final source = _readSource(repositoryFile);
     for (final token in [
       'class SupabaseVehicleCatalogRepository',
       'class SupabaseLeagueRepository',
@@ -760,9 +767,35 @@ void _validateVehicleModelRangeSelection(
     final source = modelFile.readAsStringSync();
     check(
       modelFile.path,
-      source.contains('selectedModelRangeLabel') &&
-          source.contains('selectedModelRangeDisplay'),
-      'vehicle selection state must preserve the selected model range label',
+      source.contains('class VehicleGeneration') &&
+          source.contains('class VehicleGenerationSummary') &&
+          source.contains('class VehiclePowertrainChoice') &&
+          source.contains('selectedGeneration') &&
+          source.contains('generation,') &&
+          source.contains('VehicleGenerationFilterQuery'),
+      'vehicle selection state must use generation-based selection models',
+    );
+    check(
+      modelFile.path,
+      source.contains('this.isVerified = false') &&
+          source.contains("this.sourceStatus = 'unverified'") &&
+          source.contains('json.containsKey(\'is_verified\')') &&
+          source.contains('hasVerifiedStatus'),
+      'vehicle variant JSON hydration must not treat source-less rows as verified',
+    );
+  }
+
+  final filterFile = File('lib/shared/domain/vehicle_selection_filters.dart');
+  check(filterFile.path, filterFile.existsSync(),
+      'vehicle selection filters missing');
+  if (filterFile.existsSync()) {
+    final source = _readSource(filterFile);
+    check(
+      filterFile.path,
+      source.contains(
+              'return variant.isSelectable && !variant.isDeprecated;') &&
+          !source.contains('return variant.isVerified && variant.isSelectable'),
+      'vehicle selectable filtering must be separated from verification status',
     );
   }
 
@@ -774,54 +807,66 @@ void _validateVehicleModelRangeSelection(
     'vehicle setup screen is missing',
   );
   if (screenFile.existsSync()) {
-    final source = screenFile.readAsStringSync();
+    final source = _readSource(screenFile);
     for (final token in [
-      'VehicleModelRangeChoice',
-      'buildVehicleModelRanges',
-      'VehicleModelRangePickerField',
-      'showVehicleModelRangePicker',
       'Future<void> _refreshVehicleSetupState',
       'invalidate(restoredSessionProvider)',
       '차량 설정을 저장하지 못했어요. 연결 상태를 확인하고 다시 시도해 주세요.',
       '차량 검토 요청을 접수하지 못했어요. 연결 상태를 확인하고 다시 시도해 주세요.',
-      'representativeYear',
-      'VehicleModelBodyTypeFilter',
-      '_modelBodyTypes',
-      "'3/4 기준 연식 선택'",
-      '기준 연식 선택',
-      '개 연식',
-      'vehicle_model_range_selected',
+      'VehicleFuelTypeCard',
+      'VehicleCategoryFilterChips',
+      'VehicleModelSummaryCard',
+      'VehicleGenerationCard',
+      '_GenerationStep',
+      'vehicleFuelTypesByManufacturerProvider',
+      'vehicleModelFilterProvider',
+      'vehicleGenerationsByFilterProvider',
+      'vehiclePowertrainsByGenerationProvider',
+      "'5/6 세대 선택'",
+      '세대 선택',
+      'vehicle_generation_selected',
+      'periodLabel',
     ]) {
       check(
         screenFile.path,
         source.contains(token),
-        'vehicle setup must use model range picker token $token',
+        'vehicle setup must use generation selection token $token',
       );
     }
     check(
       screenFile.path,
       !source.contains('VehicleYearPickerField') &&
           !source.contains('showVehicleYearPicker') &&
-          !source.contains('세대'),
-      'vehicle setup must not expose old year picker or generation labels',
+          !source.contains('VehicleModelRangePickerField') &&
+          !source.contains('showVehicleModelRangePicker') &&
+          !source.contains("'5/6 기준 연식 선택'"),
+      'vehicle setup must not expose old default year picker flow',
     );
   }
 
   final widgetTest = File('test/widget/flow_screens_test.dart');
   check(widgetTest.path, widgetTest.existsSync(), 'flow widget tests missing');
   if (widgetTest.existsSync()) {
-    final source = widgetTest.readAsStringSync();
+    final source = _readSource(widgetTest);
     check(
       widgetTest.path,
-      source.contains('year picker selects model year') &&
-          source.contains("expect(find.text('아반떼 2026년식')") &&
-          source.contains("expect(selected?.label, '2026년식')") &&
-          source.contains('representativeYear.year') &&
-          source.contains('filters models by body type') &&
-          source.contains('separates K3 GT by engine and transmission') &&
-          source.contains("expect(find.textContaining('세대'), findsNothing)") &&
-          source.contains("expect(find.text('1.6T 가솔린 DCT'), findsOneWidget)"),
-      'model year picker must have widget coverage',
+      source.contains('selects generation before powertrain') &&
+          source.contains("expect(find.text('7세대 CN7'), findsOneWidget)") &&
+          source.contains("expect(find.text('2020.4~현재'), findsOneWidget)") &&
+          source.contains(
+              "expect(find.textContaining('기준 연식 선택'), findsNothing)") &&
+          source.contains('filters models by fuel and variant category') &&
+          source.contains("expect(find.text('전기 SUV'), findsNothing)") &&
+          source.contains("expect(find.text('승용'), findsWidgets)") &&
+          source.contains('keeps K3 GT as a K3 trim') &&
+          source.contains("expect(find.text('K3 GT'), findsNothing)") &&
+          source.contains(
+              "expect(find.text('K3 GT 1.6T 가솔린 DCT'), findsOneWidget)") &&
+          source.contains(
+              'Admin generation catalog screens render audit workflows') &&
+          source.contains('Admin generation routes render for admin session') &&
+          source.contains('/admin/vehicle-generations/bmw'),
+      'generation picker must have widget coverage',
     );
     check(
       widgetTest.path,
@@ -834,6 +879,68 @@ void _validateVehicleModelRangeSelection(
       'vehicle setup save failures must have widget recovery coverage',
     );
   }
+
+  final routerFile = File('lib/app/router.dart');
+  check(routerFile.path, routerFile.existsSync(), 'app router is missing');
+  if (routerFile.existsSync()) {
+    final source = _readSource(routerFile);
+    for (final token in [
+      '/admin/vehicle-generations',
+      '/admin/vehicle-generations/import',
+      '/admin/vehicle-generations/quality',
+      '/admin/vehicle-generations/bmw',
+      'AdminVehicleGenerationScreen',
+      'AdminGenerationImportScreen',
+      'AdminGenerationQualityReportScreen',
+      'AdminBMWCatalogReviewScreen',
+    ]) {
+      check(
+        routerFile.path,
+        source.contains(token),
+        'admin generation router must keep token $token',
+      );
+    }
+  }
+
+  final adminGenerationFile =
+      File('lib/features/admin/presentation/admin_generation_screens.dart');
+  check(
+    adminGenerationFile.path,
+    adminGenerationFile.existsSync(),
+    'admin generation screens file is missing',
+  );
+  if (adminGenerationFile.existsSync()) {
+    final source = _readSource(adminGenerationFile);
+    for (final token in [
+      '차량 세대 관리',
+      '세대 데이터 가져오기',
+      '세대 품질 리포트',
+      'BMW 카탈로그 검토',
+      'source 없는 verified 데이터 차단',
+      'conflict/pending_review/deprecated 정리',
+      'import_vehicle_generations.dart',
+      'generate_catalog_quality_report.dart --fail-on-p0 --write-docs',
+      'docs/61_vehicle_catalog_coverage_report.md',
+      'docs/62_bmw_catalog_audit_matrix.md',
+    ]) {
+      check(
+        adminGenerationFile.path,
+        source.contains(token),
+        'admin generation screens must keep token $token',
+      );
+    }
+  }
+
+  final routeSmoke = File('tool/verify_web_core_routes.py');
+  check(
+    routeSmoke.path,
+    routeSmoke.existsSync() &&
+        routeSmoke.readAsStringSync().contains('/admin/vehicle-generations') &&
+        routeSmoke
+            .readAsStringSync()
+            .contains('/admin/vehicle-generations/bmw'),
+    'web core route smoke must include admin generation routes',
+  );
 }
 
 void _validateCustomVehicleReviewFlow(
@@ -972,7 +1079,7 @@ void _validateRuntimeConfigSafety(
   final configFile = File('lib/app/app_config.dart');
   check(configFile.path, configFile.existsSync(), 'app config file is missing');
   if (configFile.existsSync()) {
-    final source = configFile.readAsStringSync();
+    final source = _readSource(configFile);
     check(
       configFile.path,
       source.contains('bool get hasValidSupabaseUrl') &&

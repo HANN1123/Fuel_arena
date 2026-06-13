@@ -15,7 +15,13 @@ profiles는 `auth_provider`, `google_subject`, `onboarding_completed`, `consent_
 `app_consents`는 사용자별 현재 약관, 개인정보, 위치, 맞춤형 광고, 마케팅 동의 상태를 저장한다. 최초 필수 동의 화면과 설정의 광고 동의 화면은 `record_my_consent(jsonb)` RPC를 사용해 `app_consents`를 갱신하고, 각 consent type/version은 `consent_logs`에 append-only 감사 로그로 남긴다. 철회는 `revoke_my_consent(consent_type)` RPC로 기록한다.
 
 ## 차량 카탈로그
-vehicle_manufacturers → vehicle_models → vehicle_model_years → vehicle_variants 순서로 차량을 선택한다. variant는 판매 트림/휠 인치가 아니라 차종, 연식, 파워트레인 단위이며 user_vehicles는 사용자가 선택한 variant와 닉네임, 대표 차량 여부, 검증 상태, 연료 리그, 차급을 저장한다. 제조사 선택 카드는 `vehicle_manufacturer_catalog_view`의 `model_count`, `min_year`, `max_year`로 모델 수와 지원 연식 범위를 표시하고, variant 선택은 `vehicle_catalog_view`를 사용한다. 직접 입력 차량은 `custom_vehicle_requests.user_vehicle_id`로 검수 대상 `user_vehicles` row와 연결한다. `custom_vehicle_requests_self_insert` RLS는 `user_vehicle_id`를 필수로 요구하고 요청 사용자와 차량 소유자가 일치할 때만 연결 요청을 허용한다.
+vehicle_manufacturers → vehicle_models → vehicle_generations → vehicle_model_years → vehicle_variants 순서로 차량을 관리한다. 사용자 선택 UX는 제조사, 연료 타입, 넓은 범주, 모델, 세대, 파워트레인 순서이며, `vehicle_model_years`는 삭제하지 않고 세대와 파워트레인 사이의 backend 매핑 및 연식별 제원 차이 보조 선택에 사용한다.
+
+variant는 판매 트림/휠 인치가 아니라 차종, 세대/연식, 파워트레인 단위이며 user_vehicles는 사용자가 선택한 variant와 닉네임, 대표 차량 여부, 검증 상태, 연료 리그, 차급을 저장한다. 제조사 선택 카드는 `vehicle_manufacturer_catalog_view`의 `model_count`, `min_year`, `max_year`로 모델 수와 지원 연식 범위를 표시하고, 세대 필터는 `vehicle_generation_filter_view`, variant 선택은 `vehicle_catalog_view`를 사용한다. 직접 입력 차량은 `custom_vehicle_requests.user_vehicle_id`로 검수 대상 `user_vehicles` row와 연결한다. `custom_vehicle_requests_self_insert` RLS는 `user_vehicle_id`를 필수로 요구하고 요청 사용자와 차량 소유자가 일치할 때만 연결 요청을 허용한다.
+
+`vehicle_generations`는 세대명, 코드명, 판매 시작/종료, 검증 상태, 출처를 저장한다. `vehicle_generation_years`는 세대와 연식 row를 보조 연결하고, `vehicle_model_years.generation_id`와 `vehicle_variants.generation_id`는 빠른 필터링 경로로 사용한다. `source_status=verified_official` 또는 `verified_admin`인 세대는 `source_name`, `source_url`, `source_file_name` 중 하나가 필요하다.
+
+`vehicle_variants.is_verified`는 공식/관리자 출처 검증 완료 여부만 의미한다. 사용자 선택 가능 여부는 `is_selectable`과 `is_deprecated`로 판단한다. 따라서 출처가 없는 row는 선택 가능하더라도 `is_verified=false`, `source_status=unverified` 또는 `pending_review`로 남아야 한다. BMW처럼 전수 감사 전 오류 가능성이 큰 row는 `pending_review`, `is_selectable=false`로 차단한다.
 
 ## 리그
 fuel_leagues는 gasoline, diesel, hybrid, electric, lpg, plug_in_hybrid, other를 가진다. league_memberships는 대표 user_vehicle 기준의 활성 리그를 저장하며, rankings와 battles에도 fuel_league 조건을 보존한다.
