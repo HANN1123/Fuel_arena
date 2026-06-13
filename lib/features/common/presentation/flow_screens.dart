@@ -3021,6 +3021,12 @@ class _AdminContentState extends ConsumerState<_AdminContent> {
             icon: Icons.verified_user_rounded,
             onPressed: () => context.go('/admin/powertrain'),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          SecondaryButton(
+            label: '세대·Coverage·BMW 감사 열기',
+            icon: Icons.account_tree_rounded,
+            onPressed: () => context.go('/admin/vehicle-generations'),
+          ),
         ],
       ],
     );

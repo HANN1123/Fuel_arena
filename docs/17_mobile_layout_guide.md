@@ -28,6 +28,7 @@
 - app bar: `AppIconSize.sm`-`AppIconSize.md`
 - chip: `AppIconSize.xs`
 - card leading: `AppIconSize.md`-`AppIconSize.lg`
+- vehicle setup fuel/model/powertrain card leading: `AppIconSize.lg` 이하
 - manufacturer logo badge: `AppIconSize.xl`
 - empty state icon: `AppIconSize.hero`
 - hero reward icon: 최대 64
@@ -36,6 +37,7 @@
 - 일반 사용자 route에서 `maxWidth: null` 사용 금지.
 - 관리자 route가 아닌 곳에서 데스크톱 전체 폭 검색창 사용 금지.
 - 카드 안 아이콘 80px 이상 사용 금지.
+- 차량 설정 화면에서 데스크톱 폭에 맞춰 카드, 검색창, 아이콘을 키우는 것 금지. 사용자 앱은 계속 430px 모바일 폭 안에서 동작해야 한다.
 - `AppScaffold` 또는 메인 탭 화면에 중첩 `SafeArea`를 추가하는 것 금지.
 - 제조사 grid를 `childAspectRatio`만으로 제어하지 말고 `mainAxisExtent: AppCardSize.manufacturerHeight`를 사용한다.
 

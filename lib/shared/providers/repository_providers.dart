@@ -350,6 +350,26 @@ class VehicleManufacturerQuery {
   int get hashCode => Object.hash(keyword, country);
 }
 
+class VehicleFuelCategoryQuery {
+  const VehicleFuelCategoryQuery({
+    required this.manufacturerId,
+    required this.fuelType,
+  });
+
+  final String manufacturerId;
+  final String fuelType;
+
+  @override
+  bool operator ==(Object other) {
+    return other is VehicleFuelCategoryQuery &&
+        other.manufacturerId == manufacturerId &&
+        other.fuelType == fuelType;
+  }
+
+  @override
+  int get hashCode => Object.hash(manufacturerId, fuelType);
+}
+
 final vehicleManufacturersProvider =
     FutureProvider.family<List<VehicleManufacturer>, VehicleManufacturerQuery>(
         (ref, query) {
@@ -364,14 +384,71 @@ final vehicleModelsProvider =
   return ref.watch(vehicleCatalogRepositoryProvider).listModels(manufacturerId);
 });
 
+final vehicleFuelTypesByManufacturerProvider =
+    FutureProvider.family<List<String>, String>((ref, manufacturerId) {
+  return ref
+      .watch(vehicleCatalogRepositoryProvider)
+      .listFuelTypesByManufacturer(manufacturerId);
+});
+
+final vehicleCategoriesByFuelProvider = FutureProvider.family<
+    List<VehicleCategoryFilter>, VehicleFuelCategoryQuery>((ref, query) {
+  return ref
+      .watch(vehicleCatalogRepositoryProvider)
+      .listVehicleClassesByManufacturerAndFuelType(
+        query.manufacturerId,
+        query.fuelType,
+      );
+});
+
+final vehicleModelFilterProvider = FutureProvider.family<
+    List<VehicleModelFilterSummary>, VehicleModelFilterQuery>((ref, query) {
+  return ref.watch(vehicleCatalogRepositoryProvider).listModelsByFilter(query);
+});
+
 final vehicleYearsProvider =
     FutureProvider.family<List<VehicleModelYear>, String>((ref, modelId) {
   return ref.watch(vehicleCatalogRepositoryProvider).listYears(modelId);
 });
 
+final vehicleYearsByFilterProvider =
+    FutureProvider.family<List<VehicleModelYear>, VehicleYearFilterQuery>(
+        (ref, query) {
+  return ref.watch(vehicleCatalogRepositoryProvider).listYearsByFilter(query);
+});
+
+final vehicleGenerationsByFilterProvider = FutureProvider.family<
+    List<VehicleGenerationSummary>, VehicleGenerationFilterQuery>((ref, query) {
+  return ref
+      .watch(vehicleCatalogRepositoryProvider)
+      .listGenerationsByFilter(query);
+});
+
+final vehicleModelYearsByGenerationProvider =
+    FutureProvider.family<List<VehicleModelYear>, String>((ref, generationId) {
+  return ref
+      .watch(vehicleCatalogRepositoryProvider)
+      .listModelYearsByGeneration(generationId);
+});
+
 final vehicleVariantsProvider =
     FutureProvider.family<List<VehicleVariant>, String>((ref, modelYearId) {
   return ref.watch(vehicleCatalogRepositoryProvider).listVariants(modelYearId);
+});
+
+final vehiclePowertrainsByFilterProvider =
+    FutureProvider.family<List<VehicleVariant>, VehiclePowertrainFilterQuery>(
+        (ref, query) {
+  return ref
+      .watch(vehicleCatalogRepositoryProvider)
+      .listPowertrainsByFilter(query);
+});
+
+final vehiclePowertrainsByGenerationProvider = FutureProvider.family<
+    List<VehiclePowertrainChoice>, VehiclePowertrainFilterQuery>((ref, query) {
+  return ref
+      .watch(vehicleCatalogRepositoryProvider)
+      .listPowertrainsByGeneration(query);
 });
 
 final customVehicleReviewRequestsProvider =

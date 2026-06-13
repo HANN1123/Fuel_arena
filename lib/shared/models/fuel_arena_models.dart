@@ -414,6 +414,12 @@ class FuelLeague {
         fuelType: 'plug_in_hybrid',
         sortOrder: 60),
     FuelLeague(
+        key: 'hydrogen',
+        nameKo: '수소전기차 리그',
+        description: '수소전기차끼리 경쟁합니다.',
+        fuelType: 'hydrogen',
+        sortOrder: 70),
+    FuelLeague(
         key: 'other',
         nameKo: '기타 리그',
         description: '검증 대기 또는 기타 연료 타입입니다.',
@@ -435,6 +441,13 @@ class FuelLeague {
       'plugin_hybrid' ||
       '플러그인_하이브리드' =>
         'plug_in_hybrid',
+      'hydrogen' ||
+      'fuel_cell' ||
+      '수소' ||
+      '수소차' ||
+      '수소전기' ||
+      '수소전기차' =>
+        'hydrogen',
       _ => 'other',
     };
   }
@@ -557,27 +570,174 @@ class VehicleModelYear {
     required this.id,
     required this.modelId,
     required this.year,
+    this.generationId = '',
+    this.productionYearLabel = '',
   });
 
   final String id;
   final String modelId;
   final int year;
+  final String generationId;
+  final String productionYearLabel;
 
   factory VehicleModelYear.fromJson(Map<String, dynamic> json) {
     return VehicleModelYear(
       id: '${json['id'] ?? ''}',
       modelId: '${json['model_id'] ?? ''}',
       year: (json['year'] as num?)?.toInt() ?? DateTime.now().year,
+      generationId: '${json['generation_id'] ?? ''}',
+      productionYearLabel: '${json['production_year_label'] ?? ''}',
     );
   }
+}
+
+class VehicleGeneration {
+  const VehicleGeneration({
+    required this.id,
+    required this.modelId,
+    this.generationOrder,
+    required this.generationNameKo,
+    this.generationNameEn = '',
+    this.generationCode = '',
+    this.platformCode = '',
+    this.startYear,
+    this.startMonth,
+    this.endYear,
+    this.endMonth,
+    this.displayPeriod = '',
+    this.isCurrent = false,
+    this.isUpcoming = false,
+    this.marketRegion = 'KR',
+    this.sourceStatus = 'unverified',
+    this.confidenceScore = 0,
+    this.sourceName,
+    this.sourceUrl,
+    this.sourceFileName,
+    this.lastVerifiedAt,
+    this.isSelectable = true,
+    this.isDeprecated = false,
+    this.modelYearIds = const [],
+  });
+
+  final String id;
+  final String modelId;
+  final int? generationOrder;
+  final String generationNameKo;
+  final String generationNameEn;
+  final String generationCode;
+  final String platformCode;
+  final int? startYear;
+  final int? startMonth;
+  final int? endYear;
+  final int? endMonth;
+  final String displayPeriod;
+  final bool isCurrent;
+  final bool isUpcoming;
+  final String marketRegion;
+  final String sourceStatus;
+  final double confidenceScore;
+  final String? sourceName;
+  final String? sourceUrl;
+  final String? sourceFileName;
+  final DateTime? lastVerifiedAt;
+  final bool isSelectable;
+  final bool isDeprecated;
+  final List<String> modelYearIds;
+
+  factory VehicleGeneration.fromJson(Map<String, dynamic> json) {
+    final verified = json['is_verified'] == true;
+    return VehicleGeneration(
+      id: '${json['id'] ?? ''}',
+      modelId: '${json['model_id'] ?? ''}',
+      generationOrder: (json['generation_order'] as num?)?.toInt(),
+      generationNameKo:
+          '${json['generation_name_ko'] ?? json['generation_name'] ?? ''}',
+      generationNameEn: '${json['generation_name_en'] ?? ''}',
+      generationCode: '${json['generation_code'] ?? json['code_name'] ?? ''}',
+      platformCode: '${json['platform_code'] ?? ''}',
+      startYear: (json['start_year'] as num?)?.toInt() ??
+          (json['generation_start_year'] as num?)?.toInt(),
+      startMonth: (json['start_month'] as num?)?.toInt() ??
+          (json['generation_start_month'] as num?)?.toInt(),
+      endYear: (json['end_year'] as num?)?.toInt() ??
+          (json['generation_end_year'] as num?)?.toInt(),
+      endMonth: (json['end_month'] as num?)?.toInt() ??
+          (json['generation_end_month'] as num?)?.toInt(),
+      displayPeriod: '${json['display_period'] ?? ''}',
+      isCurrent: json['is_current'] == true,
+      isUpcoming: json['is_upcoming'] == true,
+      marketRegion: '${json['market_region'] ?? 'KR'}',
+      sourceStatus:
+          '${json['source_status'] ?? (verified ? 'verified_admin' : 'unverified')}',
+      confidenceScore: (json['confidence_score'] as num?)?.toDouble() ?? 0,
+      sourceName: json['source_name'] != null ? '${json['source_name']}' : null,
+      sourceUrl: json['source_url'] != null ? '${json['source_url']}' : null,
+      sourceFileName: json['source_file_name'] != null
+          ? '${json['source_file_name']}'
+          : null,
+      lastVerifiedAt: DateTime.tryParse('${json['last_verified_at'] ?? ''}'),
+      isSelectable: json['is_selectable'] != false,
+      isDeprecated: json['is_deprecated'] == true,
+      modelYearIds:
+          (json['model_year_ids'] as List?)?.map((item) => '$item').toList() ??
+              const [],
+    );
+  }
+
+  bool get hasSource {
+    return (sourceName != null && sourceName!.isNotEmpty) ||
+        (sourceUrl != null && sourceUrl!.isNotEmpty) ||
+        (sourceFileName != null && sourceFileName!.isNotEmpty);
+  }
+
+  String get displayName {
+    final name = generationNameKo.trim();
+    final code = generationCode.trim();
+    if (name.isEmpty && code.isEmpty) {
+      return '세대 정보 검토 중';
+    }
+    if (name.isEmpty || name.contains(code)) {
+      return name.isEmpty ? code : name;
+    }
+    if (code.isEmpty) {
+      return name;
+    }
+    return '$name $code';
+  }
+
+  String get periodLabel {
+    if (displayPeriod.trim().isNotEmpty) {
+      return displayPeriod.trim();
+    }
+    if (startYear == null && endYear == null) {
+      return isUpcoming ? '출시 예정' : '기간 정보 검토 중';
+    }
+    final start = _vehicleYearMonthLabel(startYear, startMonth);
+    final end = isUpcoming
+        ? '예정'
+        : isCurrent || endYear == null
+            ? '현재'
+            : _vehicleYearMonthLabel(endYear, endMonth);
+    if (start.isEmpty) {
+      return '~$end';
+    }
+    return '$start~$end';
+  }
+
+  String get displayLabel => '$displayName · $periodLabel';
 }
 
 class VehicleVariant {
   const VehicleVariant({
     required this.id,
     required this.modelYearId,
+    this.generationId = '',
+    this.manufacturerId = '',
+    this.modelId = '',
     required this.manufacturerName,
     required this.modelName,
+    this.generationName = '',
+    this.generationCode = '',
     required this.year,
     required this.trimName,
     this.engineName = '',
@@ -590,18 +750,32 @@ class VehicleVariant {
     this.efficiencyUnit = '',
     required this.vehicleClass,
     required this.fuelLeague,
-    this.isVerified = true,
+    this.bodyType = '',
+    this.marketSegment = '',
+    this.isVerified = false,
+    this.isSelectable = true,
+    this.isDeprecated = false,
     this.sortOrder = 0,
-    this.sourceStatus = 'unknown',
+    this.sourceStatus = 'unverified',
     this.sourceName,
     this.sourceUrl,
     this.confidenceScore,
+    this.validFromYear,
+    this.validToYear,
+    this.validFromMonth,
+    this.validToMonth,
+    this.appliesToYears = const [],
   });
 
   final String id;
   final String modelYearId;
+  final String generationId;
+  final String manufacturerId;
+  final String modelId;
   final String manufacturerName;
   final String modelName;
+  final String generationName;
+  final String generationCode;
   final int year;
   final String trimName;
   final String engineName;
@@ -614,20 +788,36 @@ class VehicleVariant {
   final String efficiencyUnit;
   final String vehicleClass;
   final String fuelLeague;
+  final String bodyType;
+  final String marketSegment;
   final bool isVerified;
+  final bool isSelectable;
+  final bool isDeprecated;
   final int sortOrder;
   final String sourceStatus;
   final String? sourceName;
   final String? sourceUrl;
   final double? confidenceScore;
+  final int? validFromYear;
+  final int? validToYear;
+  final int? validFromMonth;
+  final int? validToMonth;
+  final List<int> appliesToYears;
 
   factory VehicleVariant.fromJson(Map<String, dynamic> json) {
-    final isVerifiedVal = json['is_verified'] != false;
-    final defaultStatus =
-        isVerifiedVal ? 'verified_official' : 'pending_review';
+    final rawSourceStatus = '${json['source_status'] ?? ''}'.trim();
+    final hasVerifiedStatus = rawSourceStatus == 'verified_official' ||
+        rawSourceStatus == 'verified_admin';
+    final isVerifiedVal = json.containsKey('is_verified')
+        ? json['is_verified'] == true
+        : hasVerifiedStatus;
+    final defaultStatus = isVerifiedVal ? 'verified_admin' : 'unverified';
     return VehicleVariant(
       id: '${json['id'] ?? ''}',
       modelYearId: '${json['model_year_id'] ?? ''}',
+      generationId: '${json['generation_id'] ?? ''}',
+      manufacturerId: '${json['manufacturer_id'] ?? ''}',
+      modelId: '${json['model_id'] ?? ''}',
       manufacturerName:
           '${json['manufacturer_name'] ?? json['manufacturer'] ?? ''}',
       modelName: '${json['model_name'] ?? ''}',
@@ -644,12 +834,98 @@ class VehicleVariant {
       vehicleClass: '${json['vehicle_class'] ?? ''}',
       fuelLeague:
           '${json['fuel_league'] ?? FuelLeague.keyForFuelType('${json['fuel_type'] ?? ''}')}',
+      bodyType: '${json['body_type'] ?? ''}',
+      marketSegment: '${json['market_segment'] ?? ''}',
       isVerified: isVerifiedVal,
+      isSelectable: json['is_selectable'] != false,
+      isDeprecated: json['is_deprecated'] == true,
       sortOrder: (json['sort_order'] as num?)?.toInt() ?? 0,
-      sourceStatus: '${json['source_status'] ?? defaultStatus}',
+      sourceStatus: rawSourceStatus.isEmpty ? defaultStatus : rawSourceStatus,
       sourceName: json['source_name'] != null ? '${json['source_name']}' : null,
       sourceUrl: json['source_url'] != null ? '${json['source_url']}' : null,
       confidenceScore: (json['confidence_score'] as num?)?.toDouble(),
+      validFromYear: (json['valid_from_year'] as num?)?.toInt(),
+      validToYear: (json['valid_to_year'] as num?)?.toInt(),
+      validFromMonth: (json['valid_from_month'] as num?)?.toInt(),
+      validToMonth: (json['valid_to_month'] as num?)?.toInt(),
+      appliesToYears: (json['applies_to_years'] as List?)
+              ?.map((item) => (item as num).toInt())
+              .toList() ??
+          const [],
+    );
+  }
+
+  VehicleVariant copyWith({
+    String? id,
+    String? modelYearId,
+    String? generationId,
+    String? manufacturerId,
+    String? modelId,
+    String? manufacturerName,
+    String? modelName,
+    int? year,
+    String? trimName,
+    String? engineName,
+    String? fuelType,
+    int? displacementCc,
+    double? batteryKwh,
+    String? drivetrain,
+    String? transmission,
+    double? officialEfficiency,
+    String? efficiencyUnit,
+    String? vehicleClass,
+    String? fuelLeague,
+    String? bodyType,
+    String? marketSegment,
+    bool? isVerified,
+    bool? isSelectable,
+    bool? isDeprecated,
+    int? sortOrder,
+    String? sourceStatus,
+    String? sourceName,
+    String? sourceUrl,
+    double? confidenceScore,
+    int? validFromYear,
+    int? validToYear,
+    int? validFromMonth,
+    int? validToMonth,
+    List<int>? appliesToYears,
+  }) {
+    return VehicleVariant(
+      id: id ?? this.id,
+      modelYearId: modelYearId ?? this.modelYearId,
+      generationId: generationId ?? this.generationId,
+      manufacturerId: manufacturerId ?? this.manufacturerId,
+      modelId: modelId ?? this.modelId,
+      manufacturerName: manufacturerName ?? this.manufacturerName,
+      modelName: modelName ?? this.modelName,
+      year: year ?? this.year,
+      trimName: trimName ?? this.trimName,
+      engineName: engineName ?? this.engineName,
+      fuelType: fuelType ?? this.fuelType,
+      displacementCc: displacementCc ?? this.displacementCc,
+      batteryKwh: batteryKwh ?? this.batteryKwh,
+      drivetrain: drivetrain ?? this.drivetrain,
+      transmission: transmission ?? this.transmission,
+      officialEfficiency: officialEfficiency ?? this.officialEfficiency,
+      efficiencyUnit: efficiencyUnit ?? this.efficiencyUnit,
+      vehicleClass: vehicleClass ?? this.vehicleClass,
+      fuelLeague: fuelLeague ?? this.fuelLeague,
+      bodyType: bodyType ?? this.bodyType,
+      marketSegment: marketSegment ?? this.marketSegment,
+      isVerified: isVerified ?? this.isVerified,
+      isSelectable: isSelectable ?? this.isSelectable,
+      isDeprecated: isDeprecated ?? this.isDeprecated,
+      sortOrder: sortOrder ?? this.sortOrder,
+      sourceStatus: sourceStatus ?? this.sourceStatus,
+      sourceName: sourceName ?? this.sourceName,
+      sourceUrl: sourceUrl ?? this.sourceUrl,
+      confidenceScore: confidenceScore ?? this.confidenceScore,
+      validFromYear: validFromYear ?? this.validFromYear,
+      validToYear: validToYear ?? this.validToYear,
+      validFromMonth: validFromMonth ?? this.validFromMonth,
+      validToMonth: validToMonth ?? this.validToMonth,
+      appliesToYears: appliesToYears ?? this.appliesToYears,
     );
   }
 
@@ -675,7 +951,11 @@ class VehicleVariant {
     if (efficiencyUnit.isNotEmpty) {
       return efficiencyUnit;
     }
-    return fuelLeague == 'electric' ? 'km/kWh' : 'km/L';
+    return switch (fuelLeague) {
+      'electric' => 'km/kWh',
+      'hydrogen' => 'km/kg',
+      _ => 'km/L',
+    };
   }
 
   String get specSummary {
@@ -692,6 +972,16 @@ class VehicleVariant {
         : '${officialEfficiency!.toStringAsFixed(1)} $resolvedEfficiencyUnit';
     return '$power · $drivetrain · $efficiency';
   }
+}
+
+String _vehicleYearMonthLabel(int? year, int? month) {
+  if (year == null) {
+    return '';
+  }
+  if (month == null || month <= 0) {
+    return '$year';
+  }
+  return '$year.$month';
 }
 
 class UserVehicle {
@@ -770,6 +1060,8 @@ class CustomVehicleReviewRequest {
     required this.userVehicleId,
     required this.manufacturerName,
     required this.modelName,
+    this.generationName = '',
+    this.generationCode = '',
     required this.year,
     required this.trimName,
     required this.fuelType,
@@ -789,6 +1081,8 @@ class CustomVehicleReviewRequest {
   final String userVehicleId;
   final String manufacturerName;
   final String modelName;
+  final String generationName;
+  final String generationCode;
   final int year;
   final String trimName;
   final String fuelType;
@@ -802,8 +1096,14 @@ class CustomVehicleReviewRequest {
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
-  String get displayName =>
-      '$manufacturerName $modelName $year년식 $trimName'.trim();
+  String get displayName {
+    final generation = [generationName, generationCode]
+        .where((item) => item.trim().isNotEmpty)
+        .join(' ');
+    final generationLabel = generation.isEmpty ? '' : '$generation ';
+    return '$manufacturerName $modelName $generationLabel$year년식 $trimName'
+        .trim();
+  }
 
   CustomVehicleReviewRequest copyWith({
     String? status,
@@ -818,6 +1118,8 @@ class CustomVehicleReviewRequest {
       userVehicleId: userVehicleId,
       manufacturerName: manufacturerName,
       modelName: modelName,
+      generationName: generationName,
+      generationCode: generationCode,
       year: year,
       trimName: trimName,
       fuelType: fuelType,
@@ -856,18 +1158,298 @@ class LeagueMembership {
 
 enum VehicleSelectionStep {
   manufacturer,
+  fuelType,
+  category,
   model,
-  year,
-  variant,
+  generation,
+  powertrain,
   confirm,
+}
+
+enum VehicleCategoryFilterKind {
+  all,
+  vehicleClass,
+  bodyType,
+  usageCategory,
+}
+
+class VehicleCategoryFilter {
+  const VehicleCategoryFilter({
+    required this.key,
+    required this.label,
+    required this.kind,
+    this.value = '',
+  });
+
+  static const all = VehicleCategoryFilter(
+    key: 'all',
+    label: '전체',
+    kind: VehicleCategoryFilterKind.all,
+  );
+
+  final String key;
+  final String label;
+  final VehicleCategoryFilterKind kind;
+  final String value;
+
+  bool get isAll => kind == VehicleCategoryFilterKind.all;
+
+  @override
+  bool operator ==(Object other) {
+    return other is VehicleCategoryFilter &&
+        other.key == key &&
+        other.label == label &&
+        other.kind == kind &&
+        other.value == value;
+  }
+
+  @override
+  int get hashCode => Object.hash(key, label, kind, value);
+}
+
+class VehicleModelFilterQuery {
+  const VehicleModelFilterQuery({
+    required this.manufacturerId,
+    this.fuelType = '',
+    this.category = VehicleCategoryFilter.all,
+    this.keyword = '',
+  });
+
+  final String manufacturerId;
+  final String fuelType;
+  final VehicleCategoryFilter category;
+  final String keyword;
+
+  @override
+  bool operator ==(Object other) {
+    return other is VehicleModelFilterQuery &&
+        other.manufacturerId == manufacturerId &&
+        other.fuelType == fuelType &&
+        other.category == category &&
+        other.keyword == keyword;
+  }
+
+  @override
+  int get hashCode => Object.hash(manufacturerId, fuelType, category, keyword);
+}
+
+class VehicleYearFilterQuery {
+  const VehicleYearFilterQuery({
+    required this.modelId,
+    this.fuelType = '',
+    this.category = VehicleCategoryFilter.all,
+  });
+
+  final String modelId;
+  final String fuelType;
+  final VehicleCategoryFilter category;
+
+  @override
+  bool operator ==(Object other) {
+    return other is VehicleYearFilterQuery &&
+        other.modelId == modelId &&
+        other.fuelType == fuelType &&
+        other.category == category;
+  }
+
+  @override
+  int get hashCode => Object.hash(modelId, fuelType, category);
+}
+
+class VehicleGenerationFilterQuery {
+  const VehicleGenerationFilterQuery({
+    required this.modelId,
+    this.manufacturerId = '',
+    this.fuelType = '',
+    this.category = VehicleCategoryFilter.all,
+    this.keyword = '',
+  });
+
+  final String modelId;
+  final String manufacturerId;
+  final String fuelType;
+  final VehicleCategoryFilter category;
+  final String keyword;
+
+  @override
+  bool operator ==(Object other) {
+    return other is VehicleGenerationFilterQuery &&
+        other.modelId == modelId &&
+        other.manufacturerId == manufacturerId &&
+        other.fuelType == fuelType &&
+        other.category == category &&
+        other.keyword == keyword;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(modelId, manufacturerId, fuelType, category, keyword);
+}
+
+class VehiclePowertrainFilterQuery {
+  const VehiclePowertrainFilterQuery({
+    this.modelYearId = '',
+    this.generationId = '',
+    this.fuelType = '',
+    this.category = VehicleCategoryFilter.all,
+    this.keyword = '',
+  });
+
+  final String modelYearId;
+  final String generationId;
+  final String fuelType;
+  final VehicleCategoryFilter category;
+  final String keyword;
+
+  @override
+  bool operator ==(Object other) {
+    return other is VehiclePowertrainFilterQuery &&
+        other.modelYearId == modelYearId &&
+        other.generationId == generationId &&
+        other.fuelType == fuelType &&
+        other.category == category &&
+        other.keyword == keyword;
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(modelYearId, generationId, fuelType, category, keyword);
+}
+
+class VehicleGenerationModelYearsQuery {
+  const VehicleGenerationModelYearsQuery(this.generationId);
+
+  final String generationId;
+
+  @override
+  bool operator ==(Object other) {
+    return other is VehicleGenerationModelYearsQuery &&
+        other.generationId == generationId;
+  }
+
+  @override
+  int get hashCode => generationId.hashCode;
+}
+
+class VehicleModelFilterSummary {
+  const VehicleModelFilterSummary({
+    required this.model,
+    required this.matchingVariants,
+    this.supportedFuelTypes = const [],
+    this.supportedVehicleClasses = const [],
+    this.supportedBodyTypes = const [],
+    this.minYear = 0,
+    this.maxYear = 0,
+    this.samplePowertrainLabels = const [],
+  });
+
+  final VehicleModel model;
+  final List<VehicleVariant> matchingVariants;
+  final List<String> supportedFuelTypes;
+  final List<String> supportedVehicleClasses;
+  final List<String> supportedBodyTypes;
+  final int minYear;
+  final int maxYear;
+  final List<String> samplePowertrainLabels;
+
+  int get matchingPowertrainCount => matchingVariants.length;
+
+  int get verifiedPowertrainCount =>
+      matchingVariants.where((item) => item.isVerified).length;
+
+  String get yearRangeLabel {
+    if (minYear <= 0 || maxYear <= 0) {
+      return '지원 연식 확인';
+    }
+    if (minYear == maxYear) {
+      return '$maxYear년식';
+    }
+    return '$minYear-$maxYear년식';
+  }
+}
+
+class VehicleGenerationSummary {
+  const VehicleGenerationSummary({
+    required this.generation,
+    required this.modelYears,
+    required this.matchingVariants,
+    this.supportedFuelTypes = const [],
+    this.supportedVehicleClasses = const [],
+    this.supportedBodyTypes = const [],
+    this.matchingPowertrainCount = 0,
+    this.verifiedPowertrainCount = 0,
+    this.sourceStatusSummary = 'unverified',
+  });
+
+  final VehicleGeneration generation;
+  final List<VehicleModelYear> modelYears;
+  final List<VehicleVariant> matchingVariants;
+  final List<String> supportedFuelTypes;
+  final List<String> supportedVehicleClasses;
+  final List<String> supportedBodyTypes;
+  final int matchingPowertrainCount;
+  final int verifiedPowertrainCount;
+  final String sourceStatusSummary;
+
+  String get displayName => generation.displayName;
+  String get displayPeriod => generation.periodLabel;
+  bool get isCurrent => generation.isCurrent;
+  bool get isUpcoming => generation.isUpcoming;
+}
+
+class VehiclePowertrainChoice {
+  const VehiclePowertrainChoice({
+    required this.representative,
+    required this.variants,
+    required this.validFromYear,
+    required this.validToYear,
+    this.validFromMonth,
+    this.validToMonth,
+  });
+
+  final VehicleVariant representative;
+  final List<VehicleVariant> variants;
+  final int validFromYear;
+  final int validToYear;
+  final int? validFromMonth;
+  final int? validToMonth;
+
+  String get periodLabel {
+    final start = _vehicleYearMonthLabel(validFromYear, validFromMonth);
+    final end = validToYear >= DateTime.now().year
+        ? '현재'
+        : _vehicleYearMonthLabel(validToYear, validToMonth);
+    if (start == end) {
+      return '$start 적용';
+    }
+    return '$start~$end 적용';
+  }
+
+  String get sourceStatus {
+    if (variants.any((item) => item.sourceStatus == 'conflict')) {
+      return 'conflict';
+    }
+    if (variants.every((item) => item.sourceStatus == 'verified_official')) {
+      return 'verified_official';
+    }
+    if (variants.every((item) => item.sourceStatus == 'verified_admin')) {
+      return 'verified_admin';
+    }
+    if (variants.any((item) => !item.isVerified)) {
+      return 'pending_review';
+    }
+    return representative.sourceStatus;
+  }
 }
 
 class VehicleSelectionState {
   const VehicleSelectionState({
     this.selectedManufacturer,
+    this.selectedFuelType = '',
+    this.selectedCategory = VehicleCategoryFilter.all,
     this.selectedModel,
+    this.selectedGeneration,
     this.selectedYear,
-    this.selectedModelRangeLabel = '',
     this.selectedVariant,
     this.nickname = '',
     this.isPrimary = true,
@@ -875,51 +1457,65 @@ class VehicleSelectionState {
   });
 
   final VehicleManufacturer? selectedManufacturer;
+  final String selectedFuelType;
+  final VehicleCategoryFilter selectedCategory;
   final VehicleModel? selectedModel;
+  final VehicleGeneration? selectedGeneration;
   final VehicleModelYear? selectedYear;
-  final String selectedModelRangeLabel;
   final VehicleVariant? selectedVariant;
   final String nickname;
   final bool isPrimary;
   final VehicleSelectionStep currentStep;
 
-  String get selectedModelRangeDisplay {
-    if (selectedModelRangeLabel.isNotEmpty) {
-      return selectedModelRangeLabel;
-    }
-    return selectedYear == null ? '' : '${selectedYear!.year}년식';
-  }
-
   String get breadcrumb {
     final parts = [
       selectedManufacturer?.nameKo,
+      fuelTypeLabel,
+      selectedCategory.isAll ? null : selectedCategory.label,
       selectedModel?.nameKo,
-      if (selectedYear != null) selectedModelRangeDisplay,
+      selectedGeneration?.displayName,
       selectedVariant?.trimName,
     ].whereType<String>().where((value) => value.isNotEmpty);
     return parts.join(' > ');
   }
 
+  String get fuelTypeLabel {
+    if (selectedFuelType.isEmpty) {
+      return '';
+    }
+    return FuelLeague.nameForKey(selectedFuelType).replaceAll(' 리그', '');
+  }
+
   VehicleSelectionState copyWith({
     VehicleManufacturer? selectedManufacturer,
+    String? selectedFuelType,
+    VehicleCategoryFilter? selectedCategory,
     VehicleModel? selectedModel,
+    VehicleGeneration? selectedGeneration,
     VehicleModelYear? selectedYear,
-    String? selectedModelRangeLabel,
     VehicleVariant? selectedVariant,
     String? nickname,
     bool? isPrimary,
     VehicleSelectionStep? currentStep,
+    bool clearFuelType = false,
+    bool clearCategory = false,
     bool clearModel = false,
+    bool clearGeneration = false,
     bool clearYear = false,
     bool clearVariant = false,
   }) {
     return VehicleSelectionState(
       selectedManufacturer: selectedManufacturer ?? this.selectedManufacturer,
+      selectedFuelType:
+          clearFuelType ? '' : selectedFuelType ?? this.selectedFuelType,
+      selectedCategory: clearCategory
+          ? VehicleCategoryFilter.all
+          : selectedCategory ?? this.selectedCategory,
       selectedModel: clearModel ? null : selectedModel ?? this.selectedModel,
+      selectedGeneration: clearGeneration
+          ? null
+          : selectedGeneration ?? this.selectedGeneration,
       selectedYear: clearYear ? null : selectedYear ?? this.selectedYear,
-      selectedModelRangeLabel: clearYear
-          ? ''
-          : selectedModelRangeLabel ?? this.selectedModelRangeLabel,
       selectedVariant:
           clearVariant ? null : selectedVariant ?? this.selectedVariant,
       nickname: nickname ?? this.nickname,

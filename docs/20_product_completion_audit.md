@@ -101,10 +101,10 @@
 - mock vehicle catalog repository가 asset seed를 읽도록 보강.
 - `VehicleVariant.efficiencyUnit`과 전기차 `km/kWh` 표시 보강.
 - 차량 variant 선택 화면에서 verified catalog만 노출하도록 조정했다. placeholder `스탠다드/프리미엄 + 연료 타입` variant는 숨기고, 2008-2026 연식 전체를 판매 트림이 아닌 파워트레인 단위로 구조화했다. 휠 인치수와 스마트/모던/프레스티지 같은 판매 등급은 공식 리그 분류명에 포함하지 않는다.
-- 차량 기준 연식 선택은 연식 칩 그리드 대신 클릭 후 하단에서 펼쳐지는 피커/스크롤 리스트로 바꿨다. 사용자는 제조사와 K3/K3 GT 같은 모델·파생모델을 고른 뒤 기준 연식을 선택하고, 이후 1.6, 1.6 디젤, 1.6T, IVT, 7단 DCT ISG, 수동 6단처럼 엔진·미션 차이가 있는 파워트레인만 선택한다. 화면에는 `K3 세대` 같은 표현을 노출하지 않고, 모델명과 기준 연식, 파워트레인명만 보여준다.
+- 차량 선택은 기본적으로 연식 피커가 아니라 세대 선택을 거친다. 사용자는 제조사, 연료, 넓은 범주, 모델, 세대를 고른 뒤 1.6, 1.6 디젤, K3 GT 1.6T, IVT, 7단 DCT ISG, 수동 6단처럼 엔진·미션 차이가 있는 파워트레인을 선택한다. K3 GT는 별도 모델이 아니라 K3의 GT 트림/파워트레인으로 관리한다.
 - runtime fallback 차량 카탈로그와 mock 가입 테스트도 현재 아반떼 2026 파워트레인 ID로 맞췄고, product invariant validator가 오래된 `model-avante`, `variant-avante-2024-*`, 판매 트림형 아반떼 row의 재도입을 막는다.
 - `tool/validate_vehicle_catalog.dart`는 verified variant에 판매 트림명, 배기량/배터리 누락, 변속기/구동방식 누락이 있으면 실패한다. 공식 효율은 확인된 항목만 값으로 보유하고 미확인 항목은 null을 허용한다.
-- 차량 설정 widget test는 `기아 → K3 GT → 2024년식 → 1.6T 가솔린 DCT` 경로를 직접 검증하고, `세대`, `스마트`, `모던`, `인스퍼레이션`, `인치` 문구가 선택 축에 노출되지 않는지 확인한다.
+- 차량 설정 widget test는 `현대 → 가솔린 → 승용 → 아반떼 → 7세대 CN7 → 1.6 가솔린`과 `기아 → 가솔린 → 승용 → K3 → 2세대 BD → K3 GT 1.6T 가솔린 DCT` 경로를 검증한다.
 - 직접 입력 차량 제출 화면과 route 추가.
 - `custom_vehicle_requests` migration/RLS 추가.
 - `finish_drive_session` Edge Function 추가 및 주행 결과 화면과 Supabase repository 연결.

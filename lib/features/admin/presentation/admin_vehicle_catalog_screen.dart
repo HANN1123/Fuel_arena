@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart' hide Badge;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../core/errors/app_error.dart';
 import '../../../design_system/app_colors.dart';
@@ -177,17 +178,39 @@ class _CatalogToolingPanel extends StatelessWidget {
               command: 'dart run tool/validate_vehicle_catalog.dart',
             ),
           ),
+          _ToolCard(
+            title: '세대 관리',
+            body: '모델별 세대, 판매 기간, model_year 연결, 세대별 파워트레인 매핑을 검수합니다.',
+            icon: Icons.account_tree_rounded,
+            actionLabel: '세대 관리 열기',
+            onTap: () => context.go('/admin/vehicle-generations'),
+          ),
+          _ToolCard(
+            title: 'Coverage 리포트',
+            body: '제조사별 세대 누락, generation 연결 누락, BMW pending_review 상태를 확인합니다.',
+            icon: Icons.analytics_rounded,
+            actionLabel: '품질 리포트 열기',
+            onTap: () => context.go('/admin/vehicle-generations/quality'),
+          ),
+          _ToolCard(
+            title: 'BMW 감사',
+            body: 'BMW 모델/세대/파워트레인 조합은 공식 출처 확인 전까지 선택 불가 상태로 검수합니다.',
+            icon: Icons.manage_search_rounded,
+            actionLabel: 'BMW 감사 열기',
+            onTap: () => context.go('/admin/vehicle-generations/bmw'),
+          ),
         ];
         if (wide) {
-          return Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          return Wrap(
+            spacing: AppSpacing.md,
+            runSpacing: AppSpacing.md,
             children: cards
-                .map((card) => Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: AppSpacing.md),
-                        child: card,
-                      ),
-                    ))
+                .map(
+                  (card) => SizedBox(
+                    width: (constraints.maxWidth - AppSpacing.md * 2) / 3,
+                    child: card,
+                  ),
+                )
                 .toList(),
           );
         }
@@ -411,6 +434,8 @@ class _ReviewQueueCardState extends ConsumerState<_ReviewQueueCard> {
                 createdAt: request.createdAt,
                 metadata: {
                   'user_vehicle_id': request.userVehicleId,
+                  'generation_name': request.generationName,
+                  'generation_code': request.generationCode,
                   'fuel_league': request.fuelLeague,
                   'vehicle_class': request.vehicleClass,
                 },

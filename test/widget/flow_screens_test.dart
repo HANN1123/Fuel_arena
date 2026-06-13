@@ -7,6 +7,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:fuel_arena/app/app_config.dart';
 import 'package:fuel_arena/app/router.dart';
 import 'package:fuel_arena/features/auth/presentation/login_screen.dart';
+import 'package:fuel_arena/features/admin/presentation/admin_generation_screens.dart';
 import 'package:fuel_arena/features/admin/presentation/admin_vehicle_catalog_screen.dart';
 import 'package:fuel_arena/features/admin/presentation/admin_widgets.dart';
 import 'package:fuel_arena/features/onboarding/presentation/onboarding_screen.dart';
@@ -32,6 +33,7 @@ import 'package:fuel_arena/features/stats/presentation/stats_screen.dart';
 import 'package:fuel_arena/features/notifications/presentation/notifications_screen.dart';
 import 'package:fuel_arena/features/settings/presentation/settings_screen.dart';
 import 'package:fuel_arena/features/support/presentation/support_screens.dart';
+import 'package:fuel_arena/shared/domain/vehicle_selection_filters.dart';
 import 'package:fuel_arena/shared/models/fuel_arena_models.dart';
 import 'package:fuel_arena/shared/providers/repository_providers.dart';
 import 'package:fuel_arena/shared/repositories/fuel_arena_repositories.dart';
@@ -162,15 +164,6 @@ class _ImmediateVehicleCatalogRepository extends MockVehicleCatalogRepository {
       sortOrder: 10,
     ),
     VehicleModel(
-      id: 'model-kia-k3-gt-kr',
-      manufacturerId: 'm-kia',
-      nameKo: 'K3 GT',
-      nameEn: 'K3 GT',
-      bodyType: '고성능 해치백',
-      availableFuelTypes: ['가솔린'],
-      sortOrder: 11,
-    ),
-    VehicleModel(
       id: 'model-bmw-3series-test',
       manufacturerId: 'm-bmw',
       nameKo: '3시리즈',
@@ -187,6 +180,7 @@ class _ImmediateVehicleCatalogRepository extends MockVehicleCatalogRepository {
         id: 'year-hyundai-avante-test-$year',
         modelId: 'model-hyundai-avante-test',
         year: year,
+        generationId: 'generation-hyundai-avante-cn7-test',
       ),
     for (var year = 2026; year >= 2023; year -= 1)
       VehicleModelYear(
@@ -201,20 +195,174 @@ class _ImmediateVehicleCatalogRepository extends MockVehicleCatalogRepository {
         year: year,
       ),
     for (var year = 2024; year >= 2012; year -= 1)
-      VehicleModelYear(
-        id: 'year-kia-k3-$year',
-        modelId: 'model-kia-013-k3',
-        year: year,
-      ),
-    for (var year = 2024; year >= 2018; year -= 1)
-      VehicleModelYear(
-        id: 'year-kia-k3-gt-$year',
-        modelId: 'model-kia-k3-gt-kr',
-        year: year,
-      ),
+      if (year >= 2018)
+        VehicleModelYear(
+          id: 'year-kia-k3-$year',
+          modelId: 'model-kia-013-k3',
+          year: year,
+          generationId: 'generation-kia-k3-bd',
+        )
+      else
+        VehicleModelYear(
+          id: 'year-kia-k3-$year',
+          modelId: 'model-kia-013-k3',
+          year: year,
+        ),
+  ];
+
+  static const _generations = [
+    VehicleGeneration(
+      id: 'generation-hyundai-avante-cn7-test',
+      modelId: 'model-hyundai-avante-test',
+      generationOrder: 7,
+      generationNameKo: '7세대',
+      generationCode: 'CN7',
+      startYear: 2020,
+      startMonth: 4,
+      displayPeriod: '2020.4~현재',
+      isCurrent: true,
+      sourceStatus: 'unverified',
+      confidenceScore: 0.35,
+      modelYearIds: [
+        'year-hyundai-avante-test-2026',
+        'year-hyundai-avante-test-2025',
+        'year-hyundai-avante-test-2024',
+        'year-hyundai-avante-test-2023',
+      ],
+    ),
+    VehicleGeneration(
+      id: 'generation-kia-k3-bd',
+      modelId: 'model-kia-013-k3',
+      generationOrder: 2,
+      generationNameKo: '2세대',
+      generationCode: 'BD',
+      startYear: 2018,
+      startMonth: 2,
+      endYear: 2024,
+      displayPeriod: '2018.2~2024',
+      sourceStatus: 'verified_admin',
+      confidenceScore: 0.78,
+      modelYearIds: [
+        'year-kia-k3-2024',
+        'year-kia-k3-2023',
+        'year-kia-k3-2022',
+        'year-kia-k3-2021',
+        'year-kia-k3-2020',
+        'year-kia-k3-2019',
+        'year-kia-k3-2018',
+      ],
+    ),
   ];
 
   static const _variants = [
+    VehicleVariant(
+      id: 'variant-hyundai-avante-2024-16-gasoline',
+      modelYearId: 'year-hyundai-avante-test-2024',
+      manufacturerName: '현대',
+      modelName: '아반떼',
+      year: 2024,
+      trimName: '1.6 가솔린',
+      engineName: 'Smartstream G1.6',
+      fuelType: '가솔린',
+      displacementCc: 1598,
+      drivetrain: 'FWD',
+      transmission: 'IVT',
+      officialEfficiency: 15.0,
+      efficiencyUnit: 'km/L',
+      vehicleClass: '준중형',
+      fuelLeague: 'gasoline',
+      sortOrder: 10,
+    ),
+    VehicleVariant(
+      id: 'variant-hyundai-avante-2024-hybrid',
+      modelYearId: 'year-hyundai-avante-test-2024',
+      manufacturerName: '현대',
+      modelName: '아반떼',
+      year: 2024,
+      trimName: '1.6 하이브리드',
+      engineName: 'Smartstream G1.6 Hybrid',
+      fuelType: '하이브리드',
+      displacementCc: 1580,
+      drivetrain: 'FWD',
+      transmission: '6단 DCT',
+      officialEfficiency: 21.1,
+      efficiencyUnit: 'km/L',
+      vehicleClass: '준중형',
+      fuelLeague: 'hybrid',
+      sortOrder: 20,
+    ),
+    VehicleVariant(
+      id: 'variant-hyundai-kona-2024-20-gasoline',
+      modelYearId: 'year-hyundai-kona-test-2024',
+      manufacturerName: '현대',
+      modelName: '코나',
+      year: 2024,
+      trimName: '2.0 가솔린',
+      engineName: 'Smartstream G2.0',
+      fuelType: '가솔린',
+      displacementCc: 1999,
+      drivetrain: 'FWD',
+      transmission: 'IVT',
+      officialEfficiency: 13.6,
+      efficiencyUnit: 'km/L',
+      vehicleClass: '소형 SUV',
+      fuelLeague: 'gasoline',
+      sortOrder: 10,
+    ),
+    VehicleVariant(
+      id: 'variant-hyundai-kona-2024-hybrid',
+      modelYearId: 'year-hyundai-kona-test-2024',
+      manufacturerName: '현대',
+      modelName: '코나',
+      year: 2024,
+      trimName: '1.6 하이브리드',
+      engineName: 'Smartstream G1.6 Hybrid',
+      fuelType: '하이브리드',
+      displacementCc: 1580,
+      drivetrain: 'FWD',
+      transmission: '6단 DCT',
+      officialEfficiency: 19.8,
+      efficiencyUnit: 'km/L',
+      vehicleClass: '소형 SUV',
+      fuelLeague: 'hybrid',
+      sortOrder: 20,
+    ),
+    VehicleVariant(
+      id: 'variant-hyundai-kona-2024-electric',
+      modelYearId: 'year-hyundai-kona-test-2024',
+      manufacturerName: '현대',
+      modelName: '코나',
+      year: 2024,
+      trimName: '롱레인지 전기',
+      engineName: 'Permanent Magnet',
+      fuelType: '전기차',
+      batteryKwh: 64.8,
+      drivetrain: 'FWD',
+      transmission: '감속기',
+      officialEfficiency: 5.5,
+      efficiencyUnit: 'km/kWh',
+      vehicleClass: '소형 SUV',
+      fuelLeague: 'electric',
+      sortOrder: 30,
+    ),
+    VehicleVariant(
+      id: 'variant-hyundai-ioniq5-2024-electric',
+      modelYearId: 'year-hyundai-ioniq5-test-2024',
+      manufacturerName: '현대',
+      modelName: '아이오닉 5',
+      year: 2024,
+      trimName: '롱레인지 AWD',
+      engineName: 'Dual Motor',
+      fuelType: '전기차',
+      batteryKwh: 77.4,
+      drivetrain: 'AWD',
+      transmission: '감속기',
+      officialEfficiency: 4.8,
+      efficiencyUnit: 'km/kWh',
+      vehicleClass: '중형 SUV',
+      fuelLeague: 'electric',
+      sortOrder: 10,
+    ),
     VehicleVariant(
       id: 'variant-kia-k3-2024-16-ivt',
       modelYearId: 'year-kia-k3-2024',
@@ -235,11 +383,11 @@ class _ImmediateVehicleCatalogRepository extends MockVehicleCatalogRepository {
     ),
     VehicleVariant(
       id: 'variant-kia-k3-gt-2024-16t-7dct',
-      modelYearId: 'year-kia-k3-gt-2024',
+      modelYearId: 'year-kia-k3-2024',
       manufacturerName: '기아',
-      modelName: 'K3 GT',
+      modelName: 'K3',
       year: 2024,
-      trimName: '1.6T 가솔린 DCT',
+      trimName: 'K3 GT 1.6T 가솔린 DCT',
       engineName: 'Gamma 1.6 T-GDi',
       fuelType: '가솔린',
       displacementCc: 1591,
@@ -247,11 +395,37 @@ class _ImmediateVehicleCatalogRepository extends MockVehicleCatalogRepository {
       transmission: '7단 DCT',
       officialEfficiency: 12.1,
       efficiencyUnit: 'km/L',
-      vehicleClass: '스포츠',
+      vehicleClass: '준중형',
       fuelLeague: 'gasoline',
       sortOrder: 10,
     ),
   ];
+
+  static List<VehicleVariant> get _hydratedVariants {
+    final yearById = {for (final year in _years) year.id: year};
+    final modelById = {for (final model in _models) model.id: model};
+    return _variants.map((variant) {
+      final year = yearById[variant.modelYearId];
+      final model = year == null ? null : modelById[year.modelId];
+      return variant.copyWith(
+        generationId: year?.generationId ?? '',
+        manufacturerId: model?.manufacturerId ?? '',
+        modelId: model?.id ?? '',
+        bodyType: model?.bodyType ?? '',
+        marketSegment: deriveVehicleMarketSegment(model?.bodyType ?? ''),
+      );
+    }).toList();
+  }
+
+  static List<VehicleVariant> _variantsForManufacturer(String manufacturerId) {
+    return _hydratedVariants
+        .where((item) => item.manufacturerId == manufacturerId)
+        .toList();
+  }
+
+  static List<VehicleVariant> _variantsForModel(String modelId) {
+    return _hydratedVariants.where((item) => item.modelId == modelId).toList();
+  }
 
   @override
   Future<List<VehicleManufacturer>> listManufacturers({
@@ -288,15 +462,203 @@ class _ImmediateVehicleCatalogRepository extends MockVehicleCatalogRepository {
   }
 
   @override
+  Future<List<String>> listFuelTypesByManufacturer(String manufacturerId) {
+    return Future.value(
+      supportedFuelTypesFromVariants(_variantsForManufacturer(manufacturerId)),
+    );
+  }
+
+  @override
+  Future<List<VehicleCategoryFilter>>
+      listVehicleClassesByManufacturerAndFuelType(
+    String manufacturerId,
+    String fuelType,
+  ) {
+    return Future.value(
+      buildVehicleCategoryFilters(
+        _variantsForManufacturer(manufacturerId),
+        fuelType: fuelType,
+      ),
+    );
+  }
+
+  @override
+  Future<List<VehicleModelFilterSummary>> listModelsByFilter(
+    VehicleModelFilterQuery query,
+  ) {
+    final models = _models
+        .where((item) => item.manufacturerId == query.manufacturerId)
+        .toList();
+    final modelIds = models.map((item) => item.id).toSet();
+    final years =
+        _years.where((item) => modelIds.contains(item.modelId)).toList();
+    return Future.value(
+      buildVehicleModelFilterSummaries(
+        models: models,
+        years: years,
+        variants: _variantsForManufacturer(query.manufacturerId),
+        fuelType: query.fuelType,
+        category: query.category,
+        keyword: query.keyword,
+      ),
+    );
+  }
+
+  @override
   Future<List<VehicleModelYear>> listYears(String modelId) async {
     return _years.where((item) => item.modelId == modelId).toList()
       ..sort((a, b) => b.year.compareTo(a.year));
   }
 
   @override
+  Future<List<VehicleModelYear>> listYearsByFilter(
+    VehicleYearFilterQuery query,
+  ) {
+    final years =
+        _years.where((item) => item.modelId == query.modelId).toList();
+    return Future.value(
+      filterVehicleYearsByPowertrain(
+        years: years,
+        variants: _variantsForModel(query.modelId),
+        fuelType: query.fuelType,
+        category: query.category,
+      ),
+    );
+  }
+
+  @override
+  Future<List<VehicleGenerationSummary>> listGenerationsByFilter(
+    VehicleGenerationFilterQuery query,
+  ) {
+    final model = _models.firstWhere(
+      (item) => item.id == query.modelId,
+      orElse: () => VehicleModel(
+        id: query.modelId,
+        manufacturerId: query.manufacturerId,
+        nameKo: '',
+      ),
+    );
+    return Future.value(
+      buildVehicleGenerationSummaries(
+        model: model,
+        generations: _generations,
+        years: _years,
+        variants: _variantsForModel(query.modelId),
+        fuelType: query.fuelType,
+        category: query.category,
+        keyword: query.keyword,
+      ),
+    );
+  }
+
+  @override
+  Future<List<VehicleModelYear>> listModelYearsByGeneration(
+    String generationId,
+  ) async {
+    final generation = _generations.firstWhere(
+      (item) => item.id == generationId,
+      orElse: () => VehicleGeneration(
+        id: generationId,
+        modelId: '',
+        generationNameKo: '',
+      ),
+    );
+    final explicitYearIds = generation.modelYearIds.toSet();
+    return _years.where((year) {
+      return year.generationId == generationId ||
+          explicitYearIds.contains(year.id);
+    }).toList()
+      ..sort((a, b) => b.year.compareTo(a.year));
+  }
+
+  @override
   Future<List<VehicleVariant>> listVariants(String modelYearId) async {
-    return _variants.where((item) => item.modelYearId == modelYearId).toList()
+    return _hydratedVariants
+        .where((item) => item.modelYearId == modelYearId)
+        .toList()
       ..sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+  }
+
+  @override
+  Future<List<VehicleVariant>> listPowertrainsByFilter(
+    VehiclePowertrainFilterQuery query,
+  ) {
+    return Future.value(
+      filterVehiclePowertrains(
+        variants: _hydratedVariants
+            .where((item) => item.modelYearId == query.modelYearId)
+            .toList(),
+        fuelType: query.fuelType,
+        category: query.category,
+        keyword: query.keyword,
+      ),
+    );
+  }
+
+  @override
+  Future<List<VehiclePowertrainChoice>> listPowertrainsByGeneration(
+    VehiclePowertrainFilterQuery query,
+  ) {
+    final generation = _generations.firstWhere(
+      (item) => item.id == query.generationId,
+      orElse: () => VehicleGeneration(
+        id: query.generationId,
+        modelId: '',
+        generationNameKo: '',
+      ),
+    );
+    final variants = filterVehiclePowertrainsByGeneration(
+      generation: generation,
+      years: _years,
+      variants: _hydratedVariants,
+      fuelType: query.fuelType,
+      category: query.category,
+      keyword: query.keyword,
+    );
+    return Future.value(buildVehiclePowertrainChoices(variants));
+  }
+
+  @override
+  Future<VehicleGeneration?> inferGenerationByYear({
+    required String modelId,
+    required int year,
+  }) async {
+    for (final modelYear in _years) {
+      if (modelYear.modelId != modelId || modelYear.year != year) {
+        continue;
+      }
+      for (final generation in _generations) {
+        if (generation.modelId == modelId &&
+            (generation.id == modelYear.generationId ||
+                generation.modelYearIds.contains(modelYear.id))) {
+          return generation;
+        }
+      }
+    }
+    return null;
+  }
+
+  @override
+  Future<List<VehicleGenerationSummary>> searchGenerations(String keyword) {
+    final normalized = keyword.trim().toLowerCase();
+    if (normalized.isEmpty) {
+      return Future.value(const []);
+    }
+    final summaries = <VehicleGenerationSummary>[];
+    for (final model in _models) {
+      summaries.addAll(
+        buildVehicleGenerationSummaries(
+          model: model,
+          generations: _generations,
+          years: _years,
+          variants: _variantsForModel(model.id),
+          fuelType: '',
+          category: VehicleCategoryFilter.all,
+          keyword: normalized,
+        ),
+      );
+    }
+    return Future.value(summaries);
   }
 }
 
@@ -586,55 +948,42 @@ void main() {
     expect(find.textContaining('차량을 선택하면 리그가 자동으로 계산됩니다'), findsWidgets);
   });
 
-  testWidgets('VehicleSetupScreen year picker selects model year',
+  testWidgets('VehicleSetupScreen selects generation before powertrain',
       (tester) async {
-    VehicleModelRangeChoice? selected;
-    const model = VehicleModel(
-      id: 'model-hyundai-001-kr',
-      manufacturerId: 'm-hyundai',
-      nameKo: '아반떼',
-      bodyType: '세단',
-      availableFuelTypes: ['가솔린', '하이브리드', 'LPG'],
-    );
-    final years = [
-      for (var year = 2026; year >= 2008; year -= 1)
-        VehicleModelYear(
-          id: 'year-hyundai-001-kr-$year',
-          modelId: 'model-hyundai-001-kr',
-          year: year,
-        ),
-    ];
-
     await tester.pumpWidget(
-      MaterialApp(
-        theme: ThemeData.dark(useMaterial3: true),
-        home: Scaffold(
-          body: VehicleModelRangePickerField(
-            model: model,
-            modelRanges: buildVehicleModelRanges(years),
-            onTap: () async {
-              selected = await showVehicleModelRangePicker(
-                tester.element(find.byType(VehicleModelRangePickerField)),
-                model: model,
-                modelRanges: buildVehicleModelRanges(years),
-              );
-            },
+      ProviderScope(
+        overrides: [
+          vehicleCatalogRepositoryProvider.overrideWithValue(
+            const _ImmediateVehicleCatalogRepository(),
           ),
+        ],
+        child: MaterialApp(
+          theme: ThemeData.dark(useMaterial3: true),
+          home: const Scaffold(body: VehicleSetupScreen()),
         ),
       ),
     );
     await tester.pumpAndSettle();
 
-    await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded));
+    await tester.tap(find.text('현대').first);
     await tester.pumpAndSettle();
-    expect(find.text('아반떼 2026년식'), findsOneWidget);
-    expect(find.textContaining('2026년식'), findsWidgets);
-
-    await tester.tap(find.text('아반떼 2026년식'));
+    await tester.tap(find.text('가솔린').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('승용').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('아반떼').first);
     await tester.pumpAndSettle();
 
-    expect(selected?.label, '2026년식');
-    expect(selected?.representativeYear.year, 2026);
+    expect(find.text('세대 선택'), findsOneWidget);
+    expect(find.text('7세대 CN7'), findsOneWidget);
+    expect(find.text('2020.4~현재'), findsOneWidget);
+    expect(find.textContaining('기준 연식 선택'), findsNothing);
+
+    await tester.tap(find.text('7세대 CN7'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('1.6 가솔린'), findsOneWidget);
+    expect(find.textContaining('적용'), findsWidgets);
   });
 
   testWidgets('VehicleSetupScreen filters manufacturers by domestic/import',
@@ -668,7 +1017,8 @@ void main() {
     expect(find.text('현대'), findsNothing);
   });
 
-  testWidgets('VehicleSetupScreen filters models by body type', (tester) async {
+  testWidgets('VehicleSetupScreen filters models by fuel and variant category',
+      (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -687,23 +1037,44 @@ void main() {
     await tester.tap(find.text('현대').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('세단'), findsWidgets);
-    expect(find.text('SUV'), findsWidgets);
-    expect(find.text('아반떼'), findsWidgets);
-    expect(find.text('코나'), findsWidgets);
-    expect(find.text('아이오닉 5'), findsWidgets);
-    expect(find.textContaining('가솔린 · 하이브리드 · LPG'), findsWidgets);
+    expect(find.text('가솔린'), findsWidgets);
+    expect(find.text('하이브리드'), findsWidgets);
+    expect(find.text('전기차'), findsWidgets);
 
-    await tester.tap(find.text('SUV').first);
+    await tester.tap(find.text('가솔린').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('승용'), findsWidgets);
+    expect(find.text('SUV'), findsWidgets);
+
+    await tester.tap(find.text('승용').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('아반떼'), findsWidgets);
+    expect(find.text('코나'), findsNothing);
+    expect(find.text('아이오닉 5'), findsNothing);
+    expect(find.textContaining('1.6 가솔린'), findsWidgets);
+    expect(find.textContaining('1.6 하이브리드'), findsNothing);
+
+    await tester.tap(find.text('가솔린').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('전기차').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('전기 SUV'), findsNothing);
+    expect(find.text('EV'), findsWidgets);
+    expect(find.text('소형 SUV'), findsNothing);
+    expect(find.text('중형 SUV'), findsNothing);
+
+    await tester.tap(find.text('전체').first);
     await tester.pumpAndSettle();
 
     expect(find.text('코나'), findsWidgets);
+    expect(find.text('아이오닉 5'), findsWidgets);
     expect(find.text('아반떼'), findsNothing);
-    expect(find.text('아이오닉 5'), findsNothing);
   });
 
-  testWidgets('VehicleSetupScreen separates K3 GT by engine and transmission',
-      (tester) async {
+  testWidgets('VehicleSetupScreen keeps K3 GT as a K3 trim', (tester) async {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
@@ -722,27 +1093,26 @@ void main() {
     await tester.tap(find.text('기아').first);
     await tester.pumpAndSettle();
 
+    await tester.tap(find.text('가솔린').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('승용').first);
+    await tester.pumpAndSettle();
+
     expect(find.text('K3'), findsWidgets);
-    expect(find.text('K3 GT'), findsWidgets);
-    expect(find.textContaining('세대'), findsNothing);
+    expect(find.text('K3 GT'), findsNothing);
 
-    await tester.tap(find.text('K3 GT').first);
+    await tester.tap(find.text('K3').first);
     await tester.pumpAndSettle();
 
-    expect(find.text('기준 연식 선택'), findsWidgets);
-    expect(find.textContaining('세대'), findsNothing);
+    expect(find.text('세대 선택'), findsOneWidget);
+    expect(find.text('2세대 BD'), findsOneWidget);
+    expect(find.text('2018.2~2024'), findsOneWidget);
+    expect(find.text('기준 연식 선택'), findsNothing);
 
-    await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded));
+    await tester.tap(find.text('2세대 BD'));
     await tester.pumpAndSettle();
 
-    expect(find.text('K3 GT 2024년식'), findsOneWidget);
-    expect(find.textContaining('엔진/미션 기준 파워트레인 선택'), findsWidgets);
-    expect(find.textContaining('세대'), findsNothing);
-
-    await tester.tap(find.text('K3 GT 2024년식'));
-    await tester.pumpAndSettle();
-
-    expect(find.text('1.6T 가솔린 DCT'), findsOneWidget);
+    expect(find.text('K3 GT 1.6T 가솔린 DCT'), findsOneWidget);
     expect(find.textContaining('Gamma 1.6 T-GDi · 7단 DCT'), findsOneWidget);
     expect(find.textContaining('스마트'), findsNothing);
     expect(find.textContaining('모던'), findsNothing);
@@ -771,13 +1141,15 @@ void main() {
 
     await tester.tap(find.text('기아').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('K3 GT').first);
+    await tester.tap(find.text('가솔린').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.keyboard_arrow_down_rounded));
+    await tester.tap(find.text('승용').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('K3 GT 2024년식'));
+    await tester.tap(find.text('K3').first);
     await tester.pumpAndSettle();
-    await tester.tap(find.text('1.6T 가솔린 DCT'));
+    await tester.tap(find.text('2세대 BD'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('K3 GT 1.6T 가솔린 DCT'));
     await tester.pumpAndSettle();
 
     await tester.ensureVisible(find.text('이 차량으로 시작하기'));
@@ -821,9 +1193,11 @@ void main() {
     expect(find.text('차량 직접 입력'), findsOneWidget);
 
     await tester.enterText(find.byType(TextField).at(1), '테스트 모델');
-    await tester.enterText(find.byType(TextField).at(2), '2026');
-    await tester.enterText(find.byType(TextField).at(3), '1.6 테스트 파워트레인');
-    await tester.enterText(find.byType(TextField).at(4), '검토 차량');
+    await tester.enterText(find.byType(TextField).at(2), '테스트 세대');
+    await tester.enterText(find.byType(TextField).at(3), 'TEST');
+    await tester.enterText(find.byType(TextField).at(4), '2026');
+    await tester.enterText(find.byType(TextField).at(5), '1.6 테스트 파워트레인');
+    await tester.enterText(find.byType(TextField).at(6), '검토 차량');
     await tester.ensureVisible(find.text('검토 요청 제출'));
     await tester.tap(find.text('검토 요청 제출'));
     await tester.pumpAndSettle();
@@ -855,8 +1229,10 @@ void main() {
     await tester.pump(const Duration(seconds: 1));
 
     await tester.enterText(find.byType(TextField).at(1), '테스트 모델');
-    await tester.enterText(find.byType(TextField).at(2), '2026');
-    await tester.enterText(find.byType(TextField).at(3), '1.6 터보');
+    await tester.enterText(find.byType(TextField).at(2), '테스트 세대');
+    await tester.enterText(find.byType(TextField).at(3), 'TEST');
+    await tester.enterText(find.byType(TextField).at(4), '2026');
+    await tester.enterText(find.byType(TextField).at(5), '1.6 터보');
     await tester.ensureVisible(find.text('검토 요청 제출'));
     await tester.tap(find.text('검토 요청 제출'));
     await tester.pump();
@@ -2227,6 +2603,74 @@ void main() {
     expect(find.text('Admin Catalog'), findsNothing);
     expect(find.text('제조사 검색'), findsOneWidget);
     expect(find.text('CSV 가져오기'), findsOneWidget);
+    expect(find.text('세대 관리'), findsOneWidget);
+    expect(find.text('Coverage 리포트'), findsOneWidget);
+    expect(find.text('BMW 감사'), findsOneWidget);
+  });
+
+  testWidgets('Admin generation catalog screens render audit workflows',
+      (tester) async {
+    await tester.pumpWidget(_wrap(const AdminVehicleGenerationScreen()));
+    await tester.pump();
+
+    expect(find.text('차량 세대 관리'), findsWidgets);
+    expect(find.text('세대별 model_year 매핑'), findsOneWidget);
+    expect(find.text('세대별 파워트레인 연결 상태'), findsOneWidget);
+
+    await tester.pumpWidget(_wrap(const AdminGenerationQualityReportScreen()));
+    await tester.pump();
+
+    expect(find.text('세대 품질 리포트'), findsWidgets);
+    expect(find.text('세대 없는 모델'), findsOneWidget);
+    expect(find.text('검증 출처 없는 verified 데이터'), findsOneWidget);
+
+    await tester.pumpWidget(_wrap(const AdminBMWCatalogReviewScreen()));
+    await tester.pump();
+
+    expect(find.text('BMW 카탈로그 검토'), findsWidgets);
+    expect(find.text('electric/PHEV/ICE fuelLeague 점검'), findsOneWidget);
+    expect(find.text('conflict/pending_review/deprecated 정리'), findsOneWidget);
+  });
+
+  testWidgets('Admin generation routes render for admin session',
+      (tester) async {
+    await tester.binding.setSurfaceSize(const Size(1440, 1200));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
+    const routes = [
+      _RouteSmokeCase('/admin/vehicle-generations', '차량 세대 관리'),
+      _RouteSmokeCase('/admin/vehicle-generations/import', '세대 데이터 가져오기'),
+      _RouteSmokeCase('/admin/vehicle-generations/quality', '세대 품질 리포트'),
+      _RouteSmokeCase('/admin/vehicle-generations/bmw', 'BMW 카탈로그 검토'),
+    ];
+
+    for (final route in routes) {
+      resetMockFuelArenaState(withPrimaryVehicle: true);
+      final router = createAppRouter(initialLocation: route.location);
+
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            appConfigProvider.overrideWithValue(AppConfig.devMock()),
+            restoredSessionProvider
+                .overrideWith((ref) async => _sessionState()),
+          ],
+          child: MaterialApp.router(
+            theme: ThemeData.dark(useMaterial3: true),
+            routerConfig: router,
+          ),
+        ),
+      );
+      await tester.pump(const Duration(seconds: 1));
+      await tester.pumpAndSettle(const Duration(milliseconds: 100));
+
+      expect(tester.takeException(), isNull, reason: route.location);
+      expect(find.text(route.expectedText), findsWidgets);
+
+      router.dispose();
+      await tester.pumpWidget(const SizedBox.shrink());
+      await tester.pump();
+    }
   });
 
   testWidgets('AdminVehicleCatalogScreen renders custom vehicle review queue',
@@ -2632,6 +3076,8 @@ class _FailingVehicleCatalogRepository extends MockVehicleCatalogRepository {
   Future<UserVehicle> createCustomVehicleRequest({
     required String manufacturer,
     required String modelName,
+    String generationName = '',
+    String generationCode = '',
     required int year,
     required String trimName,
     required String fuelType,

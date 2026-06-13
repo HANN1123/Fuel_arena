@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 
 import 'auth_required_route.dart';
 import '../features/ads/presentation/reward_ad_screen.dart';
+import '../features/admin/presentation/admin_generation_screens.dart';
 import '../features/admin/presentation/admin_vehicle_catalog_screen.dart';
 import '../features/admin/presentation/admin_powertrain_screens.dart';
 import '../features/auth/presentation/login_screen.dart';
@@ -410,6 +411,27 @@ GoRouter createAppRouter({String initialLocation = '/splash'}) {
         path: '/admin/vehicles',
         builder: (context, state) =>
             const AdminRequiredRoute(child: AdminVehicleCatalogScreen()),
+      ),
+      GoRoute(
+        path: '/admin/vehicle-generations',
+        builder: (context, state) =>
+            const AdminRequiredRoute(child: AdminVehicleGenerationScreen()),
+      ),
+      GoRoute(
+        path: '/admin/vehicle-generations/import',
+        builder: (context, state) =>
+            const AdminRequiredRoute(child: AdminGenerationImportScreen()),
+      ),
+      GoRoute(
+        path: '/admin/vehicle-generations/quality',
+        builder: (context, state) => const AdminRequiredRoute(
+          child: AdminGenerationQualityReportScreen(),
+        ),
+      ),
+      GoRoute(
+        path: '/admin/vehicle-generations/bmw',
+        builder: (context, state) =>
+            const AdminRequiredRoute(child: AdminBMWCatalogReviewScreen()),
       ),
       GoRoute(
         path: '/admin/powertrain',
